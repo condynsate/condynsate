@@ -43,7 +43,7 @@ First clone the repository:
 
 .. code-block:: console
 
-   git clone https://github.com/GrayKS3248/condynsate.git
+   git clone https://github.com/condynsate/condynsate.git
    cd condynsate
 
 We strongly reccomend installing in a virtual environment:

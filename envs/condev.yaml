@@ -5,20 +5,21 @@ channels:
 dependencies: 
   - git
   - pip
+  - nbsphinx
+  - numpydoc
+  - sphinx
+  - sphinx-rtd-theme
+  - spyder
+  - twine
   - pip: 
     - autoclasstoc
     - matplotlib
     - meshcat
     - notebook
-    - nbsphinx
     - numpy
-    - numpydoc
     - opencv-python
     - pybullet
     - pynput
     - scipy
-    - Sphinx
-    - sphinx-rtd-theme
-    - spyder
+    - sphinx-collections
     - sympy
-    - twine    
