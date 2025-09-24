@@ -16,48 +16,48 @@ Coming soon!
 ### PyPi
 A C++ compiler for C++ 2003 is needed. On Windows, we recommend using the Desktop development with C++ workload for [Microsoft C++ Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/). Additionally, [python>=3.8](https://www.python.org/) and [pip](https://pip.pypa.io/en/stable/) are also required. We strongly recommend installing condynsate in a virtual environment:
 
-```console
-python -m venv .venv
-.venv\Scripts\activate.bat
+```powershell
+C:\Users\username> python -m venv .venv
+C:\Users\username> .venv\Scripts\activate.bat
 ```
 
 To install:
 
-```console
-(.venv) pip install condynsate
+```powershell
+(.venv) C:\Users\username> pip install condynsate
 ```
 
 When done, to deactivate the virtual environment:
 
-```console
-(.venv) deactivate
+```powershell
+(.venv) C:\Users\username> deactivate
 ```
 
 ### Source
 A C++ compiler for C++ 2003 is needed. On Windows, we recommend using the Desktop development with C++ workload for [Microsoft C++ Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/). Additionally, [python>=3.8](https://www.python.org/), [pip](https://pip.pypa.io/en/stable/), and [git](https://git-scm.com/) are also required. We strongly recommend installing condynsate in a virtual environment:
 
 ```powershell
-C:\Users\username>python -m venv .venv
-C:\Users\username>.venv\Scripts\activate.bat
+C:\Users\username> python -m venv .venv
+C:\Users\username> .venv\Scripts\activate.bat
 ```
 
 To clone the repository:
 
 ```powershell
-(.venv) C:\Users\username>git clone https://github.com/condynsate/condynsate.git
+(.venv) C:\Users\username> git clone https://github.com/condynsate/condynsate.git
 ```
 
 To install:
 
 ```powershell
-(.venv) C:\Users\username>cd condynsate
-(.venv) C:\Users\username>pip install -e .
+(.venv) C:\Users\username> cd condynsate
+(.venv) C:\Users\username> pip install -e .
 ```
 
 When done, to deactivate the virtual environment:
 
 ```powershell
-(.venv) C:\Users\username>deactivate
+(.venv) C:\Users\username> deactivate
 ```
 
 ## MacOS
