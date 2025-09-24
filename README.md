@@ -10,10 +10,8 @@ Built on [PyBullet](https://pybullet.org/wordpress/), [MeshCat](https://github.c
 
 # Installation
 ## Windows
-### Conda (Recommended)
-Coming soon!
 
-### PyPi
+### PyPi (Recommended)
 A C++ compiler for C++ 2003 is needed. On Windows, we recommend using the Desktop development with C++ workload for [Microsoft C++ Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/). Additionally, [python>=3.8](https://www.python.org/) and [pip](https://pip.pypa.io/en/stable/) are also required. We strongly recommend installing condynsate in a virtual environment:
 
 ```powershell
@@ -61,17 +59,15 @@ When done, to deactivate the virtual environment:
 ```
 
 ## MacOS
-### Conda (Recommended)
+### PyPi (Recommended)
 Coming soon!
-### PyPi
-Coming soon!
+
 ### Source
 Coming soon!
 
 ## Linux
-### Conda (Recommended)
+### PyPi (Recommended)
 Coming soon!
-### PyPi
-Coming soon!
+
 ### Source
 Coming soon!
