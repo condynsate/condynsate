@@ -95,40 +95,34 @@
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
 <section id="windows">
 <h2>Windows<a class="headerlink" href="#windows" title="Link to this heading"></a></h2>
+<p>A C++ compiler for C++ 2003 is needed. We recommend using the Desktop development with C++ workload for <a class="reference external" href="https://visualstudio.microsoft.com/visual-cpp-build-tools/">Microsoft C++ Build Tools 2022</a>.</p>
+<p>Additionally, we strongly recommend installing condynsate in a virtual environment:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">C:\Users\username&gt; python -m venv .venv</span>
+<span class="go">C:\Users\username&gt; .venv\Scripts\activate.bat</span>
+</pre></div>
+</div>
+<p>When done installing and using condynsate, deactivate the virtual environment with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="go">C:\Users\username&gt; deactivate</span>
+</pre></div>
+</div>
 <section id="from-pypi-recommended">
 <h3><strong>From PyPi (Recommended)</strong><a class="headerlink" href="#from-pypi-recommended" title="Link to this heading"></a></h3>
-<p>A C++ compiler for C++ 2003 is needed. On Windows, we recommend using the Desktop development with C++ workload for <a class="reference external" href="https://visualstudio.microsoft.com/visual-cpp-build-tools/">Microsoft C++ Build Tools 2022</a>. Additionally, <a class="reference external" href="https://www.python.org/">python&gt;=3.8</a> and <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a> are also required. We strongly recommend installing condynsate in a virtual environment:</p>
-<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="n">C</span><span class="p">:\</span><span class="n">Users</span><span class="p">\</span><span class="n">username</span><span class="p">&gt;</span> <span class="n">python</span> <span class="n">-m</span> <span class="n">venv</span> <span class="p">.</span><span class="n">venv</span>
-<span class="n">C</span><span class="p">:\</span><span class="n">Users</span><span class="p">\</span><span class="n">username</span><span class="p">&gt;</span> <span class="p">.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">activate</span><span class="p">.</span><span class="n">bat</span>
-</pre></div>
-</div>
-<p>To install:</p>
-<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="p">(.</span><span class="n">venv</span><span class="p">)</span> <span class="n">C</span><span class="p">:\</span><span class="n">Users</span><span class="p">\</span><span class="n">username</span><span class="p">&gt;</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">condynsate</span>
-</pre></div>
-</div>
-<p>When done, to deactivate the virtual environment:</p>
-<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="p">(.</span><span class="n">venv</span><span class="p">)</span> <span class="n">C</span><span class="p">:\</span><span class="n">Users</span><span class="p">\</span><span class="n">username</span><span class="p">&gt;</span> <span class="n">deactivate</span>
+<p><a class="reference external" href="https://www.python.org/">python&gt;=3.8</a> and <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a> are required.</p>
+<p>To install condynsate:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="go">C:\Users\username&gt; pip install condynsate</span>
 </pre></div>
 </div>
 </section>
 <section id="from-source">
 <h3>From Source<a class="headerlink" href="#from-source" title="Link to this heading"></a></h3>
-<p>A C++ compiler for C++ 2003 is needed. On Windows, we recommend using the Desktop development with C++ workload for <a class="reference external" href="https://visualstudio.microsoft.com/visual-cpp-build-tools/">Microsoft C++ Build Tools 2022</a>. Additionally, <a class="reference external" href="https://www.python.org/">python&gt;=3.8</a>, <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>, and <a class="reference external" href="https://git-scm.com/">git</a> are also required. We strongly recommend installing condynsate in a virtual environment:</p>
-<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="n">C</span><span class="p">:\</span><span class="n">Users</span><span class="p">\</span><span class="n">username</span><span class="p">&gt;</span> <span class="n">python</span> <span class="n">-m</span> <span class="n">venv</span> <span class="p">.</span><span class="n">venv</span>
-<span class="n">C</span><span class="p">:\</span><span class="n">Users</span><span class="p">\</span><span class="n">username</span><span class="p">&gt;</span> <span class="p">.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">activate</span><span class="p">.</span><span class="n">bat</span>
-</pre></div>
-</div>
+<p><a class="reference external" href="https://www.python.org/">python&gt;=3.8</a>, <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>, and <a class="reference external" href="https://git-scm.com/">git</a> are required.</p>
 <p>To clone the repository:</p>
-<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="p">(.</span><span class="n">venv</span><span class="p">)</span> <span class="n">C</span><span class="p">:\</span><span class="n">Users</span><span class="p">\</span><span class="n">username</span><span class="p">&gt;</span> <span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">://</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="p">/</span><span class="n">condynsate</span><span class="p">/</span><span class="n">condynsate</span><span class="p">.</span><span class="n">git</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="go">C:\Users\username&gt; git clone https://github.com/condynsate/condynsate.git</span>
+<span class="gp gp-VirtualEnv">(.venv)</span> <span class="go">C:\Users\username&gt; cd condynsate</span>
 </pre></div>
 </div>
-<p>To install</p>
-<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="p">(.</span><span class="n">venv</span><span class="p">)</span> <span class="n">C</span><span class="p">:\</span><span class="n">Users</span><span class="p">\</span><span class="n">username</span><span class="p">&gt;</span> <span class="nb">cd </span><span class="n">condynsate</span>
-<span class="p">(.</span><span class="n">venv</span><span class="p">)</span> <span class="n">C</span><span class="p">:\</span><span class="n">Users</span><span class="p">\</span><span class="n">username</span><span class="p">&gt;</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">-e</span> <span class="p">.</span>
-</pre></div>
-</div>
-<p>When done, to deactivate the virtual environment:</p>
-<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="p">(.</span><span class="n">venv</span><span class="p">)</span> <span class="n">C</span><span class="p">:\</span><span class="n">Users</span><span class="p">\</span><span class="n">username</span><span class="p">&gt;</span> <span class="n">deactivate</span>
+<p>To install condynsate:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="go">C:\Users\username\condynsate&gt; pip install -e .</span>
 </pre></div>
 </div>
 </section>
@@ -146,13 +140,58 @@
 </section>
 <section id="linux">
 <h2>Linux<a class="headerlink" href="#linux" title="Link to this heading"></a></h2>
+<p>We strongly recommend installing condynsate in a virtual environment:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">user@device:~$ </span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="gp">user@device:~$ </span><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+</pre></div>
+</div>
+<p>On Debian/Ubuntu systems you may need to first install the python3-venv package. For Python 3.10 this can be installed with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">user@device:~$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>update
+<span class="gp">user@device:~$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3.10-venv
+</pre></div>
+</div>
+<p>When done installing and using condynsate, deactivate the virtual environment with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user@device:~$ </span>deactivate
+</pre></div>
+</div>
+<p>Additionally, On Debian/Ubuntu systems, to build condynsate you may need to first install the Python and Linux development headers. These can be installed with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">user@device:~$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>update
+<span class="gp">user@device:~$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>build-essential<span class="w"> </span>python3-dev<span class="w"> </span>linux-headers-<span class="k">$(</span>uname<span class="w"> </span>-r<span class="k">)</span>
+</pre></div>
+</div>
+<p>Finally, the package that provides keyboard interactivity uses <a class="reference external" href="https://en.wikipedia.org/wiki/X_Window_System">X</a>. This means that for keyboard interactivity to work</p>
+<ol class="arabic simple">
+<li><p>an X server must be running, and</p></li>
+<li><p>the environment variable $DISPLAY must be set.</p></li>
+</ol>
+<p>If these are not true, then keyboard interactivity will not work. All other features will work, though. For example, to use keyboard iteractivity on Ubuntu 22.04, you must first add</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">WaylandEnable=false</span>
+</pre></div>
+</div>
+<p>to /etc/gdm3/custom.conf and then either reboot your system or run the command</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">user@device:~$ </span>systemctl<span class="w"> </span>restart<span class="w"> </span>gdm3
+</pre></div>
+</div>
 <section id="id3">
 <h3><strong>From PyPi (Recommended)</strong><a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
-<p>Coming soon!</p>
+<p><a class="reference external" href="https://www.python.org/">python&gt;=3.8</a> and <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a> are required.</p>
+<p>To install condynsate:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user@device:~$ </span>pip<span class="w"> </span>install<span class="w"> </span>condynsate
+</pre></div>
+</div>
 </section>
 <section id="id4">
 <h3>From Source<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
-<p>Coming soon!</p>
+<p><a class="reference external" href="https://www.python.org/">python&gt;=3.8</a>, <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>, and <a class="reference external" href="https://git-scm.com/">git</a> are required.</p>
+<p>To clone the repository:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user@device:~$ </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/condynsate/condynsate.git
+<span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user@device:~$ </span><span class="nb">cd</span><span class="w"> </span>condynsate
+</pre></div>
+</div>
+<p>To install condynsate:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">user@device:~/condynsate$ </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
 </section>
 </section>
 </section>

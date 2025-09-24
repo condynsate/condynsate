@@ -25,53 +25,48 @@ Built on [PyBullet](https://pybullet.org/wordpress/), [MeshCat](https://github.c
 
 # Installation
 ## Windows
+A C++ compiler for C++ 2003 is needed. On Windows, we recommend using the Desktop development with C++ workload for [Microsoft C++ Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
 
-### PyPi (Recommended)
-A C++ compiler for C++ 2003 is needed. On Windows, we recommend using the Desktop development with C++ workload for [Microsoft C++ Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/). Additionally, [python>=3.8](https://www.python.org/) and [pip](https://pip.pypa.io/en/stable/) are also required. We strongly recommend installing condynsate in a virtual environment:
+Additionally, we strongly recommend installing condynsate in a virtual environment:
 
 ```powershell
 C:\Users\username> python -m venv .venv
 C:\Users\username> .venv\Scripts\activate.bat
 ```
 
-To install:
+When done installing and using condynsate, deactivate the virtual environment with:
+
+```console
+(.venv) user@device:~$ deactivate
+```
+
+### PyPi (Recommended)
+[python>=3.8](https://www.python.org/) and [pip](https://pip.pypa.io/en/stable/) are required. 
+
+To install condynsate:
 
 ```powershell
 (.venv) C:\Users\username> pip install condynsate
 ```
 
-When done, to deactivate the virtual environment:
-
-```powershell
-(.venv) C:\Users\username> deactivate
-```
-
 ### Source
-A C++ compiler for C++ 2003 is needed. On Windows, we recommend using the Desktop development with C++ workload for [Microsoft C++ Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/). Additionally, [python>=3.8](https://www.python.org/), [pip](https://pip.pypa.io/en/stable/), and [git](https://git-scm.com/) are also required. We strongly recommend installing condynsate in a virtual environment:
-
-```powershell
-C:\Users\username> python -m venv .venv
-C:\Users\username> .venv\Scripts\activate.bat
-```
-
+[python>=3.8](https://www.python.org/), [pip](https://pip.pypa.io/en/stable/), and [git](https://git-scm.com/) are required.
 To clone the repository:
 
 ```powershell
 (.venv) C:\Users\username> git clone https://github.com/condynsate/condynsate.git
-```
-
-To install:
-
-```powershell
 (.venv) C:\Users\username> cd condynsate
-(.venv) C:\Users\username> pip install -e .
 ```
 
-When done, to deactivate the virtual environment:
+To install condynsate:
 
 ```powershell
-(.venv) C:\Users\username> deactivate
+(.venv) C:\Users\username\condynsate> pip install -e .
 ```
+
+
+
+
 
 ## MacOS
 ### PyPi (Recommended)
@@ -80,12 +75,87 @@ Coming soon!
 ### Source
 Coming soon!
 
+
+
+
+
 ## Linux
+We strongly recommend installing condynsate in a virtual environment:
+
+```console
+user@device:~$ python3 -m venv .venv
+user@device:~$ source .venv/bin/activate
+```
+
+On Debian/Ubuntu systems you may need to first install the python3-venv package. For Python 3.10 this can be installed with:
+
+```console
+user@device:~$ sudo apt update
+user@device:~$ sudo apt install python3.10-venv
+```
+
+When done installing and using condynsate, deactivate the virtual environment with:
+
+```console
+(.venv) user@device:~$ deactivate
+```
+
+Additionally, on Debian/Ubuntu systems, to build condynsate you may need to first install the Python and Linux development headers. These can be installed with
+
+```console
+(.venv) user@device:~$ sudo apt update
+(.venv) user@device:~$ sudo apt install build-essential python3-dev linux-headers-$(uname -r)
+```
+
+Finally, the package that provides keyboard interactivity uses [X](https://en.wikipedia.org/wiki/X_Window_System). This means that for keyboard interactivity to work
+
+1. an X server must be running, and
+2. the environment variable $DISPLAY must be set.
+
+If these are not true, then keyboard interactivity will not work. All other features will work, though. For example, to use keyboard iteractivity on Ubuntu 22.04, you must first add 
+
+```console
+WaylandEnable=false
+```
+
+to /etc/gdm3/custom.conf and then either reboot your system or run the command
+
+```console
+user@device:~$ systemctl restart gdm3
+```
+
 ### PyPi (Recommended)
-Coming soon!
+[python>=3.8](https://www.python.org/) and [pip](https://pip.pypa.io/en/stable/) are required.
+
+To install condynsate:
+
+```console
+(.venv) user@device:~$ pip install condynsate
+```
 
 ### Source
-Coming soon!
+[python>=3.8](https://www.python.org/), [pip](https://pip.pypa.io/en/stable/), and [git](https://git-scm.com/) are required. 
+
+To clone the repository: 
+
+```console
+(.venv) user@device:~$ git clone https://github.com/condynsate/condynsate.git
+(.venv) user@device:~$ cd condynsate
+```
+
+To install condynsate:
+
+```console
+(.venv) user@device:~/condynsate$ pip install -e .
+```
+
+On Debian/Ubuntu systems, you may need to first install the Python and Linux development headers. These can be installed with:
+
+```console
+(.venv) user@device:~/condynsate$ sudo apt update
+(.venv) user@device:~/condynsate$ sudo apt install build-essential python3-dev linux-headers-$(uname -r)
+```
+
 
 
 
