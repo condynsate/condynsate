@@ -3,71 +3,63 @@ Installation
 ============
 Windows
 -------
-**From Conda (Recommended)**
-****************************
-Coming soon!
-
-From PyPi
-*********
+**From PyPi (Recommended)**
+***************************
 A C++ compiler for C++ 2003 is needed. On Windows, we recommend using the Desktop development with C++ workload for `Microsoft C++ Build Tools 2022`_. Additionally, `python>=3.8`_ and `pip`_ are also required. We strongly recommend installing condynsate in a virtual environment:
 
-.. code-block:: console
+.. code-block:: powershell
 
-   python -m venv .venv
-   .venv\Scripts\activate.bat
+   C:\Users\username> python -m venv .venv
+   C:\Users\username> .venv\Scripts\activate.bat
 
-Installation is simple:
+To install: 
 
-.. code-block:: console
+.. code-block:: powershell
 
-   (.venv) pip install condynsate
+   (.venv) C:\Users\username> pip install condynsate
 
-Deactivate the virtual environment with:
+When done, to deactivate the virtual environment:
 
-.. code-block:: console
+.. code-block:: powershell
 
-   (.venv) deactivate
+   (.venv) C:\Users\username> deactivate
 
 
 From Source
 ***********
 A C++ compiler for C++ 2003 is needed. On Windows, we recommend using the Desktop development with C++ workload for `Microsoft C++ Build Tools 2022`_. Additionally, `python>=3.8`_, `pip`_, and `git`_ are also required. We strongly recommend installing condynsate in a virtual environment:
-.. code-block:: console
 
-   git clone https://github.com/condynsate/condynsate.git
-   cd condynsate
+.. code-block:: powershell
 
-We strongly reccomend installing in a virtual environment:
+   C:\Users\username> python -m venv .venv
+   C:\Users\username> .venv\Scripts\activate.bat
 
-.. code-block:: console
+To clone the repository: 
 
-   python -m venv .venv
-   .venv\Scripts\activate.bat
+.. code-block:: powershell
 
-Then installation is simple:
+   (.venv) C:\Users\username> git clone https://github.com/condynsate/condynsate.git
 
-.. code-block:: console
+To install
 
-   (.venv) pip install -e .
+.. code-block:: powershell
 
-Deactivate the virtual environment with:
+   (.venv) C:\Users\username> cd condynsate
+   (.venv) C:\Users\username> pip install -e .
 
-.. code-block:: console
+When done, to deactivate the virtual environment:
 
-   (.venv) deactivate
+.. code-block:: powershell
+
+   (.venv) C:\Users\username> deactivate
 
 
 
 
 macOS
 -----
-**From Conda (Recommended)**
-****************************
-Coming soon!
-
-
-From PyPi
-*********
+**From PyPi (Recommended)**
+***************************
 Coming soon!
 
 
@@ -81,13 +73,8 @@ Coming soon!
 
 Linux
 -----
-**From Conda (Recommended)**
-****************************
-Coming soon!
-
-
-From PyPi
-*********
+**From PyPi (Recommended)**
+***************************
 Coming soon!
 
 
