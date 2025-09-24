@@ -3,17 +3,13 @@ Installation
 ============
 Windows
 -------
-**From Conda (Reccomended)**
+**From Conda (Recommended)**
 ****************************
-*TODO*
+Coming soon!
 
 From PyPi
 *********
-A C++ compiler for C++ 2003 is needed. On Windows, we reccomend installing the Desktop development with C++ workload for `Microsoft C++ Build Tools 2022`_.
-
-Additionally, `python>=3.8`_ and `pip`_ are required.
-
-We strongly reccomend installing in a virtual environment:
+A C++ compiler for C++ 2003 is needed. On Windows, we recommend using the Desktop development with C++ workload for `Microsoft C++ Build Tools 2022`_. Additionally, `python>=3.8`_ and `pip`_ are also required. We strongly recommend installing condynsate in a virtual environment:
 
 .. code-block:: console
 
@@ -35,12 +31,7 @@ Deactivate the virtual environment with:
 
 From Source
 ***********
-A C++ compiler for C++ 2003 is needed. On Windows, we reccomend installing the Desktop development with C++ workload for `Microsoft C++ Build Tools 2022`_.
-
-Additionally, `python>=3.8`_, `pip`_, and `git`_ are required.
-
-First clone the repository:
-
+A C++ compiler for C++ 2003 is needed. On Windows, we recommend using the Desktop development with C++ workload for `Microsoft C++ Build Tools 2022`_. Additionally, `python>=3.8`_, `pip`_, and `git`_ are also required. We strongly recommend installing condynsate in a virtual environment:
 .. code-block:: console
 
    git clone https://github.com/condynsate/condynsate.git
@@ -70,19 +61,19 @@ Deactivate the virtual environment with:
 
 macOS
 -----
-**From Conda (Reccomended)**
+**From Conda (Recommended)**
 ****************************
-*TODO*
+Coming soon!
 
 
 From PyPi
 *********
-*TODO*
+Coming soon!
 
 
 From Source
 ***********
-*TODO*
+Coming soon!
 
 
 
@@ -90,19 +81,19 @@ From Source
 
 Linux
 -----
-**From Conda (Reccomended)**
+**From Conda (Recommended)**
 ****************************
-*TODO*
+Coming soon!
 
 
 From PyPi
 *********
-*TODO*
+Coming soon!
 
 
 From Source
 ***********
-*TODO*
+Coming soon!
 
 
 
