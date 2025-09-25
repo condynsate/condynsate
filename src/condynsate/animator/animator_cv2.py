@@ -18,6 +18,169 @@ import cv2
 from condynsate.misc import print_exception
 FONT_SIZE = 7
 
+
+###############################################################################
+#Functions
+###############################################################################
+def _parse_arg(arg, default, arg_str, n):
+    """
+    Parses an argument into a tuple of length n.
+
+    Parameters
+    ----------
+    arg : add_plot argument
+        The argument
+    default : variable typing
+        The default value of arg
+    arg_str : string
+        The string name of the argument.
+    n : int
+        The length of tuple to which the argument is parsed.
+
+    Raises
+    ------
+    TypeError
+        The argument cannot be parsed.
+
+    Returns
+    -------
+    arg : 
+
+    """
+    arg_prime = copy(arg)
+    if not isinstance(arg, list) and not isinstance(arg, tuple):
+        if arg is None:
+            arg = default
+        arg = [arg,]*n
+    arg = list(arg)
+    if len(arg) != n:
+        err = "Could not parse {}: {} to tuple of {} arguments"
+        raise TypeError(err.format(arg_str, arg_prime, n))
+    return arg
+
+
+###############################################################################
+#LINE PLOT CLASS
+###############################################################################
+class Lineplot():
+    """
+    Functionality for line plots
+    
+    Parameters
+    ----------
+    n_artists : int
+        The number of artists that draw on the plot.
+    **kwargs: dict
+        x_lim : [float, float], optional
+            The limits to apply to the x axis of the plot. A value of None
+            will apply automatically updating limits to the corresponding
+            bound of the axis. For example [None, 10.] will fix the upper
+            bound to exactly 10, but the lower bound will freely change to
+            show all data.The default is [None, None].
+        y_lim : [float, float], optional
+            The limits to apply to the y axis of the plot. A value of None
+            will apply automatically updating limits to the corresponding
+            bound of the axis. For example [None, 10.] will fix the upper
+            bound to exactly 10, but the lower bound will freely change to
+            show all data.The default is [None, None].
+        h_zero_line : boolean, optional
+            A boolean flag that indicates whether a horizontal line will be
+            drawn on the y=0 line. The default is false
+        v_zero_line : boolean, optional
+            A boolean flag that indicates whether a vertical line will be
+            drawn on the x=0 line. The default is false
+        tail : int or tuple of ints optional
+            Specifies how many data points are used to draw a line. Only the
+            most recently added data points are kept. Any data points added
+            more than tail data points ago are discarded and not plotted. When 
+            tuple, must have length n_artists. A value less than or equal to 0 
+            means that no data is ever discarded and all data points added to 
+            the animator will be drawn. The default is -1.    
+        title : string, optional
+            The title of the plot. Will be written above the plot when
+            rendered. The default is None.
+        x_label : string, optional
+            The label to apply to the x axis. Will be written under the plot
+            when rendered. The default is None.
+        y_label : string, optional
+            The label to apply to the y axis. Will be written to the left of
+            the plot when rendered. The default is None.
+        label : string or tuple of strings, optional
+            The label applied to each artist. The labels are shown in a legend 
+            in the top right of the plot. When tuple, must have length 
+            n_artists. When None, no labels are made. The default is None.
+        color : matplotlib color string or tuple of color strings, optional
+            The color each artist draws in. When tuple, must have length 
+            n_artists. The default is 'black'.
+        line_width : float or tuple of floats, optional
+            The line weigth each artist uses. When tuple, must have length
+            n_artists. The default is 1.5.
+        line_style : line style string or tuple of ls strings, optional
+            The line style each artist uses. When tuple, must have length 
+            n_artists. The default is 'solid'. Select from 'solid', 'dashed', 
+            'dashdot', or 'dotted'.
+        
+    """
+    def __init__(self, n_artists, **kwargs):
+        """
+        Constructor method.
+        """
+        # Set the default values
+        self.options = {'n_artists': n_artists,
+                        'x_lim': [None, None],
+                        'y_lim': [None, None],
+                        'h_zero_line': False,
+                        'v_zero_line': False,
+                        'tail': [-1,]*n_artists,}
+        self.labels = {'title': None,
+                       'x_label': None,
+                       'y_label': None,
+                       'label': [None,]*n_artists,}
+        self.style = {'color': ['black',]*n_artists,
+                      'line_width': [1.5,]*n_artists,
+                      'line_style': ['solid',]*n_artists,}
+        self.data = {'x': [],
+                     'y': [],}
+        
+        # Valid kwargs
+        valid = ('x_lim', 'y_lim', 'h_zero_line', 'v_zero_line', 
+                 'tail', 'title', 'x_label', 'y_label', 'label', 
+                 'color', 'line_width', 'line_style')
+        
+        # kwargs that need parsed
+        need_parse = {'tail': self.options['tail'],
+                      'label': self.labels['label'], 
+                      'color': self.style['color'], 
+                      'line_width': self.style['line_width'], 
+                      'line_style': self.style['line_style']}
+    
+        # Apply kwargs
+        for kwarg in kwargs:
+            # Check kwarg validity
+            if not kwarg in valid:
+                warn = "{} is not a recognized kwarg. Continuing..."
+                warnings.warn(warn.format(kwarg), RuntimeWarning)
+                sys.stderr.flush()
+                continue
+            
+            # Parse to n_artists if needed
+            if kwarg in need_parse:
+                kwargs[kwarg] = _parse_arg(kwargs[kwarg], need_parse[kwarg], 
+                                           kwarg, n_artists)
+            
+            # Update values
+            if kwarg in self.options:
+                self.options[kwarg] = kwargs[kwarg]
+            elif kwarg in self.labels:
+                self.labels[kwarg] = kwargs[kwarg]
+            elif kwarg in self.style:
+                self.style[kwarg] = kwargs[kwarg]
+        
+
+        
+        
+        
+
 ###############################################################################
 #ANIMATOR CLASS
 ###############################################################################
@@ -37,6 +200,7 @@ class Animator():
         Constructor method.
         """
         # Plot data
+        self.plots = []
         self.xs = []
         self.ys = []
         self.types = []
@@ -82,48 +246,7 @@ class Animator():
     
     ###########################################################################
     #STORE NEW PLOT DATA STYLE INFORMATION
-    ###########################################################################
-    def _validate_inputs(self,
-                         arg,
-                         default,
-                         arg_str,
-                         n_artists):
-        """
-        Make sure that the inputs of the add_plot function are valid
-
-        Parameters
-        ----------
-        arg : add_plot argument
-            Any of the arguments: colors, labels, line_widths, line_styles
-        default : TYPE
-            The default value of arg
-        arg_str : string
-            The string name of the argument.
-        n_artists : int
-            The number of artists in the plot.
-
-        Raises
-        ------
-        Exception
-            The argument is the wrong length.
-
-        Returns
-        -------
-        None.
-
-        """
-        arg_prime = copy(arg)
-        if not isinstance(arg, list) and not isinstance(arg, tuple):
-            if arg is None:
-                arg = default
-            arg = [arg,]*n_artists
-        arg = list(arg)
-        if len(arg) != n_artists:
-            err = "Could not parse {}: {} to n_artists={}"
-            raise TypeError(err.format(arg_str, arg_prime, n_artists))
-        return arg
-    
-    
+    ###########################################################################  
     def add_plot(self,
                  n_artists=1,
                  plot_type='line',
@@ -229,12 +352,14 @@ class Animator():
             return None, None
 
         # Ensure valid inputs
-        color=self._validate_inputs(color,'k','color',n_artists)
-        label=self._validate_inputs(label,None,'label',n_artists)
-        line_width=self._validate_inputs(line_width,1.5,'line_width',n_artists)
-        line_style=self._validate_inputs(line_style,'-','line_style',n_artists)
-        tail=self._validate_inputs(tail,-1,'tail',n_artists)
-        
+        color = _parse_arg(color, 'k', 'color', n_artists)
+        label = _parse_arg(label, None, 'label', n_artists)
+        line_width = _parse_arg(line_width, 1.5, 'line_width', n_artists)
+        line_style = _parse_arg(line_style, '-', 'line_style', n_artists)
+        tail = _parse_arg(tail, -1, 'tail', n_artists)
+       
+       # Create empty plot data structure 
+       
         # Store the plot data
         self.xs.append([])
         self.ys.append([])
