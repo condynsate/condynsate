@@ -827,11 +827,13 @@ class Animator():
                 with self.lock:
                     if self.done:
                         cv2.destroyAllWindows()
+                        cv2.waitKey(1)
                         break
         except Exception as e:
             print_exception(e, self._start)
             self.done = True
             cv2.destroyAllWindows()
+            cv2.waitKey(1)
             warn = "While running, the animator crashed. Terminating..."
             warnings.warn(warn, RuntimeWarning)
             sys.stderr.flush()
@@ -956,6 +958,7 @@ class Animator():
         
         # Start the GUI thread
         self.thread = Thread(target=self._start)
+        self.thread.daemon = True
         self.thread.start()
        
         
@@ -1210,10 +1213,6 @@ class Animator():
         None.
 
         """        
-        # Create the figure if it is not already made
-        if not self.figure_is_made:
-            self.start_animator()
-        
         # Update each plot
         for plot in range(self.n_plots):
             # Get the axis on which the plot is drawn
@@ -1269,7 +1268,7 @@ class Animator():
         None.
 
         """
-        if self.figure_is_made and not self.done:
-            with self.lock:
+        with self.lock:
+            if self.figure_is_made and not self.done:
                 self.done = True
-            self.thread.join()
+        self.thread.join()
