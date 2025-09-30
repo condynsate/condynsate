@@ -1,5 +1,5 @@
 """
-This module provides the Animator class and all associated classes and 
+This module provides the Animator class and all associated classes and
 functions that are used by it.
 """
 
@@ -44,7 +44,8 @@ def _parse_arg(arg, default, arg_str, n):
 
     Returns
     -------
-    arg : 
+    arg : list
+        parsed add_plot argument.
 
     """
     arg_prime = copy(arg)
@@ -65,11 +66,13 @@ def _parse_arg(arg, default, arg_str, n):
 class Lineplot():
     """
     Functionality for line plots
-    
+
     Parameters
     ----------
     n_artists : int
         The number of artists that draw on the plot.
+    axes : matplotlib.axes
+        The axes on which the lineplot lives.
     **kwargs: dict
         x_lim : [float, float], optional
             The limits to apply to the x axis of the plot. A value of None
@@ -92,10 +95,10 @@ class Lineplot():
         tail : int or tuple of ints optional
             Specifies how many data points are used to draw a line. Only the
             most recently added data points are kept. Any data points added
-            more than tail data points ago are discarded and not plotted. When 
-            tuple, must have length n_artists. A value less than or equal to 0 
-            means that no data is ever discarded and all data points added to 
-            the animator will be drawn. The default is -1.    
+            more than tail data points ago are discarded and not plotted. When
+            tuple, must have length n_artists. A value less than or equal to 0
+            means that no data is ever discarded and all data points added to
+            the animator will be drawn. The default is -1.
         title : string, optional
             The title of the plot. Will be written above the plot when
             rendered. The default is None.
@@ -106,26 +109,33 @@ class Lineplot():
             The label to apply to the y axis. Will be written to the left of
             the plot when rendered. The default is None.
         label : string or tuple of strings, optional
-            The label applied to each artist. The labels are shown in a legend 
-            in the top right of the plot. When tuple, must have length 
+            The label applied to each artist. The labels are shown in a legend
+            in the top right of the plot. When tuple, must have length
             n_artists. When None, no labels are made. The default is None.
         color : matplotlib color string or tuple of color strings, optional
-            The color each artist draws in. When tuple, must have length 
+            The color each artist draws in. When tuple, must have length
             n_artists. The default is 'black'.
         line_width : float or tuple of floats, optional
             The line weigth each artist uses. When tuple, must have length
             n_artists. The default is 1.5.
         line_style : line style string or tuple of ls strings, optional
-            The line style each artist uses. When tuple, must have length 
-            n_artists. The default is 'solid'. Select from 'solid', 'dashed', 
+            The line style each artist uses. When tuple, must have length
+            n_artists. The default is 'solid'. Select from 'solid', 'dashed',
             'dashdot', or 'dotted'.
-        
+
     """
-    def __init__(self, n_artists, **kwargs):
+    def __init__(self, axes, n_artists, **kwargs):
         """
         Constructor method.
         """
-        # Set the default values
+        # Create a mutex lock to synchronize the drawing thread (child) and the
+        # setting thread (parent)
+        self.LOCK = Lock()
+
+        # Store the axes on which the plot lives
+        self.axes = axes
+
+        # Set default values
         self.options = {'n_artists': n_artists,
                         'x_lim': [None, None],
                         'y_lim': [None, None],
@@ -141,19 +151,89 @@ class Lineplot():
                       'line_style': ['solid',]*n_artists,}
         self.data = {'x': [],
                      'y': [],}
-        
+
+        # Update the default values with kwargs
+        self._apply_kwargs(kwargs)
+
+        # Apply all settings to the axes on which the plot lives.
+        self._apply_settings_2_axes()
+
+
+    def _apply_kwargs(self, kwargs):
+        """
+        Updates default values with kwargs.
+
+        Parameters
+        ----------
+        **kwargs: dict
+            x_lim : [float, float], optional
+                The limits to apply to the x axis of the plot. A value of None
+                will apply automatically updating limits to the corresponding
+                bound of the axis. For example [None, 10.] will fix the upper
+                bound to exactly 10, but the lower bound will freely change to
+                show all data.The default is [None, None].
+            y_lim : [float, float], optional
+                The limits to apply to the y axis of the plot. A value of None
+                will apply automatically updating limits to the corresponding
+                bound of the axis. For example [None, 10.] will fix the upper
+                bound to exactly 10, but the lower bound will freely change to
+                show all data.The default is [None, None].
+            h_zero_line : boolean, optional
+                A boolean flag that indicates whether a horizontal line will be
+                drawn on the y=0 line. The default is false
+            v_zero_line : boolean, optional
+                A boolean flag that indicates whether a vertical line will be
+                drawn on the x=0 line. The default is false
+            tail : int or tuple of ints optional
+                Specifies how many data points are used to draw a line. Only
+                the most recently added data points are kept. Any data points
+                added more than tail data points ago are discarded and not
+                plotted. When tuple, must have length n_artists. A value less
+                than or equal to 0 means that no data is ever discarded and all
+                data points added to the animator will be drawn. The default
+                is -1.
+            title : string, optional
+                The title of the plot. Will be written above the plot when
+                rendered. The default is None.
+            x_label : string, optional
+                The label to apply to the x axis. Will be written under the
+                plot when rendered. The default is None.
+            y_label : string, optional
+                The label to apply to the y axis. Will be written to the left
+                of the plot when rendered. The default is None.
+            label : string or tuple of strings, optional
+                The label applied to each artist. The labels are shown in a
+                legend in the top right of the plot. When tuple, must have
+                length n_artists. When None, no labels are made. The default is
+                None.
+            color : matplotlib color string or tuple of color strings, optional
+                The color each artist draws in. When tuple, must have length
+                n_artists. The default is 'black'.
+            line_width : float or tuple of floats, optional
+                The line weigth each artist uses. When tuple, must have length
+                n_artists. The default is 1.5.
+            line_style : line style string or tuple of ls strings, optional
+                The line style each artist uses. When tuple, must have length
+                n_artists. The default is 'solid'. Select from 'solid',
+                'dashed', 'dashdot', or 'dotted'.
+
+        Returns
+        -------
+        None.
+
+        """
         # Valid kwargs
-        valid = ('x_lim', 'y_lim', 'h_zero_line', 'v_zero_line', 
-                 'tail', 'title', 'x_label', 'y_label', 'label', 
+        valid = ('x_lim', 'y_lim', 'h_zero_line', 'v_zero_line',
+                 'tail', 'title', 'x_label', 'y_label', 'label',
                  'color', 'line_width', 'line_style')
-        
+
         # kwargs that need parsed
         need_parse = {'tail': self.options['tail'],
-                      'label': self.labels['label'], 
-                      'color': self.style['color'], 
-                      'line_width': self.style['line_width'], 
+                      'label': self.labels['label'],
+                      'color': self.style['color'],
+                      'line_width': self.style['line_width'],
                       'line_style': self.style['line_style']}
-    
+
         # Apply kwargs
         for kwarg in kwargs:
             # Check kwarg validity
@@ -162,12 +242,12 @@ class Lineplot():
                 warnings.warn(warn.format(kwarg), RuntimeWarning)
                 sys.stderr.flush()
                 continue
-            
+
             # Parse to n_artists if needed
             if kwarg in need_parse:
-                kwargs[kwarg] = _parse_arg(kwargs[kwarg], need_parse[kwarg], 
-                                           kwarg, n_artists)
-            
+                kwargs[kwarg] = _parse_arg(kwargs[kwarg], need_parse[kwarg],
+                                           kwarg, self.options['n_artists'])
+
             # Update values
             if kwarg in self.options:
                 self.options[kwarg] = kwargs[kwarg]
@@ -175,11 +255,118 @@ class Lineplot():
                 self.labels[kwarg] = kwargs[kwarg]
             elif kwarg in self.style:
                 self.style[kwarg] = kwargs[kwarg]
-        
 
-        
-        
-        
+
+    def _apply_settings_2_axes(self):
+            """
+            Applies all settings to the axes on which the plot lives.
+
+            Parameters
+            ----------
+            None.
+
+            Returns
+            -------
+            None.
+
+            """
+            # Clear the axis
+            self.axes.clear()
+
+            # Set the labels
+            self.axes.set_title(self.labels['title'], fontsize=FONT_SIZE+1)
+            self.axes.set_xlabel(self.labels['x_label'], fontsize=FONT_SIZE)
+            self.axes.set_ylabel(self.labels['y_label'], fontsize=FONT_SIZE)
+
+            # Set the tick mark size
+            self.axes.tick_params(axis='both', which='major',
+                                  labelsize=FONT_SIZE)
+            self.axes.tick_params(axis='both', which='minor',
+                                  labelsize=FONT_SIZE)
+
+            # If there are defined limits, apply those limits to the axes
+            if self.options['x_lim'] != [None, None]:
+                self.axes.set_xlim(self.options['y_lim'][0],
+                                   self.options['y_lim'][1])
+            if self.options['y_lim'] != [None, None]:
+                self.axes.set_ylim(self.options['y_lim'][0],
+                                   self.options['y_lim'][1])
+
+            # Add the zero lines
+            if self.options['h_zero_line']:
+                self.axes.axhline(y=0, xmin=0, xmax=1,
+                                  alpha=0.75, lw=0.75, c='k')
+            if self.options['v_zero_line']:
+                self.axes.axvline(x=0, ymin=0, ymax=1,
+                                  alpha=0.75, lw=0.75, c='k')
+
+
+    def _set_limits(self):
+        # Get the range of the x coords. If there are no x data, range is None
+        x_range = (None, None)
+        if len(self.data['x']) > 0:
+            x_range = (np.min(self.data['x']), np.max(self.data['x']))
+
+        # Get the range of the y coords. If there are no y data, range is None
+        y_range = (None, None)
+        if len(self.data['y']) > 0:
+            y_range = (np.min(self.data['y']), np.max(self.data['y']))
+
+
+    def draw(self,
+                   x,
+                   y,
+                   artist,
+                   axis,
+                   x_plot_lim,
+                   y_plot_lim,
+                   head_marker):
+        """
+        Rerenders a single line plot. Does not update GUI.
+
+        Parameters
+        ----------
+        x : array-like, shape(n,)
+            An array of the new x data.
+        y : array-like, shape(n,)
+            An array of the new y data.
+        artist : matplotlib.lines.Lines2D or None
+            The artist that belongs to the axis.
+        axis : matplotlib.axes
+            The axis artist that defines the plot being updated.
+        x_plot_lim : [float, float]
+            The limits to apply to the x axis of the plots. A value of None
+            will apply automatically updating limits to that bound of the axis.
+            Only if type is line.
+        y_plot_lim : [float, float]
+            The limits to apply to the y axis of the plots. A value of None
+            will apply automatically updating limits to that bound of the axis.
+        head_marker : boolean
+            A boolean flag that indicates whether a marker will be drawn at
+            the head of the line. Only if type is line.
+
+        Returns
+        -------
+        None.
+
+        """
+        with self.lock:
+            # If there is a head marker, adjust it
+            if head_marker:
+                artist.set_markevery((len(x)-1, 1))
+
+            # Update the line artist's data
+            artist.set_data(x, y)
+
+            # Reset the axis limits
+            axis.set_xlim(x_plot_lim[0],
+                          x_plot_lim[1])
+            axis.set_ylim(y_plot_lim[0],
+                          y_plot_lim[1])
+
+
+
+
 
 ###############################################################################
 #ANIMATOR CLASS
@@ -187,13 +374,13 @@ class Lineplot():
 class Animator():
     """
     Animator manages the real time plotting in QT GUI.
-    
+
     Parameters
     ----------
     fr : float, optional
         The frame rate (frames per second) at which the animated plots are
         updated. The default is 8.0.
-        
+
     """
     def __init__(self, fr=8.0):
         """
@@ -209,18 +396,18 @@ class Animator():
         self.n_plots = 0
         self.h_zero_line = []
         self.v_zero_line = []
-        
+
         # Plot labels
         self.titles = []
         self.x_labels = []
         self.y_labels = []
         self.labels = []
-        
+
         # Artist parameters
         self.colors = []
         self.line_widths = []
         self.line_styles = []
-        
+
         # Plot limit options
         self.x_data_ranges = []
         self.y_data_ranges = []
@@ -228,25 +415,25 @@ class Animator():
         self.fixed_y_plot_lims = []
         self.x_plot_lims = []
         self.y_plot_lims = []
-    
+
         # Boolean flag that indicates whether the figure is made
         self.window_name = 'condynsate: Animator'
         self.lock = Lock()
         self.figure_is_made = False
         self.done = True
-        
+
         # Frame rate data
         self.fr = fr
         self.last_step_time = 0.0
-    
-    
+
+
     def __del__(self):
         self.terminate_animator()
-    
-    
+
+
     ###########################################################################
     #STORE NEW PLOT DATA STYLE INFORMATION
-    ###########################################################################  
+    ###########################################################################
     def add_plot(self,
                  n_artists=1,
                  plot_type='line',
@@ -263,7 +450,7 @@ class Animator():
                  line_style='solid',
                  tail=-1):
         """
-        Adds a plot to the animator. This function needs to be called to 
+        Adds a plot to the animator. This function needs to be called to
         define a plot before data can be added to that plot. If called after
         start_animator, this function will do nothing.
 
@@ -303,17 +490,17 @@ class Animator():
             A boolean flag that indicates whether a vertical line will be
             drawn on the x=0 line. The default is false
         color : matplotlib color string or tuple of color strings, optional
-            The color each artist draws in. When tuple, must have length 
+            The color each artist draws in. When tuple, must have length
             n_artists. The default is 'black'.
         label : string or tuple of strings, optional
-            The label applied to each artist. For line charts, 
+            The label applied to each artist. For line charts,
             the labels are shown in a legend in the top right of the plot. For
-            bar charts, the labels are shown on the y axis next to their 
+            bar charts, the labels are shown on the y axis next to their
             corresponging bars. When tuple, must have length n_artists.
             When None, no labels are made. The default is None.
         line_width : float or tuple of floats, optional
             The line weigth each artist uses. For line plots, this is the
-            width of the plotted line, for bar charts, this is the width of 
+            width of the plotted line, for bar charts, this is the width of
             the border around each bar. When tuple, must have length n_artists.
             The default is 1.5.
         line_style : line style string or tuple of ls strings, optional
@@ -325,21 +512,21 @@ class Animator():
             Specifies how many data points are used to draw a line. Only the
             most recently added data points are kept. Any data points added
             more than tail data points ago are discarded and not plotted. Only
-            valid for line plots. When tuple, must have length n_artists. A 
-            value less than or equal to 0 means that no data is ever discarded 
-            and all data points added to the animator will be drawn. 
+            valid for line plots. When tuple, must have length n_artists. A
+            value less than or equal to 0 means that no data is ever discarded
+            and all data points added to the animator will be drawn.
             The default is -1.
-            
+
         Raises
         ------
         TypeError
-            At least one of the arguments color, label, line_width, 
+            At least one of the arguments color, label, line_width,
             line_style, or tail is not parasble to all artists.
-        
+
         Returns
         -------
         plot_id : int
-            A integer identifier that is unique to the plot created. 
+            A integer identifier that is unique to the plot created.
             This allows future interaction with this plot (adding data
             points, etc.).
         artist_ids : tuple of ints, optional
@@ -357,38 +544,38 @@ class Animator():
         line_width = _parse_arg(line_width, 1.5, 'line_width', n_artists)
         line_style = _parse_arg(line_style, '-', 'line_style', n_artists)
         tail = _parse_arg(tail, -1, 'tail', n_artists)
-       
-       # Create empty plot data structure 
-       
+
+       # Create empty plot data structure
+
         # Store the plot data
         self.xs.append([])
         self.ys.append([])
         for i in range(n_artists):
             self.xs[-1].append([])
             self.ys[-1].append([])
-            
+
         # Store types
         self.artists.append([])
         self.types.append(plot_type)
-        
+
         # Make a new slot for each artist
         for i in range(n_artists):
             self.artists[-1].append(None)
-        
+
         # Store the plot labels
         self.titles.append(title)
         self.x_labels.append(x_label)
         self.y_labels.append(y_label)
         self.h_zero_line.append(h_zero_line)
         self.v_zero_line.append(v_zero_line)
-        
+
         # Store line drawing parameters
         self.colors.append(color)
         self.labels.append(label)
         self.line_widths.append(line_width)
         self.line_styles.append(line_style)
         self.tails.append(tail)
-        
+
         # Store the limit options
         self.x_data_ranges.append([-np.inf, np.inf])
         self.y_data_ranges.append([-np.inf, np.inf])
@@ -396,7 +583,7 @@ class Animator():
         self.fixed_y_plot_lims.append(y_lim)
         self.x_plot_lims.append([None, None])
         self.y_plot_lims.append([None, None])
-        
+
         # Return the index of the added plot
         plot_id = len(self.xs)-1
         if n_artists <= 1:
@@ -430,11 +617,11 @@ class Animator():
                 self.y_data_ranges[plot_id] = [-np.inf, np.inf]
                 self.x_plot_lims[plot_id] = [None, None]
                 self.y_plot_lims[plot_id] = [None, None]
-            
-        
+
+
     ###########################################################################
     #CREATE FIGURE
-    ###########################################################################       
+    ###########################################################################
     def _get_n_plots(self):
         """
         Calculates how many plots have been set by the user.
@@ -467,23 +654,23 @@ class Animator():
         lens[17] = len(self.y_plot_lims)
         lens[18] = len(self.h_zero_line)
         lens[19] = len(self.v_zero_line)
-        
+
         # Make sure each plot has a full set of parameters
         check_val = lens[0]
         for n in lens:
             if n != check_val:
                 print("Something went wrong when getting number of plots.")
                 return 0
-            
+
         # If all plots have full set of parameters, return the number of plots
         n_plots = len(self.xs)
         return n_plots
-    
-    
+
+
     def _get_plot_shape(self,
                           n_plots):
         """
-        Calculates the plot dimensions for the figure given the 
+        Calculates the plot dimensions for the figure given the
         total number of plots.
 
         Parameters
@@ -499,20 +686,20 @@ class Animator():
         """
         # Set the maximum number of rows
         n_rows_max = 2
-        
+
         # The number of rows should never exceed 3
         n_rows = n_plots
         if n_rows > n_rows_max:
             n_rows = n_rows_max
-            
+
         # Get the number of columns needed
         n_cols = int(np.ceil(n_plots / n_rows_max))
-            
+
          # Return the calculated dimension
         dim = (n_rows, n_cols)
         return dim
-    
-    
+
+
     def _get_lims(self,
                   data,
                   data_range,
@@ -541,11 +728,11 @@ class Animator():
         plot_limits = [0., 0.]
         plot_limits[0] = fixed_lims[0]
         plot_limits[1] = fixed_lims[1]
-        
+
         # Handle the empty case
         if all([len(datum)==0 for datum in data]):
             return [-np.inf, np.inf], plot_limits
-        
+
         # Data range
         data_min = np.inf
         data_max = -np.inf
@@ -560,20 +747,20 @@ class Animator():
         data_min = 1.1*data_min - 0.1*data_max
         data_max = 1.1*data_max - 0.1*data_min
         new_data_range = [data_min, data_max]
-        
+
         # If there is no lower hard plot limit, set to min of all data seen
         if plot_limits[0] == None:
             plot_limits[0] = data_min
-        
+
         # If there is no upper hard plot limit, set to max of all data seen
         if plot_limits[1] == None:
             plot_limits[1] = data_max
-            
+
         # If the calculated plot limits are the same, set the plot limits as
         # (None, None)
         if plot_limits[0] == plot_limits[1]:
             plot_limits = [None, None]
-            
+
         # Return the calculated plot limits
         return new_data_range, plot_limits
 
@@ -581,7 +768,7 @@ class Animator():
     def _update_limits(self,
                        plot_id):
         """
-        Updates the currently stored data ranges and plot limits for 
+        Updates the currently stored data ranges and plot limits for
         both x and y axes for the plot given.
 
         Parameters
@@ -598,31 +785,31 @@ class Animator():
             data_range = self.x_data_ranges[plot_id]
             fixed_lims = self.fixed_x_plot_lims[plot_id]
             data = self.xs[plot_id]
-            
+
             # Calcaulate the new data range and the new plot limits for the x
             data_range, plot_lims = self._get_lims(data=data,
                                                    data_range=data_range,
                                                    fixed_lims=fixed_lims)
-            
+
             # Apply the new data range and new plot limits for the x axis
             self.x_data_ranges[plot_id] = data_range
             self.x_plot_lims[plot_id] = plot_lims
-        
+
             # Collect the current relevant information for the y axis
             data_range = self.y_data_ranges[plot_id]
             fixed_lims = self.fixed_y_plot_lims[plot_id]
             data = self.ys[plot_id]
-            
+
             # Calcaulate the new data range and the new plot limits for the y
             data_range, plot_lims = self._get_lims(data=data,
                                                    data_range=data_range,
                                                    fixed_lims=fixed_lims)
-            
+
             # Apply the new data range and new plot limits for the y axis
             self.y_data_ranges[plot_id] = data_range
             self.y_plot_lims[plot_id] = plot_lims
-    
-    
+
+
     def _create_plot(self,
                      axis,
                      title,
@@ -633,7 +820,7 @@ class Animator():
                      h_zero_line,
                      v_zero_line):
         """
-        Creates a single plot and sets axis artist setting. Subsequently 
+        Creates a single plot and sets axis artist setting. Subsequently
         renders axis artis updates. Does not update GUI.
 
         Parameters
@@ -661,7 +848,7 @@ class Animator():
         v_zero_line : boolean
             A boolean flag that indicates whether a vertical line will be
             drawn on the x=0 line.
-            
+
         Returns
         -------
         None.
@@ -669,16 +856,16 @@ class Animator():
         """
         # Clear the axis
         axis.clear()
-        
+
         # Set the labels
         axis.set_title(title, fontsize=FONT_SIZE+1)
         axis.set_xlabel(x_label, fontsize=FONT_SIZE)
         axis.set_ylabel(y_label, fontsize=FONT_SIZE)
-        
+
         # Tickmark size
         axis.tick_params(axis='both', which='major', labelsize=FONT_SIZE)
         axis.tick_params(axis='both', which='minor', labelsize=FONT_SIZE)
-        
+
         # Set the limits if there are any
         if x_plot_lim != [None, None]:
             axis.set_xlim(x_plot_lim[0],
@@ -686,14 +873,14 @@ class Animator():
         if y_plot_lim != [None, None]:
             axis.set_ylim(y_plot_lim[0],
                           y_plot_lim[1])
-        
+
         # Add the zero lines
         if h_zero_line:
             axis.axhline(y=0, xmin=0, xmax=1, alpha=0.75, lw=0.75, c='k')
         if v_zero_line:
             axis.axvline(x=0, ymin=0, ymax=1, alpha=0.75, lw=0.75, c='k')
-            
-            
+
+
     def _make_line_artist(self,
                           axis,
                           color,
@@ -739,7 +926,7 @@ class Animator():
                                 ms=2.5*line_width,
                                 marker='o')
             return artist
-        
+
         # If a head marker is not wanted, simply plot on point at 0,0
         artist, = axis.plot([0],
                             [0],
@@ -748,8 +935,8 @@ class Animator():
                             ls=line_style,
                             label=label)
         return artist
-        
-        
+
+
     def _make_bar_artist(self,
                          axis,
                          colors,
@@ -774,10 +961,10 @@ class Animator():
         artists : list of matplotlib.patches.Rectangle
             The bar artists that vary bar length.
 
-        """        
+        """
         # Set all data to 0
         data = [0. for label in labels]
-        
+
         # Make sure the labels aren't None
         if None in labels:
             for i in range(len(labels)):
@@ -791,12 +978,12 @@ class Animator():
                               color=colors,
                               edgecolor='k',
                               linewidth=line_widths)
-        
+
         # Extract the rectangle artists from the container
         artists = [artist for artist in container]
         return artists
-    
-    
+
+
     def _show(self):
         """
         Renders and shows the current figure.
@@ -813,10 +1000,10 @@ class Animator():
             buf = self.fig.canvas.buffer_rgba()
             img = np.asarray(buf)
             cv2.imshow(self.window_name, cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-            
-    
+
+
     def _start(self):
-        cv2.namedWindow(self.window_name, cv2.WINDOW_AUTOSIZE) 
+        cv2.namedWindow(self.window_name, cv2.WINDOW_AUTOSIZE)
         time.sleep(0.1)
         try:
             while True:
@@ -838,7 +1025,7 @@ class Animator():
             warnings.warn(warn, RuntimeWarning)
             sys.stderr.flush()
 
-        
+
     def start_animator(self):
         """
         Builds and shows the animator GUI. Starts the GUI thread that runs
@@ -849,24 +1036,24 @@ class Animator():
         -------
         None.
 
-        """       
+        """
         # If figure is already made, do nothing
         if self.figure_is_made:
             return
-        
+
         # Determine the number of plots and only continue if it's greater than
         # 0.
         self.n_plots = self._get_n_plots()
         if self.n_plots == 0:
             return
-        
+
         # Calculate the plot shape and create the figure
         (n_rows, n_cols) = self._get_plot_shape(self.n_plots)
         fig_res = 300 * n_rows
         fig_dpi = 150
         fig_AR = 1.6*(n_cols/n_rows)
         fig_size = (fig_AR*fig_res/fig_dpi, fig_res/fig_dpi)
-        self.fig = plt.figure(figsize=fig_size, dpi=fig_dpi, frameon=True, 
+        self.fig = plt.figure(figsize=fig_size, dpi=fig_dpi, frameon=True,
                               facecolor="w")
         self.axes = []
         for i in range(self.n_plots):
@@ -875,8 +1062,8 @@ class Animator():
         # Create each plot
         for plot_id in range(self.n_plots):
             # Get the axis on which the plot is drawn
-            axis = self.axes[plot_id] 
-            
+            axis = self.axes[plot_id]
+
             # Retrieve the label data
             title = self.titles[plot_id]
             x_label = self.x_labels[plot_id]
@@ -884,12 +1071,12 @@ class Animator():
             plt_type = self.types[plot_id]
             h_zero_line = self.h_zero_line[plot_id]
             v_zero_line = self.v_zero_line[plot_id]
-            
+
             # Retrieve the limit data
             self._update_limits(plot_id)
             x_plot_lim = self.x_plot_lims[plot_id]
             y_plot_lim = self.y_plot_lims[plot_id]
-            
+
             # Create the plot
             self._create_plot(axis=axis,
                               title=title,
@@ -899,35 +1086,35 @@ class Animator():
                               y_plot_lim=y_plot_lim,
                               h_zero_line=h_zero_line,
                               v_zero_line=v_zero_line)
-            
+
             # Create line artists for plot
             if plt_type == 'line':
                 for artist_id in range(len(self.artists[plot_id])):
                     # Retrieve the style parameters of the current artist
                     c = self.colors[plot_id][artist_id]
                     lw = self.line_widths[plot_id][artist_id]
-                    ls = self.line_styles[plot_id][artist_id]      
-                    label = self.labels[plot_id][artist_id]             
+                    ls = self.line_styles[plot_id][artist_id]
+                    label = self.labels[plot_id][artist_id]
                     head_marker = self.tails[plot_id][artist_id] > 0
-                    
-                    # Make the line artist                                 
+
+                    # Make the line artist
                     artist = self._make_line_artist(axis=axis,
                                                     color=c,
                                                     line_width=lw,
                                                     line_style=ls,
                                                     label=label,
                                                     head_marker=head_marker)
-                    
+
                     # Store the made artist
                     self.artists[plot_id][artist_id] = artist
-                    
+
                 # Check if a legend should be added, and then add it if needed
                 if any([not x is None for x in self.labels[plot_id]]):
                     axis.legend(self.artists[plot_id],
                                 self.labels[plot_id],
-                                loc="upper right", 
+                                loc="upper right",
                                 fontsize=FONT_SIZE-1)
-                    
+
             # Make bar artists for plot
             elif plt_type == 'bar':
                 # Get the artist params
@@ -938,8 +1125,8 @@ class Animator():
                     # Retrieve the style parameters of the current artist
                     cs.append(self.colors[plot_id][artist_id])
                     lws.append(self.line_widths[plot_id][artist_id])
-                    labels.append(self.labels[plot_id][artist_id])       
-                
+                    labels.append(self.labels[plot_id][artist_id])
+
                 # Make each artist
                 artists = self._make_bar_artist(axis=axis,
                                                 colors=cs,
@@ -948,20 +1135,20 @@ class Animator():
                 for artist_id in range(len(artists)):
                     artist = artists[artist_id]
                     self.artists[plot_id][artist_id] = artist
-            
+
         # Set the layout
         self.fig.tight_layout()
-        
+
         # Flag that the figure is done being made
         self.figure_is_made = True
         self.done = False
-        
+
         # Start the GUI thread
         self.thread = Thread(target=self._start)
         self.thread.daemon = True
         self.thread.start()
-       
-        
+
+
     ###########################################################################
     #ADD DATA POINT TO PLOT
     ###########################################################################
@@ -979,7 +1166,7 @@ class Animator():
         y : array-like, shape(n,)
             An array of the y data.
         tail : int
-            The number of points that are used to draw the line. Only the most 
+            The number of points that are used to draw the line. Only the most
             recent data points are kept. A value of None will keep all data
             points.
 
@@ -990,14 +1177,14 @@ class Animator():
         y : array-like, shape(tail,)
             An array of the trimmed y data.
 
-        """       
+        """
         # Trim data to desired length
         if tail > 0 and len(x) > tail:
             x = x[-tail:]
             y = y[-tail:]
         return x, y
-    
-    
+
+
     def _add_line_point(self,
                         plot_id,
                         artist_id,
@@ -1026,20 +1213,20 @@ class Animator():
             # Add the data point
             self.xs[plot_id][artist_id].append(x)
             self.ys[plot_id][artist_id].append(y)
-            
+
             # Trim the data
             tail = self.tails[plot_id][artist_id]
-            x, y = self._trim_data(x = 
+            x, y = self._trim_data(x =
                                    self.xs[plot_id][artist_id],
                                    y = self.ys[plot_id][artist_id],
                                    tail = tail)
-            
+
             # Update the stored data to the trimmed version
             self.xs[plot_id][artist_id] = x
             self.ys[plot_id][artist_id] = y
-            
-        
-    def set_bar_value(self, 
+
+
+    def set_bar_value(self,
                       plot_id,
                       value,
                       artist_id=0):
@@ -1053,7 +1240,7 @@ class Animator():
         value : float
             The value to which the bar is being set.
         artist_id : int, optional
-            The plot's artist index whose value is being set. 
+            The plot's artist index whose value is being set.
             The default is 0.
         Returns
         -------
@@ -1064,11 +1251,11 @@ class Animator():
         if self.types[plot_id] == 'bar':
             with self.lock:
                 self.xs[plot_id][artist_id] = [0., value]
-            
+
         # Update the x and y limits of the plot
         self._update_limits(plot_id)
-    
-        
+
+
     def add_line_datum(self,
                        plot_id,
                        x,
@@ -1089,7 +1276,7 @@ class Animator():
         artist_id : int, optional
             The plot's artist index to which the data is added. If plot
             only has a single artist, is ignored. The default value is 0.
-            
+
         Returns
         -------
         None.
@@ -1101,10 +1288,10 @@ class Animator():
                                  artist_id=artist_id,
                                  x=x,
                                  y=y)
-            
+
         # Update the x and y limits of the plot
         self._update_limits(plot_id)
-        
+
 
     ###########################################################################
     #STEP ANIMATOR FORWARD ONE TIME STEP
@@ -1138,7 +1325,7 @@ class Animator():
             The limits to apply to the y axis of the plots. A value of None
             will apply automatically updating limits to that bound of the axis.
         head_marker : boolean
-            A boolean flag that indicates whether a marker will be drawn at 
+            A boolean flag that indicates whether a marker will be drawn at
             the head of the line. Only if type is line.
 
         Returns
@@ -1150,17 +1337,17 @@ class Animator():
             # If there is a head marker, adjust it
             if head_marker:
                 artist.set_markevery((len(x)-1, 1))
-                
+
             # Update the line artist's data
             artist.set_data(x, y)
-                
+
             # Reset the axis limits
             axis.set_xlim(x_plot_lim[0],
                           x_plot_lim[1])
             axis.set_ylim(y_plot_lim[0],
                           y_plot_lim[1])
-    
-    
+
+
     def _step_bar(self,
                   width,
                   artist,
@@ -1184,27 +1371,27 @@ class Animator():
         Returns
         -------
         None.
-        
+
         """
         with self.lock:
             # Makes sure we are not trying to plot empty data
             if width == []:
                 width = [0.0]
-            
+
             # Change the widths
             artist.set_width(width[-1])
-                
+
             # Reset the x limits
             axis.set_xlim(x_plot_lim[0],
                           x_plot_lim[1])
-        
-        
+
+
     def _step(self):
         """
         Takes a single animator step. If called before redraw period (defined
         by frame rate), cycle the GUI event loop and return. If called
         during a redraw period, re-render plots and update GUI. Must be called
-        regularly to keep GUI fresh. If not called regularly, GUI will become 
+        regularly to keep GUI fresh. If not called regularly, GUI will become
         unresponsive. If you wish to suspend the GUI but keep it responsive,
         call the flush_events() function in a loop.
 
@@ -1212,24 +1399,24 @@ class Animator():
         -------
         None.
 
-        """        
+        """
         # Update each plot
         for plot in range(self.n_plots):
             # Get the axis on which the plot is drawn
             plot_axis = self.axes[plot]
-    
+
             # Retrieve the plot data
             plot_xs = self.xs[plot]
             plot_ys = self.ys[plot]
             plot_type = self.types[plot]
-            
+
             # Retrieve the limit data
             plot_x_lim = self.x_plot_lims[plot]
             plot_y_lim = self.y_plot_lims[plot]
-            
+
             # Retrieve the line artist for each axis
             plot_artists = self.artists[plot]
-            
+
             # Determine if head markers are used for the line plots
             head_marker = (self.tails[plot] != None)
 
@@ -1238,10 +1425,10 @@ class Animator():
                 # Get the x and y data of the artist
                 x = plot_xs[artist_id]
                 y = plot_ys[artist_id]
-                
+
                 # Get the artist
                 artist = plot_artists[artist_id]
-                
+
                 # Update the plotted line data
                 if plot_type == 'line':
                     self._step_line(x=x,
@@ -1251,18 +1438,18 @@ class Animator():
                                     x_plot_lim=plot_x_lim,
                                     y_plot_lim=plot_y_lim,
                                     head_marker=head_marker)
-                    
+
                 # Update the plotted bar data
                 elif plot_type == 'bar':
                     self._step_bar(width=x,
                                    artist=artist,
                                    axis=plot_axis,
                                    x_plot_lim=plot_x_lim)
-                    
+
     def terminate_animator(self):
         """
         Terminates the animator window.
-        
+
         Returns
         -------
         None.
