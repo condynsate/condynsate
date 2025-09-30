@@ -10,8 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 FONT_SIZE = 7
 
+
 ###############################################################################
-#Functions
+#HELPER FUNCTIONS
 ###############################################################################
 def _parse_arg(arg, default, arg_str, n):
     """
@@ -50,6 +51,72 @@ def _parse_arg(arg, default, arg_str, n):
     return arg
 
 
+def _get_l_extent(lower_limit, data_range):
+    """
+    Get the lower extent of the axis based on the user set limits and the
+    data range.
+
+    Parameters
+    ----------
+    lower_limit : float or None
+        The lower user set limit. None if no limit is set.
+    data_range : 2 tuple of floats or 2 tuple of None
+        (min data value, max data value). (None, None) if no data
+
+    Returns
+    -------
+    lower_extent : float
+        The calculated lower extent.
+
+    """
+    if not lower_limit is None:
+        # limit value takes priority
+        lower_extent = float(copy(lower_limit))
+
+    elif not any([datum is None for datum in data_range]):
+       # If no user value, but there is data, set based on data range
+       lower_extent = data_range[0] - 0.05*(data_range[1] - data_range[0])
+
+    else:
+        # If no user set value or data, set default extent to 0.0
+        lower_extent = 0.0
+
+    return lower_extent
+
+
+def _get_u_extent(upper_limit, data_range):
+    """
+    Get the upper extent of the axis based on the user set limits and the
+    data range.
+
+    Parameters
+    ----------
+    upper_limit : float or None
+        The upper user set limit. None if no limit is set.
+    data_range : 2 tuple of floats or 2 tuple of None
+        (min data value, max data value). (None, None) if no data
+
+    Returns
+    -------
+    upper_extent : float
+        The calculated upper extent.
+
+    """
+    if not upper_limit is None:
+        # upper limit takes priority
+        upper_extent = float(copy(upper_limit))
+
+    elif not any([datum is None for datum in data_range]):
+       # If no user value, but there is data, set based on data range
+       upper_extent = data_range[1] + 0.05*(data_range[1] - data_range[0])
+
+    else:
+        # If no user set value or data, set default extent to 1.0
+        upper_extent = 1.0
+
+    return upper_extent
+
+
 ###############################################################################
 #LINE PLOT CLASS
 ###############################################################################
@@ -62,6 +129,8 @@ class Lineplot():
     ----------
     axes : matplotlib.axes
         The axes on which the lineplot lives.
+    fig_lock : _thread.lock
+        A mutex lock for the fig on which the axes are drawn.
     n_lines : int, optional
         The number of lines that are drawn on the plot. The default value is
         1.
@@ -120,13 +189,16 @@ class Lineplot():
             'dashdot', or 'dotted'.
 
     """
-    def __init__(self, axes, n_lines=1, threaded=False, **kwargs):
+    def __init__(self, axes, fig_lock, n_lines=1, threaded=False, **kwargs):
         """
         Constructor method.
         """
         # Create a mutex lock to synchronize the drawing thread (child) and the
         # setting thread (parent)
         self._LOCK = Lock()
+
+        # Save mutex lock used to synchronize drawing to figure axes
+        self._FIG_LOCK = fig_lock
 
         # Store the axes on which the plot lives
         self._axes = axes
@@ -292,27 +364,33 @@ class Lineplot():
             None.
 
             """
-            # Clear the axis
-            self._axes.clear()
+            # Aquire mutex lock to draw to figure axes
+            with self._FIG_LOCK:
 
-            # Set the labels
-            self._axes.set_title(self.labels['title'], fontsize=FONT_SIZE+1)
-            self._axes.set_xlabel(self.labels['x_label'], fontsize=FONT_SIZE)
-            self._axes.set_ylabel(self.labels['y_label'], fontsize=FONT_SIZE)
+                # Clear the axis
+                self._axes.clear()
 
-            # Set the tick mark size
-            self._axes.tick_params(axis='both', which='major',
-                                  labelsize=FONT_SIZE)
-            self._axes.tick_params(axis='both', which='minor',
-                                  labelsize=FONT_SIZE)
+                # Set the labels
+                self._axes.set_title(self.labels['title'],
+                                     fontsize=FONT_SIZE+1)
+                self._axes.set_xlabel(self.labels['x_label'],
+                                      fontsize=FONT_SIZE)
+                self._axes.set_ylabel(self.labels['y_label'],
+                                      fontsize=FONT_SIZE)
 
-            # Add the zero lines
-            if self.options['h_zero_line']:
-                self._axes.axhline(y=0, xmin=0, xmax=1,
-                                  alpha=0.75, lw=0.75, c='k')
-            if self.options['v_zero_line']:
-                self._axes.axvline(x=0, ymin=0, ymax=1,
-                                  alpha=0.75, lw=0.75, c='k')
+                # Set the tick mark size
+                self._axes.tick_params(axis='both', which='major',
+                                      labelsize=FONT_SIZE)
+                self._axes.tick_params(axis='both', which='minor',
+                                      labelsize=FONT_SIZE)
+
+                # Add the zero lines
+                if self.options['h_zero_line']:
+                    self._axes.axhline(y=0, xmin=0, xmax=1,
+                                      alpha=0.75, lw=0.75, c='k')
+                if self.options['v_zero_line']:
+                    self._axes.axvline(x=0, ymin=0, ymax=1,
+                                      alpha=0.75, lw=0.75, c='k')
 
             # Set the extents of the axes on which the plot lives
             self._set_axes_extents()
@@ -337,16 +415,19 @@ class Lineplot():
             y_range = self._get_data_range(self.data['y'])
 
         # Calculate the x extents
-        x_extents = (self._get_l_extent(self.options['x_lim'][0], x_range),
-                     self._get_u_extent(self.options['x_lim'][1], x_range))
+        x_extents = (_get_l_extent(self.options['x_lim'][0], x_range),
+                     _get_u_extent(self.options['x_lim'][1], x_range))
 
         # Calculate the y extents
-        y_extents = (self._get_l_extent(self.options['y_lim'][0], y_range),
-                     self._get_u_extent(self.options['y_lim'][1], y_range))
+        y_extents = (_get_l_extent(self.options['y_lim'][0], y_range),
+                     _get_u_extent(self.options['y_lim'][1], y_range))
 
-        # Set the extents
-        self._axes.set_xlim(x_extents[0], x_extents[1])
-        self._axes.set_ylim(y_extents[0], y_extents[1])
+        # Aquire mutex lock to draw to figure axes
+        with self._FIG_LOCK:
+
+            # Set the extents
+            self._axes.set_xlim(x_extents[0], x_extents[1])
+            self._axes.set_ylim(y_extents[0], y_extents[1])
 
 
     def _get_data_range(self, artist_data_list):
@@ -386,72 +467,6 @@ class Lineplot():
         return rng
 
 
-    def _get_l_extent(self, lower_user_limit, data_range):
-        """
-        Get the lower extent of the axis based on the user set limits and the
-        data range.
-
-        Parameters
-        ----------
-        lower_user_limit : float or None
-            The lower user set limit. None if no limit is set.
-        data_range : 2 tuple of floats or 2 tuple of None
-            (min data value, max data value). (None, None) if no data
-
-        Returns
-        -------
-        lower_extent : float
-            The calculated lower extent.
-
-        """
-        if not lower_user_limit is None:
-            # user set value takes priority
-            lower_extent = float(copy(lower_user_limit))
-
-        elif not any([datum is None for datum in data_range]):
-           # If no user value, but there is data, set based on data range
-           lower_extent = data_range[0] - 0.05*(data_range[1] - data_range[0])
-
-        else:
-            # If no user set value or data, set default extent to 0.0
-            lower_extent = 0.0
-
-        return lower_extent
-
-
-    def _get_u_extent(self, upper_user_limit, data_range):
-        """
-        Get the upper extent of the axis based on the user set limits and the
-        data range.
-
-        Parameters
-        ----------
-        upper_user_limit : float or None
-            The upper user set limit. None if no limit is set.
-        data_range : 2 tuple of floats or 2 tuple of None
-            (min data value, max data value). (None, None) if no data
-
-        Returns
-        -------
-        upper_extent : float
-            The calculated upper extent.
-
-        """
-        if not upper_user_limit is None:
-            # user set value takes priority
-            upper_extent = float(copy(upper_user_limit))
-
-        elif not any([datum is None for datum in data_range]):
-           # If no user value, but there is data, set based on data range
-           upper_extent = data_range[1] + 0.05*(data_range[1] - data_range[0])
-
-        else:
-            # If no user set value or data, set default extent to 1.0
-            upper_extent = 1.0
-
-        return upper_extent
-
-
     def _make_line_artists(self):
         """
         Makes one line artist for every n_lines. Sets the current data.
@@ -482,11 +497,14 @@ class Lineplot():
             # Aquire mutex lock to read self.data
             with self._LOCK:
 
-                # Make a line artist. Set the current data. Apply style and
-                # label options
-                line, = self._axes.plot(self.data['x'][line_ind],
-                                        self.data['x'][line_ind],
-                                        **kwargs)
+                # Aquire mutex lock to draw to figure axes
+                with self._FIG_LOCK:
+
+                    # Make a line artist. Set the current data. Apply style and
+                    # label options
+                    line, = self._axes.plot(self.data['x'][line_ind],
+                                            self.data['x'][line_ind],
+                                            **kwargs)
                 lines.append(line)
 
         return lines
@@ -647,13 +665,16 @@ class Lineplot():
         # Aquire mutex lock to read self.data and set flag
         with self._LOCK:
 
-            # Update the line artist's data
-            line.set_data(self.data['x'][line_ind],
-                          self.data['y'][line_ind])
+            # Aquire mutex lock to draw to figure axes
+            with self._FIG_LOCK:
 
-            # If there is a head marker, move it to the new head
-            if self.options['tail'][line_ind] > 0:
-                line.set_markevery((len(self.data['x'][line_ind])-1, 1))
+                # Update the line artist's data
+                line.set_data(self.data['x'][line_ind],
+                              self.data['y'][line_ind])
+
+                # If there is a head marker, move it to the new head
+                if self.options['tail'][line_ind] > 0:
+                    line.set_markevery((len(self.data['x'][line_ind])-1, 1))
 
             # Note that the artist has been redrawn
             self._need_redraw[line_ind] = False
@@ -687,6 +708,8 @@ class Barchart():
     ----------
     axes : matplotlib.axes
         The axes on which the barchart lives.
+    fig_lock : _thread.lock
+        A mutex lock for the fig on which the axes are drawn.
     n_bars : int, optional
         The number of bars on the chart. The default value is
         1.
@@ -722,13 +745,16 @@ class Barchart():
             n_bars. The default is 'blue'.
 
     """
-    def __init__(self, axes, n_bars=1, threaded=False, **kwargs):
+    def __init__(self, axes, fig_lock, n_bars=1, threaded=False, **kwargs):
         """
         Constructor method.
         """
         # Create a mutex lock to synchronize the drawing thread (child) and the
         # setting thread (parent)
         self._LOCK = Lock()
+
+        # Save mutex lock used to synchronize drawing to figure axes
+        self._FIG_LOCK = fig_lock
 
         # Store the axes on which the chart lives
         self._axes = axes
@@ -860,24 +886,30 @@ class Barchart():
             None.
 
             """
-            # Clear the axis
-            self._axes.clear()
+            # Aquire mutex lock to draw to figure axes
+            with self._FIG_LOCK:
 
-            # Set the labels
-            self._axes.set_title(self.labels['title'], fontsize=FONT_SIZE+1)
-            self._axes.set_xlabel(self.labels['x_label'], fontsize=FONT_SIZE)
-            self._axes.set_ylabel(self.labels['y_label'], fontsize=FONT_SIZE)
+                # Clear the axis
+                self._axes.clear()
 
-            # Set the tick mark size
-            self._axes.tick_params(axis='both', which='major',
-                                  labelsize=FONT_SIZE)
-            self._axes.tick_params(axis='both', which='minor',
-                                  labelsize=FONT_SIZE)
+                # Set the labels
+                self._axes.set_title(self.labels['title'],
+                                     fontsize=FONT_SIZE+1)
+                self._axes.set_xlabel(self.labels['x_label'],
+                                      fontsize=FONT_SIZE)
+                self._axes.set_ylabel(self.labels['y_label'],
+                                      fontsize=FONT_SIZE)
 
-            # Add the zero line
-            if self.options['v_zero_line']:
-                self._axes.axvline(x=0, ymin=0, ymax=1,
-                                  alpha=0.75, lw=0.75, c='k')
+                # Set the tick mark size
+                self._axes.tick_params(axis='both', which='major',
+                                      labelsize=FONT_SIZE)
+                self._axes.tick_params(axis='both', which='minor',
+                                      labelsize=FONT_SIZE)
+
+                # Add the zero line
+                if self.options['v_zero_line']:
+                    self._axes.axvline(x=0, ymin=0, ymax=1,
+                                      alpha=0.75, lw=0.75, c='k')
 
             # Set the extents of the axes on which the chart lives
             self._set_axes_extents()
@@ -902,11 +934,14 @@ class Barchart():
             x_range = self._get_data_range(self.values)
 
         # Calculate the x extents
-        x_extents = (self._get_l_extent(self.options['x_lim'][0], x_range),
-                     self._get_u_extent(self.options['x_lim'][1], x_range))
+        x_extents = (_get_l_extent(self.options['x_lim'][0], x_range),
+                     _get_u_extent(self.options['x_lim'][1], x_range))
 
-        # Set the extents
-        self._axes.set_xlim(x_extents[0], x_extents[1])
+        # Aquire mutex lock to draw to figure axes
+        with self._FIG_LOCK:
+
+            # Set the extents
+            self._axes.set_xlim(x_extents[0], x_extents[1])
 
 
     def _get_data_range(self, bar_data):
@@ -945,72 +980,6 @@ class Barchart():
         return rng
 
 
-    def _get_l_extent(self, lower_user_limit, data_range):
-        """
-        Get the lower extent of the axis based on the user set limits and the
-        data range.
-
-        Parameters
-        ----------
-        lower_user_limit : float or None
-            The lower user set limit. None if no limit is set.
-        data_range : 2 tuple of floats or 2 tuple of None
-            (min data value, max data value). (None, None) if no data
-
-        Returns
-        -------
-        lower_extent : float
-            The calculated lower extent.
-
-        """
-        if not lower_user_limit is None:
-            # user set value takes priority
-            lower_extent = float(copy(lower_user_limit))
-
-        elif not any([datum is None for datum in data_range]):
-           # If no user value, but there is data, set based on data range
-           lower_extent = data_range[0] - 0.05*(data_range[1] - data_range[0])
-
-        else:
-            # If no user set value or data, set default extent to 0.0
-            lower_extent = 0.0
-
-        return lower_extent
-
-
-    def _get_u_extent(self, upper_user_limit, data_range):
-        """
-        Get the upper extent of the axis based on the user set limits and the
-        data range.
-
-        Parameters
-        ----------
-        upper_user_limit : float or None
-            The upper user set limit. None if no limit is set.
-        data_range : 2 tuple of floats or 2 tuple of None
-            (min data value, max data value). (None, None) if no data
-
-        Returns
-        -------
-        upper_extent : float
-            The calculated upper extent.
-
-        """
-        if not upper_user_limit is None:
-            # user set value takes priority
-            upper_extent = float(copy(upper_user_limit))
-
-        elif not any([datum is None for datum in data_range]):
-           # If no user value, but there is data, set based on data range
-           upper_extent = data_range[1] + 0.05*(data_range[1] - data_range[0])
-
-        else:
-            # If no user set value or data, set default extent to 1.0
-            upper_extent = 1.0
-
-        return upper_extent
-
-
     def _make_bar_artists(self):
         """
         Makes one bar artist for every n_bars. Sets the current data.
@@ -1032,10 +1001,13 @@ class Barchart():
         # Aquire mutex lock to read self.values
         with self._LOCK:
 
-            # Make bar artists. Set the current data. Apply style and
-            # label options
-            container = self._axes.barh(self.labels['label'],
-                                        self.values, **kwargs)
+            # Aquire mutex lock to draw to figure axes
+            with self._FIG_LOCK:
+
+                # Make bar artists. Set the current data. Apply style and
+                # label options
+                container = self._axes.barh(self.labels['label'],
+                                            self.values, **kwargs)
 
         # Extract bar artists from the container
         bars = [artist for artist in container]
@@ -1045,7 +1017,7 @@ class Barchart():
     def _drawer_loop(self):
         """
         Runs a drawer loop that continuously calls redraw_chart until the done
-        flag is set to True
+        flag is set to True.
 
         Returns
         -------
@@ -1087,6 +1059,7 @@ class Barchart():
         """
         # Aquire mutex lock to set self.values and flag
         with self._LOCK:
+
             # Set the value
             self.values[bar_ind] = float(copy(value))
 
@@ -1159,8 +1132,11 @@ class Barchart():
         # Aquire mutex lock to read self.values and set flag
         with self._LOCK:
 
-            # Update the line artist's data
-            bar.set_width(self.values[bar_ind])
+            # Aquire mutex lock to draw to figure axes
+            with self._FIG_LOCK:
+
+                # Update the line artist's data
+                bar.set_width(self.values[bar_ind])
 
             # Note that the artist has been redrawn
             self._need_redraw[bar_ind] = False
@@ -1169,7 +1145,7 @@ class Barchart():
     def terminate(self):
         """
         Terminate the drawer thread (if it exists). MAKE SURE TO CALL THIS
-        WHEN DONE WITH LINEPLOT IF THREADED FLAG IS SET TO TRUE.
+        WHEN DONE WITH BARCHART IF THREADED FLAG IS SET TO TRUE.
 
         Returns
         -------
@@ -1190,20 +1166,20 @@ if __name__ == "__main__":
         fig_size = (fig_AR*fig_res/fig_dpi, fig_res/fig_dpi)
         fig = plt.figure(figsize=fig_size, dpi=fig_dpi, frameon=True,
                          facecolor="w")
-
+        fig_lock = Lock()
 
         axes_list = []
         for i in range(n_rows*n_cols):
                 axes_list.append(fig.add_subplot(n_rows, n_cols, i+1))
 
 
-        lineplot = Lineplot(axes_list[0], n_lines=2, threaded=True,
+        lineplot = Lineplot(axes_list[0], fig_lock, n_lines=2, threaded=True,
                             color=['r', 'b'])
         for i in range(100):
             lineplot.append_point(i, np.random.rand(), line_ind=0)
         lineplot.set_data(np.arange(50,75), np.random.rand(25)*2+2, line_ind=1)
 
-        barchart = Barchart(axes_list[1], n_bars=2, threaded=True,
+        barchart = Barchart(axes_list[1], fig_lock, n_bars=2, threaded=True,
                             color=['r', 'b'], x_lim=[-1.0, 15.0],
                             v_zero_line=True)
         barchart.set_value(10, bar_ind=0)
