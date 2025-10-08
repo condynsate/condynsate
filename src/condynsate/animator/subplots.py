@@ -1,11 +1,11 @@
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
-from threading import (Thread, Lock)
 import sys
-from copy import copy
-import warnings
 import time
+import warnings
+from copy import copy
+from threading import (Thread, Lock)
 import numpy as np
 import matplotlib.pyplot as plt
 FONT_SIZE = 7
@@ -51,6 +51,7 @@ class Subplot():
         # Store the threading flag
         self._THREADED = threaded
         self._done = False
+        self._thread = None
 
         # Dictionaries to hold user set subplot options
         self.options = {'axes' : {},
@@ -80,24 +81,6 @@ class Subplot():
         Deconstructor method.
         """
         self.terminate()
-
-
-    def _start(self):
-        """
-        Starts the drawing thread.
-
-        Returns
-        -------
-        None.
-
-        """
-        # Threaded operations:
-        if self._THREADED:
-
-            # Start the drawing thread
-            self._thread = Thread(target=self._drawer_loop)
-            self._thread.daemon = True
-            self._thread.start()
 
 
     def _parse_2_n(self, arg, arg_str, n):
@@ -438,6 +421,24 @@ class Subplot():
             time.sleep(0.01)
 
 
+    def _start(self):
+        """
+        Starts the drawing thread.
+
+        Returns
+        -------
+        None.
+
+        """
+        # Threaded operations:
+        if self._THREADED:
+
+            # Start the drawing thread
+            self._thread = Thread(target=self._drawer_loop)
+            self._thread.daemon = True
+            self._thread.start()
+
+
     def terminate(self):
         """
         Terminate the drawer thread (if it exists). MAKE SURE TO CALL THIS
@@ -451,7 +452,8 @@ class Subplot():
         if self._THREADED:
             with self._LOCK:
                 self._done = True
-            self._thread.join()
+            if not self._thread is None:
+                self._thread.join()
 
 
 ###############################################################################
@@ -752,14 +754,19 @@ class Lineplot(Subplot):
 
             # Aquire mutex lock to draw to figure axes
             with self._FIG_LOCK:
+                # Alias line data
+                x_dat = self.data['x'][line_ind]
+                y_dat = self.data['y'][line_ind]
+                tail = self.options['artists']['tail'][line_ind]
 
-                # Update the line artist's data
-                line.set_data(self.data['x'][line_ind],
-                              self.data['y'][line_ind])
+                # Set the line data if there is a tail
+                if tail > 0:
+                    line.set_data(x_dat[-tail:], y_dat[-tail:])
+                    line.set_markevery((len(x_dat[-tail:])-1, 1))
 
-                # If there is a head marker, move it to the new head
-                if self.options['artists']['tail'][line_ind] > 0:
-                    line.set_markevery((len(self.data['x'][line_ind])-1, 1))
+                # Set the line data if there is no tail
+                else:
+                    line.set_data(x_dat, y_dat)
 
             # Note that the artist has been redrawn
             self._need_redraw[line_ind] = False
@@ -793,18 +800,27 @@ class Barchart(Subplot):
             bound of the axis. For example [None, 10.] will fix the upper
             bound to exactly 10, but the lower bound will freely change to
             show all data.The default is [None, None].
+        y_lim : [float, float], optional
+            The limits to apply to the y axis of the plot. A value of None
+            will apply automatically updating limits to the corresponding
+            bound of the axis. For example [None, 10.] will fix the upper
+            bound to exactly 10, but the lower bound will freely change to
+            show all data.The default is [None, None].
+        h_zero_line : boolean, optional
+            A boolean flag that indicates whether a horizontal line will be
+            drawn on the y=0 line. The default is false
         v_zero_line : boolean, optional
             A boolean flag that indicates whether a vertical line will be
-            drawn on the x=0 line. The default is False.
+            drawn on the x=0 line. The default is false
         title : string, optional
-            The title of the chart. Will be written above the chart when
+            The title of the plot. Will be written above the plot when
             rendered. The default is None.
         x_label : string, optional
-            The label to apply to the x axis. Will be written under the chart
+            The label to apply to the x axis. Will be written under the plot
             when rendered. The default is None.
         y_label : string, optional
             The label to apply to the y axis. Will be written to the left of
-            the chart when rendered. The default is None.
+            the plot when rendered. The default is None.
         label : string or tuple of strings, optional
             The label applied to each bar. The labels are shown in a legend
             in the top right of the chart. When tuple, must have length
@@ -827,7 +843,7 @@ class Barchart(Subplot):
         self.options['artists']['color'] = 'black'
 
         # Add x data to self.data
-        self.data['values'] = np.array([[0.0],]*n_bars).tolist()
+        self.data['x'] = np.array([[0.0],]*n_bars).tolist()
 
         # Apply the user set kwargs
         self._apply_kwargs(kwargs)
@@ -858,7 +874,7 @@ class Barchart(Subplot):
         ranges = self._get_ranges()
 
         # Update the plot extents
-        self._update_x_extent(ranges['values'])
+        self._update_x_extent(ranges['x'])
 
 
     def _make_bars(self):
@@ -887,7 +903,7 @@ class Barchart(Subplot):
 
                 # Make bar artists. Set the current data. Apply style and
                 # label options
-                values = [v[-1] for v in self.data['values']]
+                values = [v[-1] for v in self.data['x']]
                 container = self._axes.barh(self.options['artists']['label'],
                                             values, **kwargs)
 
@@ -918,7 +934,7 @@ class Barchart(Subplot):
         with self._LOCK:
 
             # Set the value
-            self.data['values'][bar_ind].append(float(copy(value)))
+            self.data['x'][bar_ind].append(float(copy(value)))
 
             # Tell the drawer that the axes must be redrawn
             self._need_redraw[bar_ind] = True
@@ -937,8 +953,9 @@ class Barchart(Subplot):
         None.
 
         """
-        n_bars = self.options['axes']['n_artists']
-        self.data['values'] = np.array([[0.0],]*n_bars).tolist()
+        with self._LOCK:
+            n_bars = self.options['axes']['n_artists']
+            self.data['x'] = np.array([[0.0],]*n_bars).tolist()
 
 
     def redraw(self):
@@ -986,26 +1003,30 @@ class Barchart(Subplot):
         # Aquire the artist
         bar = self._bars[bar_ind]
 
-        # Aquire mutex lock to read self.values and set flag
+        # Aquire mutex lock to read self.data and set flag
         with self._LOCK:
 
             # Aquire mutex lock to draw to figure axes
             with self._FIG_LOCK:
 
                 # Update the line artist's data
-                bar.set_width(self.data['values'][bar_ind][-1])
+                bar.set_width(self.data['x'][bar_ind][-1])
 
             # Note that the artist has been redrawn
             self._need_redraw[bar_ind] = False
 
 
+###############################################################################
+#TESTING DONE IN MAIN LOOP
+###############################################################################
 if __name__ == "__main__":
         (n_rows, n_cols) = (2, 1)
-        fig_res = 300 * n_rows
-        fig_dpi = 150
-        fig_AR = 1.6*(n_cols/n_rows)
-        fig_size = (fig_AR*fig_res/fig_dpi, fig_res/fig_dpi)
-        fig = plt.figure(figsize=fig_size, dpi=fig_dpi, frameon=True,
+        res = 240 * n_rows
+        height = 2.0 * n_rows
+        AR = 1.6*(n_cols/n_rows) # Widescreen AR
+        size = (AR*height, height)
+        dpi = res/height
+        fig = plt.figure(figsize=size, dpi=dpi, frameon=True,
                          facecolor="w")
         fig_lock = Lock()
 
@@ -1014,8 +1035,8 @@ if __name__ == "__main__":
                 axes_list.append(fig.add_subplot(n_rows, n_cols, i+1))
 
 
-        lineplot = Lineplot(axes_list[0], fig_lock, n_lines=2, threaded=True,
-                            color=['r', 'b'])
+        lineplot = Lineplot(axes_list[0], fig_lock, n_lines=2, threaded=False,
+                            color=['r', 'b'], tail=[10,-1])
         for i in range(100):
             lineplot.append_point(i, np.random.rand(), line_ind=0)
         lineplot.set_data(np.arange(50,75), np.random.rand(25)*2+2, line_ind=1)
