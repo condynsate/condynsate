@@ -14,7 +14,7 @@ FONT_SIZE = 7
 ###############################################################################
 #SUBPLOT SUPER CLASS
 ###############################################################################
-class Subplot():
+class _Subplot():
     """
     Parent class for all subplots. Provides functions for parsing kwargs,
     setting kwargs, updating axes' settings, and handling the redraw thread
@@ -459,7 +459,7 @@ class Subplot():
 ###############################################################################
 #LINE PLOT CLASS
 ###############################################################################
-class Lineplot(Subplot):
+class Lineplot(_Subplot):
     """
     Functionality for line plots. Stores all line plot data, draws the axes in
     a child thread based on the user set data.
@@ -775,7 +775,7 @@ class Lineplot(Subplot):
 ###############################################################################
 #BAR CHART CLASS
 ###############################################################################
-class Barchart(Subplot):
+class Barchart(_Subplot):
     """
     Functionality for bar charts. Stores all bar chart data, draws the axes in
     a child thread based on the user set data.
