@@ -98,7 +98,7 @@ class _Subplot():
 
         Raises
         ------
-        TypeError
+        ValueError
             The argument cannot be parsed.
 
         Returns
@@ -113,7 +113,7 @@ class _Subplot():
         arg = list(arg)
         if len(arg) != n:
             err = "Could not parse {}: {} to tuple of {} arguments"
-            raise TypeError(err.format(arg_str, arg_prime, n))
+            raise ValueError(err.format(arg_str, arg_prime, n))
         return arg
 
     def _parse_artist_options(self):
@@ -155,8 +155,7 @@ class _Subplot():
             in_labs = kwarg in self.options['labels']
             in_arts = kwarg in self.options['artists']
             if not in_opts and not in_labs and not in_arts:
-                warn = "Ignoring {} because it is not a recognized kwarg."
-                warnings.warn(warn.format(kwarg), RuntimeWarning)
+                warnings.warn("{} is not a recognized kwarg.".format(kwarg))
                 sys.stderr.flush()
                 continue
 
@@ -840,7 +839,7 @@ class Barchart(_Subplot):
         # Set the default lineplot specific artist options
         self.options['artists']['label'] = ['Bar {}'.format(i+1)
                                             for i in range(n_bars)]
-        self.options['artists']['color'] = 'black'
+        self.options['artists']['color'] = 'blue'
 
         # Add x data to self.data
         self.data['x'] = np.array([[0.0],]*n_bars).tolist()
