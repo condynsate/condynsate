@@ -599,7 +599,7 @@ class Lineplot(_Subplot):
                       'ls' : self.options['artists']['line_style'][line_ind],
                       'label' : self.options['artists']['label'][line_ind]}
 
-            # Artists that have a tail length less than infinite
+            # Artists that have a tail length greater than 0
             # need a head marker.
             if self.options['artists']['tail'][line_ind] > 0:
                 kwargs['ms'] = 2.5*kwargs['lw']
@@ -616,7 +616,15 @@ class Lineplot(_Subplot):
                     line, = self._axes.plot(self.data['x'][line_ind],
                                             self.data['x'][line_ind],
                                             **kwargs)
+
                 lines.append(line)
+
+        # Add a legend if needed
+        if not all([l is None for l in self.options['artists']['label']]):
+            ncols = self.options['axes']['n_artists']
+            self._axes.legend(loc='lower center', fontsize=FONT_SIZE-1,
+                              frameon=False, fancybox=False, shadow=False,
+                              bbox_to_anchor=(0.5,1.0), ncols=ncols)
 
         return lines
 
@@ -1021,8 +1029,8 @@ class Barchart(_Subplot):
 if __name__ == "__main__":
         (n_rows, n_cols) = (2, 1)
         res = 240 * n_rows
-        height = 2.0 * n_rows
-        AR = 1.6*(n_cols/n_rows) # Widescreen AR
+        height = 2.5 * n_rows
+        AR = 1.777778*(n_cols/n_rows) # 16:9 AR
         size = (AR*height, height)
         dpi = res/height
         fig = plt.figure(figsize=size, dpi=dpi, frameon=True,

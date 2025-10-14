@@ -84,8 +84,8 @@ class Figure():
         """
         # Make the figure
         res = 240 * self.shape[0]
-        height = 2.0 * self.shape[0]
-        AR = 1.6*(self.shape[1]/self.shape[0]) # Widescreen AR
+        height = 2.5 * self.shape[0]
+        AR = 1.7778*(self.shape[1]/self.shape[0]) # 16:9 AR
         size = (AR*height, height)
         dpi = res/height
         fig = plt.figure(figsize=size, dpi=dpi, frameon=True,
@@ -98,7 +98,7 @@ class Figure():
             axes_list.append(axes)
 
         # General figure formatting
-        fig.tight_layout()
+        # fig.tight_layout()
 
         return fig, axes_list
 
