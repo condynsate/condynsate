@@ -1,12 +1,15 @@
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
-import time
+import os
 from warnings import warn
-from figure import Figure
-from subplots import (Lineplot, Barchart)
+from condynsate.animator.figure import Figure
+from condynsate.animator.subplots import (Lineplot, Barchart)
+from condynsate.exceptions import InvalidNameException
+from condynsate.misc.exception_handling import ESC
 import cv2
 import numpy as np
+import zlib
 
 
 ###############################################################################
@@ -19,12 +22,34 @@ class Animator():
 
     Parameters
     ----------
-    None.
+    frame_rate : float, optional
+        The upper limit of the allowed frame rate in frames per second.
+        When set, the animator will not update faster than this speed.
+        When none, the animator will update each time refresh is called.
+        The default is None.
+
+    record : bool, optional
+        A boolean flag that indicates if the animator should be recorded. If
+        True, all frames from the start function call to the terminate function
+        call are recorded. After the terminate function call, these frames are
+        saved with h.264 and outputs in an MP4 container. The saved file name
+        has the form animator_video.mp4
     """
-    def __init__(self):
+    def __init__(self, frame_rate=None, record=False):
         """
         Constructor func.
         """
+        # Calculate time between frames
+        if not frame_rate is None:
+            self.frame_delta = 1.0 / frame_rate
+        else:
+            self.frame_delta = 0.0
+
+        # Recording support
+        self.record = record
+        self._frames = []
+        self._frame_times = []
+
         # Track the number of subplots
         self._n_plots = 0
 
@@ -32,6 +57,7 @@ class Animator():
         self._figure = None
         self._plots = []
         self._started = False
+        self._last_refresh = cv2.getTickCount()
 
         # Constants
         self._WINDOW_NAME = 'condynsate Animator'
@@ -299,10 +325,38 @@ class Animator():
 
 
     def refresh(self):
+        """
+        Updates the animator GUI with the most recently drawn figure. Must
+        be called regularly to maintain responsivness of GUI.
+
+        Returns
+        -------
+        ret_code : int
+            0 on success, -1 else.
+
+
+        """
+        # Get elapsed time since refresh
+        dt = (cv2.getTickCount() - self._last_refresh)/cv2.getTickFrequency()
+
+        # If not enough time has passed, only refresh the responsiveness.
+        if dt < self.frame_delta:
+            cv2.waitKey(1)
+            return 0
+
+        # If enough time has passed, update the GUI
         try:
+            # Get the current image, draw it to screen, update last frame time
             image = cv2.cvtColor(self._figure.get_image(), cv2.COLOR_BGR2RGB)
             cv2.imshow(self._WINDOW_NAME, image)
             cv2.waitKey(1)
+            self._last_refresh = cv2.getTickCount()
+
+            # If recording, save the current image
+            if self.record:
+                self._frames.append((zlib.compress(image), image.shape))
+                self._frame_times.append(self._last_refresh)
+
             return 0
         except:
             return -1
@@ -473,7 +527,7 @@ class Animator():
 
         # Make sure the indexed subplot is type Subplot
         sp_ok = type(self._plots[subplot_ind]['Subplot']).__module__
-        sp_ok = sp_ok == 'subplots'
+        sp_ok = sp_ok == 'condynsate.animator.subplots'
         if not sp_ok:
             return False
 
@@ -697,6 +751,171 @@ class Animator():
         return cond_1 and cond_2 and cond_3
 
 
+    def _get_valid_name_(self, file_name, file_container):
+        """
+        Checks a file name for validity (no invalid characters, does not exist
+        in the current working directory). If invalid, appends an int, up to
+        99 to the end of filename it validify.
+
+        Parameters
+        ----------
+        file_name : string
+            The desired file name being validated.
+        file_container : string
+            The container type for the file.
+
+        Raises
+        ------
+        InvalidNameException
+            Raised when name is invalid or cannot be validified.
+
+        Returns
+        -------
+        valid_file : string
+            The validated file name in format "valid_file_name.file_container".
+
+        """
+        illegal_chars = ("<", ">", ":", "|", "?", "*", ".", "\"", "\'",)
+        if any(illegal_char in file_name for illegal_char in illegal_chars):
+            msg = "May not include the characters {}."
+            msg = msg.format(r' '.join(illegal_chars))
+            raise InvalidNameException(msg, (file_name, -1))
+
+        if len(file_name) == 0:
+            msg = "Must be longer than 0 characters."
+            msg = msg.format(file_name)
+            raise InvalidNameException(msg, (file_name, -1))
+
+        valid_file = '{}.{}'.format(file_name, file_container)
+        if not valid_file in os.listdir(os.path.abspath(os.getcwd())):
+            return valid_file
+
+        max_append = 99
+        for i in range(max_append):
+            valid_file = '{}_{:02}.{}'.format(file_name, i+1, file_container)
+            if not valid_file in os.listdir(os.path.abspath(os.getcwd())):
+                return valid_file
+
+        msg = "Too many files already exist with the same name."
+        msg = msg.format(file_name)
+        raise InvalidNameException(msg, (file_name, max_append))
+
+
+    def _get_valid_name(self, file_name, file_container):
+        """
+        Attempts to convert a file name into a valid file name (no invalid
+        characters, does not exist in the current working directory). If it
+        cannot do this automatically, prompts the user to input a new name.
+
+        Parameters
+        ----------
+        file_name : string
+            The desired file name to be validated.
+        file_container : string
+            The container type for the file.
+
+        Returns
+        -------
+        valid_file : string
+            The validated file name in format "valid_file_name.file_container".
+
+        """
+        try:
+            valid_name = self._get_valid_name_(file_name, file_container)
+            return valid_name
+        except InvalidNameException as e:
+            bars = ''.join(['-']*80)
+            print(ESC.fail(bars), flush=True)
+            print(ESC.fail(type(e).__name__), flush=True)
+            s = 'Cannot save the animator video to the file name: \"{}\"'
+            print(ESC.warning(s.format(file_name)), flush=True)
+            print(ESC.warning(e.message), flush=True)
+            s = 'Enter new name (do not include file extension): '
+            file_name = input(s)
+            print(ESC.fail(bars), flush=True)
+            return self._get_valid_name(file_name, file_container)
+
+
+    def _save_recording(self):
+        """
+        Converts frames and frame times to a constant FPS video.
+
+        Returns
+        -------
+        None.
+
+        """
+        # Calculate the times in seconds at which each frame was captured
+        cap_t = np.array(self._frame_times)/cv2.getTickFrequency()
+        cap_t -= cap_t[0]
+
+        # Get the fps for the video
+        min_dt = min(np.diff(cap_t))
+        max_fps = 1.0 / min_dt
+        vid_fps = np.ceil(max_fps/5.0)*5.0  # Round up to nearest 5
+        vid_fps = float(np.clip(vid_fps, 20.0, 120.0)) # Clip the fps
+
+        # Get the video frame times spaced by the fps
+        vid_frame_times = np.arange(0.0, max(cap_t), 1.0/vid_fps)
+
+        # Match each captured frame to a video frame time
+        cap_frame_idxs = [np.argmin(abs(t-vid_frame_times)) for t in cap_t]
+
+        # Make the video frames by keying the captured frames via their
+        # frame_idxs and then copying the previous video frame to fill unkeyed
+        # video frames
+        vid_frames = [None, ] * len(vid_frame_times)
+        for i, cap_frame_idx in enumerate(cap_frame_idxs):
+            vid_frames[cap_frame_idx] = self._frames[i]
+        prev_cap_frame = vid_frames[0]
+        for i in range(len(vid_frame_times)):
+            if not vid_frames[i] is None:
+                prev_cap_frame = vid_frames[i]
+            else:
+                vid_frames[i] = prev_cap_frame
+
+        # Get the video frame size (scale up to 1080p)
+        cap_frame_sizes = np.array([f[1] for f in self._frames])
+        cap_frame_height  = max(cap_frame_sizes[:,0])
+        cap_frame_width  = max(cap_frame_sizes[:,1])
+        scale = 1080/cap_frame_height
+        vid_frame_height = 1080
+        vid_frame_width = int(np.round(scale * cap_frame_width))
+        vid_frame_width += (vid_frame_width)%2 # Make sure even size
+        vid_size = (vid_frame_width, vid_frame_height)
+
+        # Get a valid directory name
+        fname = self._get_valid_name('animator_video', 'mp4')
+
+        # Make the video
+        fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+        out = cv2.VideoWriter(fname, fourcc, vid_fps, vid_size)
+        for f in vid_frames:
+            dat = zlib.decompress(f[0])
+            img = np.frombuffer(dat, np.uint8).reshape(f[1])
+            img = img[:, :, ::-1] # Convert RGB image to BGR
+
+            # Upscale to 1080p
+            img = cv2.resize(img, dsize=None, fx=scale, fy=scale,
+                             interpolation=cv2.INTER_CUBIC)
+
+            # Ensure proper shape
+            if not img.shape[0] == vid_size[1]:
+                n_rows_add = vid_size[1] - img.shape[0]
+                rows_shape = (n_rows_add, img.shape[1], img.shape[2])
+                rows = np.zeros(rows_shape, dtype=np.uint8)
+                img = np.concatenate((img, rows), axis=0)
+            if not img.shape[1] == vid_size[0]:
+                n_cols_add = vid_size[0] - img.shape[1]
+                cols_shape = (img.shape[0], n_cols_add, img.shape[2])
+                cols = np.zeros(cols_shape, dtype=np.uint8)
+                img = np.concatenate((img, cols), axis=1)
+
+            # Write the frame
+            out.write(img)
+        out.release()
+
+
     def barchart_set_value(self, value, bar_id):
         """
         Set's a bar's value.
@@ -878,13 +1097,18 @@ class Animator():
         cv2.destroyAllWindows()
         cv2.waitKey(1)
 
-        # Reset number of subplots
-        self._n_plots = 0
+        # Save recording
+        if self.record and len(self._frames) > 1:
+            self._save_recording()
 
-        # Reset figure and the subplots
+        # Reset locals
+        self._frames = []
+        self._frame_times = []
+        self._n_plots = 0
         self._figure = None
         self._plots = []
         self._started = False
+        self._last_refresh = cv2.getTickCount()
 
         return 0
 
@@ -893,7 +1117,7 @@ class Animator():
 #TESTING DONE IN MAIN LOOP
 ###############################################################################
 if __name__ == "__main__":
-    animator = Animator()
+    animator = Animator(frame_rate = None, record=True)
     lines_1 = animator.add_lineplot(n_lines = 2, color = ['k', 'g'],
                                     tail = [20, -1] , y_lim = [0,1],
                                     line_style=['-', '--'],
@@ -906,9 +1130,7 @@ if __name__ == "__main__":
     animator.start()
     for i in range(100):
         animator.lineplot_append_point(i, np.random.rand(), lines_1[0])
-        time.sleep(0.03)
         animator.lineplot_append_point(i, (i/99)**2, lines_1[1])
-        time.sleep(0.03)
         if i % 4 == 0:
             animator.barchart_set_value((i/99)**2, bars_1[0])
         if (i+1) % 4 == 0:
