@@ -1021,38 +1021,3 @@ class Barchart(_Subplot):
 
             # Note that the artist has been redrawn
             self._need_redraw[bar_ind] = False
-
-
-###############################################################################
-#TESTING DONE IN MAIN LOOP
-###############################################################################
-if __name__ == "__main__":
-        (n_rows, n_cols) = (2, 1)
-        res = 240 * n_rows
-        height = 2.5 * n_rows
-        AR = 1.777778*(n_cols/n_rows) # 16:9 AR
-        size = (AR*height, height)
-        dpi = res/height
-        fig = plt.figure(figsize=size, dpi=dpi, frameon=True,
-                         facecolor="w")
-        fig_lock = Lock()
-
-        axes_list = []
-        for i in range(n_rows*n_cols):
-                axes_list.append(fig.add_subplot(n_rows, n_cols, i+1))
-
-
-        lineplot = Lineplot(axes_list[0], fig_lock, n_lines=2, threaded=False,
-                            color=['r', 'b'], tail=[10,-1])
-        for i in range(100):
-            lineplot.append_point(i, np.random.rand(), line_ind=0)
-        lineplot.set_data(np.arange(50,75), np.random.rand(25)*2+2, line_ind=1)
-
-        barchart = Barchart(axes_list[1], fig_lock, n_bars=2, threaded=True,
-                            color=['r', 'b'], x_lim=[-1.0, 15.0],
-                            v_zero_line=True)
-        barchart.set_value(10, bar_ind=0)
-        barchart.set_value(-0.5, bar_ind=1)
-
-        lineplot.terminate()
-        barchart.terminate()

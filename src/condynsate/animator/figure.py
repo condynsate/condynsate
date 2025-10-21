@@ -239,12 +239,3 @@ class Figure():
             with self._LOCK:
                 self._done = True
             self._thread.join()
-
-
-###############################################################################
-#TESTING DONE IN MAIN LOOP
-###############################################################################
-if __name__ == "__main__":
-    test = Figure(n=2, threaded=True)
-    test.redraw()
-    test.terminate()
