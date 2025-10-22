@@ -2,14 +2,15 @@
 #DEPENDENCIES
 ###############################################################################
 import os
+import zlib
+import signal
 from warnings import warn
+import cv2
+import numpy as np
 from condynsate.animator.figure import Figure
 from condynsate.animator.subplots import (Lineplot, Barchart)
 from condynsate.exceptions import InvalidNameException
 from condynsate.misc.exception_handling import ESC
-import cv2
-import numpy as np
-import zlib
 
 
 ###############################################################################
@@ -63,12 +64,38 @@ class Animator():
         self._WINDOW_NAME = 'condynsate Animator'
         self._THREADED = True
 
+        # Asynch listen for script exit
+        signal.signal(signal.SIGTERM, self._sig_handler)
+        signal.signal(signal.SIGINT, self._sig_handler)
+
 
     def __del__(self):
         """
         Deconstructor func.
         """
         self.terminate()
+
+
+    def _sig_handler(self, sig, frame):
+        """
+        Handles script termination events so the keyboard listener exits
+        gracefully.
+
+        Parameters
+        ----------
+        sig : int
+            The signal number.
+        frame : signal.frame object
+            The current stack frame.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        warn("Interrupt or termination signal detected. Terminating animator.")
+        return self.terminate()
 
 
     def add_lineplot(self, n_lines, **kwargs):
@@ -254,6 +281,300 @@ class Animator():
         return bar_ids
 
 
+    def start(self):
+        """
+        Starts the animator. Creates a new window and begins displaying live
+        subplot data to it. Please ensure to call the terminate function
+        when done to ensure all child threads are killed.
+
+        Raises
+        ------
+        RuntimeError
+            If something goes wrong while attempting to start the animator.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        if self._started:
+            warn("Start failed because the animator is already started.")
+            return -1
+
+        try:
+            # Make the figure
+            self._figure = Figure(self._n_plots, threaded=self._THREADED)
+
+        except Exception as e:
+            self.terminate()
+            err = "Something went wrong while building the figure."
+            raise RuntimeError(err) from e
+
+        try:
+            # Make each subplot
+            for subplot_ind in range(len(self._plots)):
+
+                # Make a lineplot
+                if (self._plots[subplot_ind]['type']).lower() == 'lineplot':
+                    self._make_lineplot(subplot_ind)
+
+                # Make a barchart
+                elif (self._plots[subplot_ind]['type']).lower() == 'barchart':
+                    self._make_barchart(subplot_ind)
+
+        except Exception as e:
+            self.terminate()
+            err = "Something went wrong while building the subplots."
+            raise RuntimeError(err) from e
+
+
+        # Indicate that threads are running
+        self._started = True
+
+        # Open the viewing window
+        cv2.namedWindow(self._WINDOW_NAME, cv2.WINDOW_AUTOSIZE)
+        cv2.waitKey(1)
+        self.refresh()
+
+        return 0
+
+
+    def refresh(self):
+        """
+        Updates the animator GUI with the most recently drawn figure. Must
+        be called regularly to maintain responsivness of GUI.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+
+        """
+        # Get elapsed time since refresh
+        dt = (cv2.getTickCount() - self._last_refresh)/cv2.getTickFrequency()
+
+        # If not enough time has passed, only refresh the responsiveness.
+        if dt < self.frame_delta:
+            cv2.waitKey(1)
+            return 0
+
+        # If enough time has passed, update the GUI
+        try:
+            # Get the current image, draw it to screen, update last frame time
+            image = cv2.cvtColor(self._figure.get_image(), cv2.COLOR_BGR2RGB)
+            cv2.imshow(self._WINDOW_NAME, image)
+            cv2.waitKey(1)
+            self._last_refresh = cv2.getTickCount()
+
+            # If recording, save the current image
+            if self.record:
+                self._frames.append((zlib.compress(image), image.shape))
+                self._frame_times.append(self._last_refresh)
+
+            return 0
+        except Exception:
+            return -1
+
+
+    def barchart_set_value(self, value, bar_id):
+        """
+        Set's a bar's value.
+
+        Parameters
+        ----------
+        value : float
+            The value to which the bar is set.
+        bar_id : hex string
+            The id of the bar whose value is being set.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        # Sanitization
+        if not self._started:
+            warn("barchart_set_value failed because animator not started.")
+            return -1
+        if not self._sanitize_barchart(bar_id):
+            warn("barchart_set_value failed because bar_id is invalid.")
+            return -1
+        if not self._is_number(value):
+            warn("barchart_set_value failed because value is invalid.")
+            return -1
+
+        # Extract the subplot_ind and bar_ind from the bar_id
+        subplot_ind = int(bar_id, 16)//16
+        bar_ind = int(bar_id, 16) % 16
+
+        # Set value
+        self._plots[subplot_ind]['Subplot'].set_value(value, bar_ind)
+
+        # Refresh the viewer
+        self.refresh()
+        return 0
+
+
+    def lineplot_append_point(self, x_val, y_val, line_id):
+        """
+        Appends a single y versus x data point to the end of a line.
+
+        Parameters
+        ----------
+        x_val : float
+            The x coordinate of the data point being appended.
+        y_val : float
+            The y coordinate of the data point being appended.
+        line_id : hex string
+            The id of the line to which a point is appended.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        # Sanitization
+        if not self._started:
+            warn("lineplot_append_point failed because animator not started.")
+            return -1
+        if not self._sanitize_lineplot(line_id):
+            warn("lineplot_append_point failed because line_id is invalid.")
+            return -1
+        if not self._is_number(x_val):
+            warn("lineplot_append_point failed because x_val is invalid.")
+            return -1
+        if not self._is_number(y_val):
+            warn("lineplot_append_point failed because y_val is invalid.")
+            return -1
+
+        # Extract the subplot_ind and line_ind from the line_id
+        subplot_ind = int(line_id, 16)//16
+        line_ind = int(line_id, 16) % 16
+
+        # Append point
+        self._plots[subplot_ind]['Subplot'].append_point(x_val,y_val,line_ind)
+
+        # Refresh the viewer
+        self.refresh()
+        return 0
+
+    def lineplot_set_data(self, x_vals, y_vals, line_id):
+        """
+        Plots y_vals versus x_vals.
+
+        Parameters
+        ----------
+        x_vals : list of floats
+            A list of x coordinates of the points being plotted.
+        y_vals : list of floats
+            A list of y coordinates of the points being plotted.
+        line_id : hex string
+            The id of the line on which that data are plotted.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        # Sanitization
+        if not self._started:
+            warn("lineplot_set_data failed because animator not started.")
+            return -1
+        if not self._sanitize_lineplot(line_id):
+            warn("lineplot_set_data failed because line_id is invalid.")
+            return -1
+        if not self._is_number_list(x_vals):
+            warn("lineplot_set_data failed because x_vals is invalid.")
+            return -1
+        if not self._is_number_list(y_vals):
+            warn("lineplot_set_data failed because y_vals is invalid.")
+            return -1
+
+        # Extract the subplot_ind and line_ind from the line_id
+        subplot_ind = int(line_id, 16)//16
+        line_ind = int(line_id, 16) % 16
+
+        # Set data
+        self._plots[subplot_ind]['Subplot'].set_data(x_vals, y_vals, line_ind)
+
+        # Refresh the viewer
+        self.refresh()
+        return 0
+
+
+    def reset_all(self):
+        """
+        Resets all data on all subplots.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        # Ensure the animator is already started
+        if not self._started:
+            warn("reset_all failed because animator not started.")
+            return -1
+
+        # Reset all subplot data
+        for subplot_ind in range(len(self._plots)):
+            self._plots[subplot_ind]['Subplot'].reset_data()
+
+        # Refresh the viewer
+        self.refresh()
+        return 0
+
+
+    def terminate(self):
+        """
+        Terminates and removes all subplots from the animator. Should be called
+        when done with Animator.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        # Attempt to terminate each subplot
+        for subplot_ind in range(len(self._plots)):
+            try:
+                self._plots[subplot_ind]['Subplot'].terminate()
+            except Exception:
+                pass
+
+        # Attempt to terminate the figure
+        try:
+            self._figure.terminate()
+        except Exception:
+            pass
+
+        # Destroy all open windows
+        cv2.destroyAllWindows()
+        cv2.waitKey(1)
+
+        # Save recording
+        if self.record and len(self._frames) > 1:
+            self._save_recording()
+
+        # Reset locals
+        self._frames = []
+        self._frame_times = []
+        self._n_plots = 0
+        self._figure = None
+        self._plots = []
+        self._started = False
+        self._last_refresh = cv2.getTickCount()
+
+        return 0
+
+
     def _assert_not_started(self):
         """
         Asserts that the animator is not yet started.
@@ -322,103 +643,6 @@ class Animator():
         if self._n_plots >= 17:
             err = "Cannot include more than 16 plots."
             raise RuntimeError(err)
-
-
-    def refresh(self):
-        """
-        Updates the animator GUI with the most recently drawn figure. Must
-        be called regularly to maintain responsivness of GUI.
-
-        Returns
-        -------
-        ret_code : int
-            0 on success, -1 else.
-
-
-        """
-        # Get elapsed time since refresh
-        dt = (cv2.getTickCount() - self._last_refresh)/cv2.getTickFrequency()
-
-        # If not enough time has passed, only refresh the responsiveness.
-        if dt < self.frame_delta:
-            cv2.waitKey(1)
-            return 0
-
-        # If enough time has passed, update the GUI
-        try:
-            # Get the current image, draw it to screen, update last frame time
-            image = cv2.cvtColor(self._figure.get_image(), cv2.COLOR_BGR2RGB)
-            cv2.imshow(self._WINDOW_NAME, image)
-            cv2.waitKey(1)
-            self._last_refresh = cv2.getTickCount()
-
-            # If recording, save the current image
-            if self.record:
-                self._frames.append((zlib.compress(image), image.shape))
-                self._frame_times.append(self._last_refresh)
-
-            return 0
-        except:
-            return -1
-
-
-    def start(self):
-        """
-        Starts the animator. Creates a new window and begins displaying live
-        subplot data to it. Please ensure to call the terminate function
-        when done to ensure all child threads are killed.
-
-        Raises
-        ------
-        RuntimeError
-            If something goes wrong while attempting to start the animator.
-
-        Returns
-        -------
-        ret_code : int
-            0 if started properly, -1 if something went wrong.
-
-        """
-        if self._started:
-            warn("Start failed because the animator is already started.")
-            return -1
-
-        try:
-            # Make the figure
-            self._figure = Figure(self._n_plots, threaded=self._THREADED)
-
-        except:
-            self.terminate()
-            err = ("Something went wrong while building the figure.")
-            raise RuntimeError(err)
-
-        try:
-            # Make each subplot
-            for subplot_ind in range(len(self._plots)):
-
-                # Make a lineplot
-                if (self._plots[subplot_ind]['type']).lower() == 'lineplot':
-                    self._make_lineplot(subplot_ind)
-
-                # Make a barchart
-                elif (self._plots[subplot_ind]['type']).lower() == 'barchart':
-                    self._make_barchart(subplot_ind)
-
-        except:
-            self.terminate()
-            err = ("Something went wrong while building the subplots.")
-            raise RuntimeError(err)
-
-
-        # Indicate that threads are running
-        self._started = True
-
-        # Open the viewing window
-        cv2.namedWindow(self._WINDOW_NAME, cv2.WINDOW_AUTOSIZE)
-        cv2.waitKey(1)
-        self.refresh()
-
-        return 0
 
 
     def _make_lineplot(self, subplot_ind):
@@ -491,7 +715,7 @@ class Animator():
         # Check the type
         try:
             artist_int = int(artist_id, 16)
-        except:
+        except Exception:
             return False
 
         # Ensure between 0 and 255
@@ -689,7 +913,7 @@ class Animator():
             True if list or array of numbers, else false.
 
         """
-        if type(vals) is list or type(vals) is np.ndarray:
+        if isinstance(vals,list) or isinstance(vals,np.ndarray):
             for val in vals:
                 if not self._is_number(val):
                     return False
@@ -836,13 +1060,18 @@ class Animator():
             return self._get_valid_name(file_name, file_container)
 
 
-    def _save_recording(self):
+    def _get_fps_and_frames(self):
         """
-        Converts frames and frame times to a constant FPS video.
+        Given a set of collected frames, calculates the required FPS to
+        display all frames at constant fps and doubles frames, where necessary,
+        to maintain that FPS.
 
         Returns
         -------
-        None.
+        vid_fps : float
+            The fps at which the frames are to be played back.
+        vid_frames : list of tuples of form (bytes, (int, int, int))
+            The zlib compressed video frames and their shapes.
 
         """
         # Calculate the times in seconds at which each frame was captured
@@ -874,8 +1103,29 @@ class Animator():
             else:
                 vid_frames[i] = prev_cap_frame
 
+        return vid_fps, vid_frames
+
+
+    def _make_video(self, vid_fps, vid_frames):
+        """
+        Takes a set of compressed frames and a target FPS and renders them
+        to animator_video.mp4 with the h.264 codec.
+
+        Parameters
+        ----------
+        vid_fps : float
+            The fps at which the frames are to be played back.
+        vid_frames : list of tuples of form (bytes, (int, int, int))
+            The zlib compressed video frames and their shapes.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
         # Get the video frame size (scale up to 1080p)
-        cap_frame_sizes = np.array([f[1] for f in self._frames])
+        cap_frame_sizes = np.array([f[1] for f in vid_frames])
         cap_frame_height  = max(cap_frame_sizes[:,0])
         cap_frame_width  = max(cap_frame_sizes[:,1])
         scale = 1080/cap_frame_height
@@ -914,200 +1164,21 @@ class Animator():
             # Write the frame
             out.write(img)
         out.release()
-
-
-    def barchart_set_value(self, value, bar_id):
-        """
-        Set's a bar's value.
-
-        Parameters
-        ----------
-        value : float
-            The value to which the bar is set.
-        bar_id : hex string
-            The id of the bar whose value is being set.
-
-        Returns
-        -------
-        ret_code : int
-            0 if value set successfully, -1 if something went wrong.
-
-        """
-        # Sanitization
-        if not self._started:
-            warn("barchart_set_value failed because animator not started.")
-            return -1
-        if not self._sanitize_barchart(bar_id):
-            warn("barchart_set_value failed because bar_id is invalid.")
-            return -1
-        if not self._is_number(value):
-            warn("barchart_set_value failed because value is invalid.")
-            return -1
-
-        # Extract the subplot_ind and bar_ind from the bar_id
-        subplot_ind = int(bar_id, 16)//16
-        bar_ind = int(bar_id, 16) % 16
-
-        # Set value
-        self._plots[subplot_ind]['Subplot'].set_value(value, bar_ind)
-
-        # Refresh the viewer
-        self.refresh()
         return 0
 
 
-    def lineplot_append_point(self, x_val, y_val, line_id):
+    def _save_recording(self):
         """
-        Appends a single y versus x data point to the end of a line.
-
-        Parameters
-        ----------
-        x_val : float
-            The x coordinate of the data point being appended.
-        y_val : float
-            The y coordinate of the data point being appended.
-        line_id : hex string
-            The id of the line to which a point is appended.
+        Converts frames and frame times to a constant FPS video.
 
         Returns
         -------
         ret_code : int
-            0 if data point appended successfully, -1 if something went wrong.
+            0 if successful, -1 if something went wrong.
 
         """
-        # Sanitization
-        if not self._started:
-            warn("lineplot_append_point failed because animator not started.")
-            return -1
-        if not self._sanitize_lineplot(line_id):
-            warn("lineplot_append_point failed because line_id is invalid.")
-            return -1
-        if not self._is_number(x_val):
-            warn("lineplot_append_point failed because x_val is invalid.")
-            return -1
-        if not self._is_number(y_val):
-            warn("lineplot_append_point failed because y_val is invalid.")
-            return -1
-
-        # Extract the subplot_ind and line_ind from the line_id
-        subplot_ind = int(line_id, 16)//16
-        line_ind = int(line_id, 16) % 16
-
-        # Append point
-        self._plots[subplot_ind]['Subplot'].append_point(x_val,y_val,line_ind)
-
-        # Refresh the viewer
-        self.refresh()
-        return 0
-
-    def lineplot_set_data(self, x_vals, y_vals, line_id):
-        """
-        Plots y_vals versus x_vals.
-
-        Parameters
-        ----------
-        x_vals : list of floats
-            A list of x coordinates of the points being plotted.
-        y_vals : list of floats
-            A list of y coordinates of the points being plotted.
-        line_id : hex string
-            The id of the line on which that data are plotted.
-
-        Returns
-        -------
-        ret_code : int
-            0 if data set successfully, -1 if something went wrong.
-
-        """
-        # Sanitization
-        if not self._started:
-            warn("lineplot_set_data failed because animator not started.")
-            return -1
-        if not self._sanitize_lineplot(line_id):
-            warn("lineplot_set_data failed because line_id is invalid.")
-            return -1
-        if not self._is_number_list(x_vals):
-            warn("lineplot_set_data failed because x_vals is invalid.")
-            return -1
-        if not self._is_number_list(y_vals):
-            warn("lineplot_set_data failed because y_vals is invalid.")
-            return -1
-
-        # Extract the subplot_ind and line_ind from the line_id
-        subplot_ind = int(line_id, 16)//16
-        line_ind = int(line_id, 16) % 16
-
-        # Set data
-        self._plots[subplot_ind]['Subplot'].set_data(x_vals, y_vals, line_ind)
-
-        # Refresh the viewer
-        self.refresh()
-        return 0
-
-
-    def reset_all(self):
-        """
-        Resets all data on all subplots.
-
-        Returns
-        -------
-        ret_code : int
-            0 if reset successfully, -1 if something went wrong.
-
-        """
-        # Ensure the animator is already started
-        if not self._started:
-            warn("reset_all failed because animator not started.")
-            return -1
-
-        # Reset all subplot data
-        for subplot_ind in range(len(self._plots)):
-            self._plots[subplot_ind]['Subplot'].reset_data()
-
-        # Refresh the viewer
-        self.refresh()
-        return 0
-
-
-    def terminate(self):
-        """
-        Terminates and removes all subplots from the animator. Must be called
-        after start function is called to prevent orphaned children threads.
-
-        Returns
-        -------
-        ret_code : int
-            0 if reset successfully, -1 if something went wrong.
-
-        """
-        # Attempt to terminate each subplot
-        for subplot_ind in range(len(self._plots)):
-            try:
-                self._plots[subplot_ind]['Subplot'].terminate()
-            except:
-                pass
-
-        # Attempt to terminate the figure
         try:
-            self._figure.terminate()
-        except:
-            pass
-
-        # Destroy all open windows
-        cv2.destroyAllWindows()
-        cv2.waitKey(1)
-
-        # Save recording
-        if self.record and len(self._frames) > 1:
-            self._save_recording()
-
-        # Reset locals
-        self._frames = []
-        self._frame_times = []
-        self._n_plots = 0
-        self._figure = None
-        self._plots = []
-        self._started = False
-        self._last_refresh = cv2.getTickCount()
-
-        return 0
+            vid_fps, vid_frames = self._get_fps_and_frames()
+            return self._make_video(vid_fps, vid_frames)
+        except Exception:
+            return -1

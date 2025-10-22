@@ -1,3 +1,3 @@
-from condynsate.keyboard.keyboard import Keys
+from condynsate.keyboard.keyboard import Keyboard
 
-__all__ = ["Keys",]
+__all__ = ["Keyboard",]

@@ -7,7 +7,6 @@ import warnings
 from copy import copy
 from threading import (Thread, Lock)
 import numpy as np
-import matplotlib.pyplot as plt
 FONT_SIZE = 7
 
 
