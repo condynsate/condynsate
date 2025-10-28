@@ -1,12 +1,12 @@
 # Submodules always needs to be imported to ensure registration
 from condynsate.animator import Animator # NOQA
 from condynsate.core import Simulator # NOQA
-from condynsate.keyboard import Keys # NOQA
+from condynsate.keyboard import Keyboard # NOQA
 from condynsate.visualizer import Visualizer # NOQA
 
 __all__ = ["Animator",
            "Simulator",
-           "Keys",
+           "Keyboard",
            "Visualizer",]
 
 

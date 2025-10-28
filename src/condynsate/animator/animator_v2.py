@@ -2,9 +2,9 @@
 #DEPENDENCIES
 ###############################################################################
 import os
-import zlib
 import signal
 from warnings import warn
+import zlib
 import cv2
 import numpy as np
 from condynsate.animator.figure import Figure

@@ -11,7 +11,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = { file = "LICENSE.txt" }
 keywords = [
-    "dynamic",
+    "dynamics",
     "control",
     "visualization",
     "simulation",
@@ -28,7 +28,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Development Status :: 4 - Beta",
-    "Natural Language :: English", 
+    "Natural Language :: English",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: MacOS",
     "Operating System :: POSIX :: Linux",
@@ -37,7 +37,7 @@ classifiers = [
 ]
 dependencies = [
    "matplotlib",
-   "meshcat",
+   "meshcat @ git+https://github.com/meshcat-dev/meshcat-python.git",
    "notebook",
    "numpy",
    "opencv-python",

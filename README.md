@@ -13,11 +13,11 @@ This work is licensed under a
 
 **condynsate** (**con**trol and **dyn**amics simul**at**or) is a python-based, open-source educational tool built by [G. Schaer](http://bretl.csl.illinois.edu/people) at the University of Illinois at Urbana-Champaign under the Grainger College of Engineering 2023-2025 Strategic Instructional Innovations Program: [Computational Tools for Dynamics and Control grant](https://ae3.grainger.illinois.edu/programs/siip-grants/64459). It is designed to aid the education of control and dynamics to aerospace, mechanical, and robotics engineering students by
 
-1. providing a simulation environment in which students can see and interact with controlled and uncontrolled dynamic systems in familiar and [beneficial ways](https://doi.org/10.3390/educsci13070747), 
+1. providing a simulation environment in which students can see and interact with controlled and uncontrolled dynamic systems in familiar and [beneficial ways](https://doi.org/10.3390/educsci13070747),
 2. serving as a platform for introductory Python programming, and
 3. equipping instructors with a streamlined method of implementing custom in-class demonstrations and lab demos without the need for physical equipment.
 
-Built on [PyBullet](https://pybullet.org/wordpress/), [MeshCat](https://github.com/meshcat-dev/meshcat-python/), and [OpenCV](https://opencv.org/), it implements nonlinear simulation of [stl](https://en.wikipedia.org/wiki/STL_(file_format)/) or [obj](https://en.wikipedia.org/wiki/Wavefront_.obj_file/) rigid bodies and\or [urdf](http://wiki.ros.org/urd/) articulated bodies. A browser-based 3D viewer visualizes the simulation and the evolution of individual states are plotted, all in real-time. By simultaneously enabling keyboard interactivity, condynsate projects are designed to feel more like video games, familiar and fun, rather than conventional lab demos all while providing similar educational benefits. 
+Built on [PyBullet](https://pybullet.org/wordpress/), [MeshCat](https://github.com/meshcat-dev/meshcat-python/), and [OpenCV](https://opencv.org/), it implements nonlinear simulation of [stl](https://en.wikipedia.org/wiki/STL_(file_format)/) or [obj](https://en.wikipedia.org/wiki/Wavefront_.obj_file/) rigid bodies and\or [urdf](http://wiki.ros.org/urd/) articulated bodies. A browser-based 3D viewer visualizes the simulation and the evolution of individual states are plotted, all in real-time. By simultaneously enabling keyboard interactivity, condynsate projects are designed to feel more like video games, familiar and fun, rather than conventional lab demos all while providing similar educational benefits.
 
 
 
@@ -41,7 +41,7 @@ When done installing and using condynsate, deactivate the virtual environment wi
 ```
 
 ### PyPi (Recommended)
-[python>=3.8](https://www.python.org/) and [pip](https://pip.pypa.io/en/stable/) are required. 
+[python>=3.8](https://www.python.org/), [pip](https://pip.pypa.io/en/stable/), and [git](https://git-scm.com/) are required.
 
 To install condynsate:
 
@@ -112,7 +112,7 @@ Finally, the package that provides keyboard interactivity uses [X](https://en.wi
 1. an X server must be running, and
 2. the environment variable $DISPLAY must be set.
 
-If these are not true, then keyboard interactivity will not work. All other features will work, though. For example, to use keyboard iteractivity on Ubuntu 22.04, you must first add 
+If these are not true, then keyboard interactivity will not work. All other features will work, though. For example, to use keyboard iteractivity on Ubuntu 22.04, you must first add
 
 ```console
 WaylandEnable=false
@@ -125,7 +125,7 @@ user@device:~$ systemctl restart gdm3
 ```
 
 ### PyPi (Recommended)
-[python>=3.8](https://www.python.org/) and [pip](https://pip.pypa.io/en/stable/) are required.
+[python>=3.8](https://www.python.org/), [pip](https://pip.pypa.io/en/stable/), and [git](https://git-scm.com/) are required.
 
 To install condynsate:
 
@@ -134,9 +134,9 @@ To install condynsate:
 ```
 
 ### Source
-[python>=3.8](https://www.python.org/), [pip](https://pip.pypa.io/en/stable/), and [git](https://git-scm.com/) are required. 
+[python>=3.8](https://www.python.org/), [pip](https://pip.pypa.io/en/stable/), and [git](https://git-scm.com/) are required.
 
-To clone the repository: 
+To clone the repository:
 
 ```console
 (.venv) user@device:~$ git clone https://github.com/condynsate/condynsate.git
@@ -164,8 +164,3 @@ On Debian/Ubuntu systems, you may need to first install the Python and Linux dev
 # Documentation
 
 condynsate documentation is found at [https://condynsate.github.io/condynsate/](https://condynsate.github.io/condynsate/).
-
-
-
-
-
