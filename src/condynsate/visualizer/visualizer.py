@@ -16,7 +16,6 @@ import meshcat.geometry as geo
 import umsgpack
 import cv2
 from condynsate.misc import (format_path,  wxyz_from_euler)
-from condynsate.exceptions import VisualizerClosedError
 
 
 ###############################################################################
@@ -56,27 +55,30 @@ class Visualizer():
         self._scene.delete()
 
         # Start the main thread
-        self._LOCK = Lock()
+        self._actions_buf = []
         self._done = False
         self._last_refresh = cv2.getTickCount()
+        self._LOCK = Lock()
         self._start()
 
         # Set the default visibility of grid and axes
-        self.set_grid()
-        self.set_axes()
+        self.set_grid(visible=True)
+        self.set_axes(visible=True)
 
         # Set the default background color
         self.set_background(top=(0.44, 0.62, 0.82), bottom=(0.82, 0.62, 0.44))
 
         # Set the default lights
-        self.set_spotlight()
-        self.set_negx_light()
-        self.set_posx_light()
-        self.set_ambient_light()
-        self.set_fill_light()
+        self.set_spotlight(on=False, intensity=0.8, distance=0, shadow=True)
+        self.set_posx_light(on=True, intensity=0.4, distance=0, shadow=True)
+        self.set_negx_light(on=True, intensity=0.4, distance=0, shadow=True)
+        self.set_ambient_light(on=True, intensity=0.6, shadow=True)
+        self.set_fill_light(on=True, intensity=0.4, shadow=True)
 
         # Set the default camera properties
         self.set_cam_position((3, 0.5, 2))
+        self.set_cam_target((0.0, 0.0, 0.0))
+        self.set_cam_zoom(1.0)
         self.set_cam_frustum(near=0.01, far=1000.0)
 
         # Wait for scene to fully load
@@ -118,41 +120,50 @@ class Visualizer():
         """
         # Continuously redraw
         while True:
-            self.send()
-
-            # Aquire mutex lock to read flag
+            # Check if it is a frame time
+            dt = (cv2.getTickCount()-self._last_refresh)/cv2.getTickFrequency()
+            if dt < self.frame_delta:
+                time.sleep(0.01)
+                continue
+            
+            # Create a list to hold all the queued actions in actions buffer
+            actions = []
+            
+            # Aquire mutex lock to read flags and shared buffer
             with self._LOCK:
-
-                # If done flag is set, end main loop
+                
+                # Extract all of the actions from the shared actions buffer
+                for i in range(len(self._actions_buf)):
+                    actions.append(self._actions_buf.pop(0))
+                
+                # If done, do the last actions then return success
                 if self._done:
-                    break
+                    for action in actions:
+                        action[0](*action[1])
+                    return 0
+                
+                # If visualizer is closed unexpectedly, end main loop then 
+                # return failure
+                if self._socket.closed:
+                    msg = ("Cannot flush actions because visualizer closed"
+                           " unexpectedly")
+                    warn(msg)
+                    self._done = True
+                    return -1
+
+            # If visualizer is open and not done, release the mutex lock and do
+            # the actions read from the buffer this loop
+            for action in actions:
+                action[0](*action[1])
+            
+            # Set the current time as the last refresh time 
+            self._last_refresh = cv2.getTickCount()
 
             # Remove CPU strain by sleeping for a little bit
             time.sleep(0.01)
-
-
-    def send(self):
-        pass
-
-
-    def _assert_open(self):
-        """
-        Asserts that the visulizer socket is open and valid.
-
-        Raises
-        ------
-        VisualizerClosedError
-            If the socket is closed
-
-        Returns
-        -------
-        None.
-
-        """
-        if self._socket.closed:
-            message = "Cannot complete action because visualizer is closed."
-            payload = self
-            raise VisualizerClosedError(message, payload)
+        
+        # Return 0 on success
+        return 0
 
 
     def _is_num(self, arg):
@@ -208,20 +219,32 @@ class Visualizer():
             return False
 
 
-    def set_grid(self, visible=True):
+    def _set_grid(self, visible):
+        """
+        Sets the visibility of the grid.
+
+        Parameters
+        ----------
+        visible : bool
+            The boolean value to which the visibility of the grid is set.
+
+        Returns
+        -------
+        None.
+
+        """
+        self._scene["/Grid"].set_property("visible", visible)
+        self._scene["/Grid/<object>"].set_property("visible", visible)
+
+
+    def set_grid(self, visible):
         """
         Controls the visibility state of the XY grid in the visualizer.
 
         Parameters
         ----------
-        visible : bool, optional
+        visible : bool
             The boolean value to which the visibility of the XY grid is set.
-            The default is False.
-
-        Raises
-        ------
-        VisualizerClosedError
-            If attempting to set property of closed visualizer.
 
         Returns
         -------
@@ -229,34 +252,46 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
-        # Raise an error if  the visualizer is closed
-        self._assert_open()
-
         # Input sanitize
         if not isinstance(visible, bool):
             msg='When set_grid, visible must be boolean.'
             warn(msg)
             return -1
 
-        # Set visibility
-        self._scene["/Grid"].set_property("visible", visible)
-        self._scene["/Grid/<object>"].set_property("visible", visible)
+        # Queue the action in thread safe manner
+        with self._LOCK:
+            fnc = self._set_grid
+            args = (visible,)
+            self._actions_buf.append((fnc, args))
+        return 0
 
 
-    def set_axes(self, visible=True):
+    def _set_axes(self, visible):
+        """
+        Sets the visibility of the axes.
+
+        Parameters
+        ----------
+        visible : bool
+            The boolean value to which the visibility of the axes is set.
+
+        Returns
+        -------
+        None.
+
+        """
+        self._scene["/Axes"].set_property("visible", visible)
+        self._scene["/Axes/<object>"].set_property("visible", visible)
+
+
+    def set_axes(self, visible):
         """
         Controls the visibility state of the axes in the visualizer.
 
         Parameters
         ----------
-        visible : bool, optional
+        visible : bool
             The boolean value to which the visibility of the axes is set.
-            The default is False.
-
-        Raises
-        ------
-        VisualizerClosedError
-            If attempting to set property of closed visualizer.
 
         Returns
         -------
@@ -264,19 +299,45 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
-        # Raise an error if  the visualizer is closed
-        self._assert_open()
-
         # Input sanitize
         if not isinstance(visible, bool):
             msg='When set_axes, visible must be boolean.'
             warn(msg)
             return -1
 
-        # Set visibility
-        self._scene["/Axes"].set_property("visible", visible)
-        self._scene["/Axes/<object>"].set_property("visible", visible)
+        # Queue the action in thread safe manner
+        with self._LOCK:
+            fnc = self._set_axes
+            args = (visible,)
+            self._actions_buf.append((fnc, args))
         return 0
+    
+
+    def _set_background(self, top, bottom):
+        """
+        Sets the background color.
+
+        Parameters
+        ----------
+        top : 3 tuple of floats between 0.0 and 1.0, optional
+            The RGB color to apply to the top of the background.
+        bottom : 3 tuple of floats between 0.0 and 1.0, optional
+            The RGB color to apply to the bottom of the background.
+
+        Returns
+        -------
+        None.
+
+        """
+        # Set the top color
+        if not top is None:
+            top = [float(np.clip(float(t), 0.0, 1.0)) for t in top] 
+            self._scene["/Background"].set_property('top_color', top)
+            
+        # Set the bottom color
+        if not bottom is None:
+            bottom = [float(np.clip(float(b), 0.0, 1.0)) for b in bottom]
+            self._scene["/Background"].set_property('bottom_color', bottom)
 
 
     def set_background(self, top=None, bottom=None):
@@ -292,47 +353,32 @@ class Visualizer():
             The RGB color to apply to the bottom of the background.
             If None, is not altered. The default is None
 
-        Raises
-        ------
-        VisualizerClosedError
-            If attempting to set property of closed visualizer.
-
         Returns
         -------
         ret_code : int
-            0 if successful, less than 0 if something went wrong.
+            0 if successful, -1 if something went wrong.
 
         """
-        # Raise an error if  the visualizer is closed
-        self._assert_open()
-
-        # Keep track of how well this goes.
-        ret_code = 0
-
         # Ensure top is of the correct format
-        if not self._is_3vector(top):
-                msg='When set_background, top must be 3 tuple of floats.'
-                warn(msg)
-                ret_code -= 1
-
-        # If top is correct format, set the top value
-        else:
-            top = [float(np.clip(float(t), 0.0, 1.0)) for t in top]
-            self._scene["/Background"].set_property('top_color', top)
-
+        if not top is None:
+            if not self._is_3vector(top):
+                m='When set_background, top must be 3 tuple of floats.'
+                warn(m)
+                return -1
 
         # Ensure bottom is of the correct format
-        if not self._is_3vector(bottom):
-                msg='When set_background, bottom must be 3 tuple of floats.'
-                warn(msg)
-                ret_code -= 1
-
-        # If bottom is correct format, set the bottom value
-        else:
-            bottom = [float(np.clip(float(b), 0.0, 1.0)) for b in bottom]
-            self._scene["/Background"].set_property('bottom_color', bottom)
-
-        return ret_code
+        if not bottom is None:
+            if not self._is_3vector(bottom):
+                    m='When set_background, bottom must be 3 tuple of floats.'
+                    warn(m)
+                    return -1
+            
+        # Queue the action in thread safe manner
+        with self._LOCK:
+            fnc = self._set_background
+            args = (top, bottom,)
+            self._actions_buf.append((fnc, args))
+        return 0
 
 
     def _set_light(self, light, on, intensity, distance, shadow):
@@ -355,55 +401,12 @@ class Visualizer():
         shadow : bool
             Boolean flag that indicates if the light casts a shadow.
 
-        Raises
-        ------
-        VisualizerClosedError
-            If attempting to set property of closed visualizer.
-
-        TypeError
-            If light is not a string.
-
         Returns
         -------
         ret_code : int
             0 if successful, -1 if something went wrong.
 
         """
-        # Raise an error if  the visualizer is closed
-        self._assert_open()
-
-        # Check light argument
-        if not isinstance(light, str):
-            raise TypeError("When _set_light, argument light must be string.")
-
-        # Check on argument
-        if not on is None:
-            if not isinstance(on, bool):
-                warn("When setting light, argument on must be a boolean.")
-                return -1
-
-        # Check intensity argument
-        if not intensity is None:
-            try:
-                intensity = float(intensity)
-            except Exception:
-                warn("When setting light, argument intensity must be a float.")
-                return -1
-
-        # Check distance argument
-        if not distance is None:
-            try:
-                distance = float(distance)
-            except Exception:
-                warn("When setting light, argument distance must be a float.")
-                return -1
-
-        # Check shadow argument
-        if not shadow is None:
-            if not isinstance(shadow, bool):
-                warn("When setting light, argument shadow must be a boolean.")
-                return -1
-
         # Get the scene tree paths
         p1 = '/Lights/'+light
         p2 = '/Lights/'+light+'/<object>'
@@ -426,37 +429,95 @@ class Visualizer():
                         'path': p2,
                         'property': 'castShadow',
                         'value': shadow}
-            self._socket.send_multipart([
-                cmd_data["type"].encode("utf-8"),
-                cmd_data["path"].encode("utf-8"),
-                umsgpack.packb(cmd_data)
-            ])
+            self._socket.send_multipart([cmd_data["type"].encode("utf-8"),
+                                         cmd_data["path"].encode("utf-8"),
+                                         umsgpack.packb(cmd_data)])
             self._socket.recv()
 
-        return 0
+
+    def _set_light_ok(self, light, on, intensity, distance, shadow):
+        """
+        Ensures that a set of arguments to be passed to _set_light are all
+        valid. Returns True if all valid, returns False if at least one 
+        invalid. Raises exception if the visualizer is not open or if the
+        light argument is not a string.
+
+        Parameters
+        ----------
+        light : String
+            The case sensitive name of the light in the scene tree. Choose
+            from "SpotLight", "PointLightNegativeX", "PointLightPositiveX",
+            "AmbientLight", or "FillLight".
+        on : bool
+            Boolean flag that indicates if the light is on.
+        intensity : float
+            Numeric value of the light's strength/intensity.
+        distance : float
+            Maximum range of the light. Default is 0 (no limit).
+        shadow : bool
+            Boolean flag that indicates if the light casts a shadow.
+
+        Returns
+        -------
+        is_okay : bool
+            All inputs are valid.
+
+        """
+        # Check light argument
+        if not isinstance(light, str):
+            warn("When _set_light, argument light must be string.")
+            return False
+
+        # Check on argument
+        if not on is None:
+            if not isinstance(on, bool):
+                warn("When setting light, argument on must be a boolean.")
+                return False
+
+        # Check intensity argument
+        if not intensity is None:
+            try:
+                intensity = float(intensity)
+            except Exception:
+                warn("When setting light, argument intensity must be a float.")
+                return False
+
+        # Check distance argument
+        if not distance is None:
+            try:
+                distance = float(distance)
+            except Exception:
+                warn("When setting light, argument distance must be a float.")
+                return False
+
+        # Check shadow argument
+        if not shadow is None:
+            if not isinstance(shadow, bool):
+                warn("When setting light, argument shadow must be a boolean.")
+                return False
+            
+        # IF all okay, return True
+        return True
 
 
-    def set_spotlight(self, on=False, intensity=0.8, distance=0, shadow=True):
+    def set_spotlight(self,on=None,intensity=None,distance=None,shadow=None):
         """
         Sets the properties of the spotlight in the scene.
 
         Parameters
         ----------
         on : bool, optional
-            Boolean flag that indicates if the light is on. The default is
-            False.
+            Boolean flag that indicates if the light is on. When None, 
+            is not changed from current value. The default is None.
         intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. The default is 0.8
+            Numeric value of the light's strength/intensity. When None, 
+            is not changed from current value. The default is None.
         distance : float [0. to 100.], optional
-            Maximum range of the light. Default is 0 (no limit).
+            Maximum range of the light. When 0, the range in infinite.
+            When None, is not changed from current value. The default is None.
         shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. The
-            default is True
-
-        Raises
-        ------
-        VisualizerClosedError
-            If attempting to set property of closed visualizer.
+            Boolean flag that indicates if the light casts a shadow. When None, 
+            is not changed from current value. The default is None.
 
         Returns
         -------
@@ -464,11 +525,20 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
+        # Make sure inputs are valid
         name = 'SpotLight'
-        return self._set_light(name, on, intensity, distance, shadow)
+        if not self._set_light_ok(name, on, intensity, distance, shadow):
+            return -1
+        
+        # Queue the action in thread safe manner
+        with self._LOCK:
+            fnc = self._set_light
+            args = (name, on, intensity, distance, shadow, )
+            self._actions_buf.append((fnc, args))
+        return 0
 
 
-    def set_posx_light(self, on=True, intensity=0.4, distance=0, shadow=True):
+    def set_posx_light(self,on=None,intensity=None,distance=None,shadow=None):
         """
         Sets the properties of the point light along the positive x axis
         in the scene.
@@ -476,20 +546,17 @@ class Visualizer():
         Parameters
         ----------
         on : bool, optional
-            Boolean flag that indicates if the light is on. The default is
-            True.
+            Boolean flag that indicates if the light is on. When None, 
+            is not changed from current value. The default is None.
         intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. The default is 0.4
+            Numeric value of the light's strength/intensity. When None, 
+            is not changed from current value. The default is None.
         distance : float [0. to 100.], optional
-            Maximum range of the light. Default is 0 (no limit).
+            Maximum range of the light. When 0, the range in infinite.
+            When None, is not changed from current value. The default is None.
         shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. The
-            default is True
-
-        Raises
-        ------
-        VisualizerClosedError
-            If attempting to set property of closed visualizer.
+            Boolean flag that indicates if the light casts a shadow. When None, 
+            is not changed from current value. The default is None.
 
         Returns
         -------
@@ -497,11 +564,20 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
+        # Make sure inputs are valid
         name = 'PointLightPositiveX'
-        return self._set_light(name, on, intensity, distance, shadow)
+        if not self._set_light_ok(name, on, intensity, distance, shadow):
+            return -1
+        
+        # Queue the action in thread safe manner
+        with self._LOCK:
+            fnc = self._set_light
+            args = (name, on, intensity, distance, shadow, )
+            self._actions_buf.append((fnc, args))
+        return 0
 
 
-    def set_negx_light(self, on=True, intensity=0.4, distance=0, shadow=True):
+    def set_negx_light(self,on=None,intensity=None,distance=None,shadow=None):
         """
         Sets the properties of the point light along the negative x axis
         in the scene.
@@ -509,20 +585,17 @@ class Visualizer():
         Parameters
         ----------
         on : bool, optional
-            Boolean flag that indicates if the light is on. The default is
-            True.
+            Boolean flag that indicates if the light is on. When None, 
+            is not changed from current value. The default is None.
         intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. The default is 0.4
+            Numeric value of the light's strength/intensity. When None, 
+            is not changed from current value. The default is None.
         distance : float [0. to 100.], optional
-            Maximum range of the light. Default is 0 (no limit).
+            Maximum range of the light. When 0, the range in infinite.
+            When None, is not changed from current value. The default is None.
         shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. The
-            default is True
-
-        Raises
-        ------
-        VisualizerClosedError
-            If attempting to set property of closed visualizer.
+            Boolean flag that indicates if the light casts a shadow. When None, 
+            is not changed from current value. The default is None.
 
         Returns
         -------
@@ -530,29 +603,34 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
+        # Make sure inputs are valid
         name = 'PointLightNegativeX'
-        self._set_light(name, on, intensity, distance, shadow)
+        if not self._set_light_ok(name, on, intensity, distance, shadow):
+            return -1
+        
+        # Queue the action in thread safe manner
+        with self._LOCK:
+            fnc = self._set_light
+            args = (name, on, intensity, distance, shadow, )
+            self._actions_buf.append((fnc, args))
+        return 0
 
 
-    def set_ambient_light(self, on=True, intensity=0.6, shadow=True):
+    def set_ambient_light(self, on=None, intensity=None, shadow=None):
         """
         Sets the properties ambient light of the scene.
 
         Parameters
         ----------
         on : bool, optional
-            Boolean flag that indicates if the light is on. The default is
-            True.
+            Boolean flag that indicates if the light is on. When None, 
+            is not changed from current value. The default is None.
         intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. The default is 0.6
+            Numeric value of the light's strength/intensity. When None, 
+            is not changed from current value. The default is None.
         shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. The
-            default is True
-
-        Raises
-        ------
-        VisualizerClosedError
-            If attempting to set property of closed visualizer.
+            Boolean flag that indicates if the light casts a shadow. When None, 
+            is not changed from current value. The default is None.
 
         Returns
         -------
@@ -560,30 +638,35 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
+        # Make sure inputs are valid
         name = 'AmbientLight'
         distance = None
-        self._set_light(name, on, intensity, distance, shadow)
+        if not self._set_light_ok(name, on, intensity, distance, shadow):
+            return -1
+        
+        # Queue the action in thread safe manner
+        with self._LOCK:
+            fnc = self._set_light
+            args = (name, on, intensity, distance, shadow, )
+            self._actions_buf.append((fnc, args))
+        return 0
 
 
-    def set_fill_light(self, on=True, intensity=0.4, shadow=True):
+    def set_fill_light(self, on=None, intensity=None, shadow=None):
         """
         Sets the properties fill light of the scene.
 
         Parameters
         ----------
         on : bool, optional
-            Boolean flag that indicates if the light is on. The default is
-            True.
+            Boolean flag that indicates if the light is on. When None, is not
+            changed from current value. The default is None.
         intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. The default is 0.4
+            Numeric value of the light's strength/intensity. When None, is not
+            changed from current value. The default is None.
         shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. The
-            default is True
-
-        Raises
-        ------
-        VisualizerClosedError
-            If attempting to set property of closed visualizer.
+            Boolean flag that indicates if the light casts a shadow. When None, 
+            is not changed from current value. The default is None.
 
         Returns
         -------
@@ -591,14 +674,42 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
+        # Make sure inputs are valid
         name = 'FillLight'
         distance = None
-        self._set_light(name, on, intensity, distance, shadow)
+        if not self._set_light_ok(name, on, intensity, distance, shadow):
+            return -1
+        
+        # Queue the action in thread safe manner
+        with self._LOCK:
+            fnc = self._set_light
+            args = (name, on, intensity, distance, shadow, )
+            self._actions_buf.append((fnc, args))
+        return 0
+
+
+    def _set_cam_position(self, p):
+        """
+        Set the XYZ position of camera.
+
+        Parameters
+        ----------
+        p : 3Vec of floats
+            The XYZ position to which the camera will be moved.
+
+        Returns
+        -------
+        None.
+
+        """
+        path = "/Cameras/default/rotated/<object>"
+        p = (float(p[0]), float(p[2]), -float(p[1])) #Camera is rotated
+        self._scene[path].set_property('position', p)
 
 
     def set_cam_position(self, p):
         """
-        # Set the XYZ position of camera.
+        Set the XYZ position of camera.
 
         Parameters
         ----------
@@ -619,21 +730,40 @@ class Visualizer():
             warn(msg)
             return -1
 
-        # Set the camera position in correct XZ-Y format
-        path = "/Cameras/default/rotated/<object>"
-        formatted = (float(p[0]), float(p[2]), -float(p[1])) #Camera is rotated
-        self._scene[path].set_property('position', formatted)
+        # Queue the action in thread safe manner
+        with self._LOCK:
+            fnc = self._set_cam_position
+            args = (p, )
+            self._actions_buf.append((fnc, args))
         return 0
 
 
-    def set_cam_target(self, t):
+    def _set_cam_target(self, t):
         """
-        # Set the XYZ position of the point the camera is looking at.
+        Set the XYZ position of the point the camera is looking at.
 
         Parameters
         ----------
         t : 3Vec of floats
-            The XYZ position the camera is looking at. Regardless of updates
+            The XYZ position for the camera to look at.
+
+        Returns
+        -------
+        None.
+
+        """
+        p = (float(t[0]), float(t[1]), float(t[2]))
+        self._scene.set_cam_target(p)
+
+
+    def set_cam_target(self, t):
+        """
+        Set the XYZ position of the point the camera is looking at.
+
+        Parameters
+        ----------
+        t : 3Vec of floats
+            The XYZ position for the camera to look at. Regardless of updates
             to the camera position, the camera will always look directly at
             this point.
 
@@ -649,10 +779,32 @@ class Visualizer():
             warn(msg)
             return -1
 
-        # Set the camera target
-        formatted = (float(t[0]), float(t[1]), float(t[2]))
-        self._scene.set_cam_target(formatted)
+        # Queue the action in thread safe manner
+        with self._LOCK:
+            fnc = self._set_cam_target
+            args = (t, )
+            self._actions_buf.append((fnc, args))
         return 0
+
+
+    def _set_cam_zoom(self, zoom):
+        """
+        Sets the zoom value of the camera
+
+        Parameters
+        ----------
+        zoom : float greater than 0 and less than or equal to 100.
+            The zoom value .
+
+        Returns
+        -------
+        None.
+
+        """
+        # Ensure zoom in (0, 100]
+        zoom = np.clip(zoom, 0.0001, 100.0)
+        path = "/Cameras/default/rotated/<object>"
+        self._scene[path].set_property('zoom', zoom)
 
 
     def set_cam_zoom(self, zoom):
@@ -675,14 +827,44 @@ class Visualizer():
             warn("When set_cam_zoom, zoom must be float")
             return -1
 
-        # Ensure zoom in (0, 100]
-        formatted = np.clip(zoom, 0.0001, 100.0)
-
-        # Set the zoom
-        path = "/Cameras/default/rotated/<object>"
-        self._scene[path].set_property('zoom', formatted)
+        # Queue the action in thread safe manner
+        with self._LOCK:
+            fnc = self._set_cam_zoom
+            args = (zoom, )
+            self._actions_buf.append((fnc, args))
         return 0
 
+
+    def _set_cam_frustum(self, aspect, fov, near, far):
+        """
+        Sets the size and shape of the camera's frustum.
+
+        Parameters
+        ----------
+        aspect : float
+            The aspect ratio of the near and far planes of the frustum.
+        fov : float
+            The vertical field of view of the frustum in degrees.
+        near : float less than far
+            The distance to the near plane of the frustum.
+        far : float greater than near
+            The distance to the far plane of the frustum.
+
+        Returns
+        -------
+        None.
+
+        """
+        path = "/Cameras/default/rotated/<object>"
+        if not aspect is None:
+            self._scene[path].set_property('aspect', aspect)
+        if not fov is None:
+            self._scene[path].set_property('fov', fov)
+        if not near is None:
+            self._scene[path].set_property('near', near)
+        if not far is None:
+            self._scene[path].set_property('far', far)
+        
 
     def set_cam_frustum(self, aspect=None, fov=None, near=None, far=None):
         """
@@ -706,46 +888,39 @@ class Visualizer():
         Returns
         -------
         ret_code : int
-            0 if successful, less than 0 if something went wrong.
+            0 if successful, -1 if something went wrong.
 
         """
-        path = "/Cameras/default/rotated/<object>"
-        ret_code = 0
-
-        # Set the aspect ratio
+        # Check the aspect ratio
         if not aspect is None:
             if not self._is_num(aspect):
                 warn("When set_cam_frustum, aspect must be float")
-                ret_code -= 1
-            else:
-                self._scene[path].set_property('aspect', aspect)
+                return -1
 
-        # Set the vertical field of view
+        # Check the vertical field of view
         if not fov is None:
             if not self._is_num(fov):
                 warn("When set_cam_frustum, fov must be float")
-                ret_code -= 1
-            else:
-                self._scene[path].set_property('fov', fov)
+                return -1
 
-        # Set the distance to the near plane
+        # Check the distance to the near plane
         if not near is None:
             if not self._is_num(near):
                 warn("When set_cam_frustum, near must be float")
-                ret_code -= 1
-            else:
-                self._scene[path].set_property('near', near)
+                return -1
 
-        # Set the distance to the far plane
+        # Check the distance to the far plane
         if not far is None:
             if not self._is_num(far):
                 warn("When set_cam_frustum, far must be float")
-                ret_code -= 1
-            else:
-                self._scene[path].set_property('far', far)
+                return -1
 
-        # Set the aspect ratio
-        return ret_code
+        # Queue the action in thread safe manner
+        with self._LOCK:
+            fnc = self._set_cam_frustum
+            args = (aspect, fov, near, far, )
+            self._actions_buf.append((fnc, args))
+        return 0
 
 
     def terminate(self):
@@ -758,10 +933,15 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
+        with self._LOCK:
+            self._done = True
+        self._thread.join()
+            
         if not self._socket.closed:
             self._scene.delete()
             self._socket.close()
             return 0
+        
         return -1
 
 
@@ -1078,65 +1258,13 @@ class Visualizer():
     #     return transform
 
 
-    # def transform_camera(self,
-    #                      scale = [1., 1., 1.],
-    #                      translate = [0., 0., 0.],
-    #                      wxyz_quaternion = [1., 0., 0., 0.],
-    #                      roll=None,
-    #                      pitch=None,
-    #                      yaw=None):
-    #     """
-    #     Transforms the position, orientation, and scale of the camera
-    #     in the scene.
-
-    #     Parameters
-    #     ----------
-    #     scale : array-like, size (3,), optional
-    #         The scaling of the camera view about the camera point along the
-    #         three axes. The default is [1., 1., 1.].
-    #     translate : array-like, size (3,), optional
-    #         The translation of the camera point along the three axes.
-    #         The default is [0., 0., 0.].
-    #     wxyz_quaternion : array-like, shape (4,) optional
-    #         A wxyz quaternion that describes the intial orientation of camera
-    #         about the camera point. When roll, pitch, and yaw all have None
-    #         type, the quaternion is used. If any roll, pitch, or yaw have non
-    #         None type, the quaternion is ignored.
-    #         The default is [1., 0., 0., 0.].
-    #     roll : float, optional
-    #         The roll of the camera about the camera point.
-    #         The default is None.
-    #     pitch : float, optional
-    #         The pitch of the camera about the camera point.
-    #         The default is None.
-    #     yaw : float, optional
-    #         The yaw of the camera about the camera point.
-    #         The default is None.
-
-    #     Returns
-    #     -------
-    #     None.
-
-    #     """
-    #     # If any euler angles are specified, use the euler angles to set the
-    #     # initial orientation of the urdf object
-    #     # Any unspecified euler angles are set to 0.0
-    #     if roll!=None or pitch!=None or yaw!=None:
-    #         if roll==None:
-    #             roll=0.0
-    #         if pitch==None:
-    #             pitch=0.0
-    #         if yaw==None:
-    #             yaw=0.0
-    #         wxyz_quaternion = wxyz_from_euler(roll, pitch, yaw)
-
-    #     # Calculate and apply the transform
-    #     transform = self._get_transform(scale=scale,
-    #                                    translate=translate,
-    #                                    wxyz_quaternion=wxyz_quaternion)
-    #     self.scene["/Cameras/default"].set_transform(transform)
-
 
 if __name__ == "__main__":
-    vis = Visualizer()
+    vis = Visualizer(frame_rate=30)
+    N = 1000
+    for i in range(N):
+        t = (i/(N-1))*np.array([5., 1., 2.]) + ((N-i+1)/(N-1))*np.array([0., 0., 0.])
+        t = tuple(t.tolist())
+        vis.set_cam_target(t)
+        time.sleep(0.005)
     vis.terminate()
