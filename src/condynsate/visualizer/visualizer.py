@@ -68,9 +68,6 @@ class Visualizer():
         # Set the default scene settings
         self._set_defaults()
 
-        # Wait for scene to fully load
-        time.sleep(0.5)
-
     def __del__(self):
         """
         Deconstructor method.
@@ -460,6 +457,23 @@ class Visualizer():
                                          umsgpack.packb(cmd_data)])
             self._socket.recv()
 
+    def _set_lights(self, *args):
+        """
+        Sets all light parameters given list of args.
+
+        Parameters
+        ----------
+        *args : List
+            List of self._set_light args.
+
+        Returns
+        -------
+        None.
+
+        """
+        for arg in args:
+            self._set_light(*arg)
+
     def _set_light_ok(self, light, on, intensity, distance, shadow):
         """
         Ensures that a set of arguments to be passed to _set_light are all
@@ -556,9 +570,12 @@ class Visualizer():
 
         # Queue the action in thread safe manner
         with self._LOCK:
-            fnc = self._set_light
+            fnc = self._set_lights
             args = (name, on, intensity, distance, shadow, )
-            self._actions_buf[fnc] = args
+            if not fnc in self._actions_buf:
+                self._actions_buf[fnc] = [args, ]
+            else:
+                self._actions_buf[fnc].append(args)
         return 0
 
     def set_posx_light(self,on=None,intensity=None,distance=None,shadow=None):
@@ -594,9 +611,12 @@ class Visualizer():
 
         # Queue the action in thread safe manner
         with self._LOCK:
-            fnc = self._set_light
+            fnc = self._set_lights
             args = (name, on, intensity, distance, shadow, )
-            self._actions_buf[fnc] = args
+            if not fnc in self._actions_buf:
+                self._actions_buf[fnc] = [args, ]
+            else:
+                self._actions_buf[fnc].append(args)
         return 0
 
     def set_negx_light(self,on=None,intensity=None,distance=None,shadow=None):
@@ -632,9 +652,12 @@ class Visualizer():
 
         # Queue the action in thread safe manner
         with self._LOCK:
-            fnc = self._set_light
+            fnc = self._set_lights
             args = (name, on, intensity, distance, shadow, )
-            self._actions_buf[fnc] = args
+            if not fnc in self._actions_buf:
+                self._actions_buf[fnc] = [args, ]
+            else:
+                self._actions_buf[fnc].append(args)
         return 0
 
     def set_ambient_light(self, on=None, intensity=None, shadow=None):
@@ -667,9 +690,12 @@ class Visualizer():
 
         # Queue the action in thread safe manner
         with self._LOCK:
-            fnc = self._set_light
+            fnc = self._set_lights
             args = (name, on, intensity, distance, shadow, )
-            self._actions_buf[fnc] = args
+            if not fnc in self._actions_buf:
+                self._actions_buf[fnc] = [args, ]
+            else:
+                self._actions_buf[fnc].append(args)
         return 0
 
     def set_fill_light(self, on=None, intensity=None, shadow=None):
@@ -702,9 +728,12 @@ class Visualizer():
 
         # Queue the action in thread safe manner
         with self._LOCK:
-            fnc = self._set_light
+            fnc = self._set_lights
             args = (name, on, intensity, distance, shadow, )
-            self._actions_buf[fnc] = args
+            if not fnc in self._actions_buf:
+                self._actions_buf[fnc] = [args, ]
+            else:
+                self._actions_buf[fnc].append(args)
         return 0
 
     def _set_cam_position(self, p):
@@ -934,92 +963,36 @@ class Visualizer():
             self._actions_buf[fnc] = args
         return 0
 
-    def _path_valid(self, path):
+    def _add_object(self, name, geometry, material):
         """
-        Checks if a given file path is valid.
+        Adds an object to the scene.
 
         Parameters
         ----------
-        path : string
-            The file path being validated.
-
+        name : string or tuple of strings
+            A list of strings defining the name of the object as well
+            as its position in the scene heirarchy. For example, 
+            ('foo', 'bar') would insert a new object to the scene at location
+            /Scene/foo/bar while 'baz' would insert the object at 
+            /Scene/baz
+        geometry : meshcat geometry
+            The geometry of the file being added.
+        material : meshcat material
+            The material of the object being added.    
+        
         Returns
         -------
-        is_valid : bool
-            True if valid, else false.
+        None.
 
         """
-        split = list(os.path.split(path))
-        try:
-            if split[0] == '':
-                split[0] = '.'
-            if not split[1] in os.listdir(split[0]):
-                return False
-        except FileNotFoundError:
-            return False
-        return True
+        # Get the scene path
+        if isinstance(name, (tuple, list, np.ndarray)):
+            scene_path = '/'+'/'.join(name)
+        else:
+            scene_path = '/'+name
 
-    def _read_obj_kwargs(self, kwargs):
-        """
-        Reads and sanitizes the kwargs for function self.add_obj.
-
-        Parameters
-        ----------
-        kwargs : dict
-            The kwargs being sanitized.
-
-        Returns
-        -------
-        san : dict
-            The sanitized kwargs with default values set for non user defined
-            keys.
-
-        """
-        san = {'tex_path' : __assets__['check_img'],
-               'position' : (0.0, 0.0, 0.0),
-               'wxyz_quat' : (1.0, 0.0, 0.0, 0.0),
-               'roll' : 0.0,
-               'pitch' : 0.0,
-               'yaw' : 0.0,
-               'scale' : (1.0, 1.0, 1.0)}
-
-        # Validate each key given by user
-        for key, val in kwargs.items():
-            k = key.lower()
-            if not k in san:
-                msg = f"When add_obj, {key} is not recognized kwarg."
-                warn(msg)
-            elif k == 'tex_path':
-                if not isinstance(val, str):
-                    msg = f"When add_obj, {key} must be type string."
-                    warn(msg)
-                if not self._path_valid(val):
-                    msg = f"When add_obj, {val} is invalid texture path."
-                    warn(msg)
-                if not val.endswith('.png'):
-                    msg = f"When add_obj, {val} must point to .png."
-                    warn(msg)
-            elif k == 'position' and not self._is_nvector(val, 3):
-                msg = f"When add_obj, {key} must be 3vector of floats."
-                warn(msg)
-            elif k == 'wxyz_quat' and not self._is_nvector(val, 4):
-                msg = f"When add_obj, {key} must be 4vector of floats."
-                warn(msg)
-            elif k == 'roll' and not self._is_num(val):
-                msg = f"When add_obj, {key} must be type float."
-                warn(msg)
-            elif k == 'pitch' and not self._is_num(val):
-                msg = f"When add_obj, {key} must be type float."
-                warn(msg)
-            elif k == 'yaw' and not self._is_num(val):
-                msg = f"When add_obj, {key} must be type float."
-                warn(msg)
-            elif k == 'scale' and not self._is_nvector(val, 3):
-                msg = f"When add_obj, {key} must be 3vector of floats."
-                warn(msg)
-            else:
-                san[key] = val
-        return san
+        # Add the .obj to the scene
+        self._scene[scene_path].set_object(geometry, material)
 
     def _add_objects(self, *args):
         """
@@ -1036,24 +1009,139 @@ class Visualizer():
         None.
 
         """
-        # Go through each obj to be added to the visualizer
         for arg in args:
-            name = arg[0]
-            geometry = arg[1]
-            material = arg[2]
-            
-            # Get the scene path
-            if isinstance(name, (tuple, list, np.ndarray)):
-                scene_path = '/'+'/'.join(name)
-            else:
-                scene_path = '/'+name
-            
-            # Add the .obj to the scene
-            self._scene[scene_path].set_object(geometry, material)
+            self._add_object(*arg)
 
-    def add_obj(self, name, path, **kwargs):
+    def _set_transform(self):
+        pass
+
+    def _set_transforms(self, *args):
+        pass
+
+    def _path_valid(self, path):
         """
-        Adds a .obj to the visualizer scene.
+        Checks if a given file path is valid.
+
+        Parameters
+        ----------
+        path : string
+            The file path being validated.
+
+        Returns
+        -------
+        is_valid : bool
+            True if valid, else false.
+
+        """
+        if not  isinstance(path, str):
+            return False
+        split = list(os.path.split(path))
+        try:
+            if split[0] == '':
+                split[0] = '.'
+            if not split[1] in os.listdir(split[0]):
+                return False
+        except FileNotFoundError:
+            return False
+        return True
+
+    def _read_object_kwargs(self, kwargs):
+        """
+        Reads and sanitizes the kwargs for function self.add_object.
+
+        Parameters
+        ----------
+        kwargs : dict
+            The kwargs being sanitized.
+
+        Returns
+        -------
+        san : dict
+            The sanitized kwargs with default values set for non user defined
+            keys.
+
+        """
+        # Set default values
+        san = {'tex_path' : __assets__['missing_tex_img'],
+               'color' : (1.0, 1.0, 1.0),
+               'reflectivity' : 0.2,
+               'opacity' : 1.0,
+               'position' : (0.0, 0.0, 0.0),
+               'wxyz_quat' : (1.0, 0.0, 0.0, 0.0),
+               'roll' : 0.0,
+               'pitch' : 0.0,
+               'yaw' : 0.0,
+               'scale' : (1.0, 1.0, 1.0)}
+
+        # Validate each key given by user
+        for key, val in kwargs.items():
+            k = key.lower()
+
+            # Ensure is valid kwarg
+            if not k in san:
+                msg = f"When add_obj, {key} is not recognized kwarg."
+                warn(msg)
+                continue
+
+            # Validate the texture path
+            if k == 'tex_path':
+                if val is None:
+                    san[key] = val
+                    continue
+                if not self._path_valid(val):
+                    msg = f"When add_object, {key} is invalid texture path."
+                    warn(msg)
+                    continue
+                if not val.endswith('.png'):
+                    msg = f"When add_object, {key} must point to .png."
+                    warn(msg)
+                    continue
+                san[key] = val
+
+            # Validate the color and scale
+            elif k in ('color', 'scale'):
+                if not self._is_nvector(val, 3):
+                    msg = f"When add_object, {key} must be 3vector of floats"
+                    warn(msg)
+                    continue
+                san[key] = tuple(float(np.clip(c, 0.0, 1.0)) for c in val)
+
+            # Validate the reflectivity and opacity
+            elif k in ('reflectivity', 'opacity'):
+                if not self._is_num(val):
+                    msg = f"When add_object, {key} must be float"
+                    warn(msg)
+                    continue
+                san[key] = float(np.clip(val, 0.0, 1.0))
+
+            # Validate the position
+            elif k == 'position':
+                if not self._is_nvector(val, 3):
+                    msg = f"When add_object, {key} must be 3vector of floats"
+                    warn(msg)
+                    continue
+                san[key] = val
+
+            # Validate the wxyz_quat
+            elif k == 'wxyz_quat':
+                if not self._is_nvector(val, 4):
+                    msg = f"When add_object, {key} must be 4vector of floats"
+                    warn(msg)
+                    continue
+                san[key] = tuple(float(np.clip(c, -1.0, 1.0)) for c in val)
+
+            # Validate the roll, pitch, and yaw
+            elif k in ('roll', 'pitch', 'yaw'):
+                if not self._is_num(val):
+                    msg = f"When add_object, {key} must be float"
+                    warn(msg)
+                    continue
+                san[key] = float(np.clip(val, -180.0, 180.0))
+        return san
+
+    def add_object(self, name, path, **kwargs):
+        """
+        Adds an object to the visualizer scene.
 
         Parameters
         ----------
@@ -1064,47 +1152,66 @@ class Visualizer():
             /Scene/foo/bar while 'baz' would insert the object at 
             /Scene/baz
         path : string
-            Path pointing to the .obj file that describes the object's 
-            geometry.
+            Path pointing to the file that describes the object's 
+            geometry. The file may be of type .obj or .stl.
 
         Returns
         -------
-        obj_geometry : meshcat.geometry.ObjMeshGeometry
-            The object mesh.
-        obj_texture : meshcat.geometry.MeshPhongMaterial
-            The object texture.
+        geometry : meshcat.geometry.ObjMeshGeometry
+            The object's mesh.
+        material : meshcat.geometry.MeshPhongMaterial
+            The object's material.
 
         """
         # Sanitize the name
         if isinstance(name, (tuple, list, np.ndarray)):
             if not all(isinstance(n, str) for n in name):
-                msg = "When add_obj, arg name must be str or tuple of str."
+                msg = "When add_obj, name must be str or tuple of str."
                 raise TypeError(msg)
         elif not isinstance(name, str):
-            msg = "When add_obj, arg name must be str or tuple of str."
+            msg = "When add_obj, name must be str or tuple of str."
             raise TypeError(msg)
-        
-        # Sanitize the path
-        if not isinstance(path, str):
-            msg = "When add_obj, arg path must be str."
-            raise TypeError(msg)
-            
+
         # Check path integrity
         if not self._path_valid(path):
-            msg = f"When add_obj, {path} is not valid."
+            msg = "When add_obj, path is not valid."
             raise FileNotFoundError(msg)
-            
+        if not path.endswith(('.obj', '.dae', '.stl')):
+            msg = "When add_obj, path must point to .obj, .stl, or .dae file."
+            raise ValueError(msg)
+
         # Sanitize the kwargs
-        kwargs = self._read_obj_kwargs(kwargs)
+        kwargs = self._read_object_kwargs(kwargs)
 
-        # Load geometry and material
-        geometry = geo.ObjMeshGeometry.from_file(path)
-        texture = geo.PngImage.from_file(kwargs['tex_path'])
-        texture = geo.ImageTexture(image=texture, wrap=[1, 1], repeat=[1, 1])
-        material = geo.MeshPhongMaterial(map = texture)
+        # Load geometry
+        if path.endswith('.obj'):
+            geometry = geo.ObjMeshGeometry.from_file(path)
+        elif path.endswith('.stl'):
+            geometry = geo.StlMeshGeometry.from_file(path)
+        elif path.endswith('.dae'):
+            geometry = geo.DaeMeshGeometry.from_file(path)
 
-         # Queue the action in thread safe manner
+        # Load material
+        if not kwargs['tex_path'] is None and not path.endswith('.stl'):
+            texture = geo.PngImage.from_file(kwargs['tex_path'])
+            texture = geo.ImageTexture(texture, wrap=[1, 1], repeat=[1, 1])
+        else:
+            texture = None
+        color = tuple(int(255*c) for c in kwargs['color'])
+        color = int("0x{:02x}{:02x}{:02x}".format(*color), 16)
+        mat_kwargs = {'color' : color,
+                      'reflectivity' : kwargs['reflectivity'],
+                      'map' : texture,
+                      'opacity' : kwargs['opacity'],}
+        material = geo.MeshPhongMaterial(**mat_kwargs)
+
+        # Get the transform
+        transform = ('position', 'wxyz_quat', 'roll', 'pitch', 'yaw', 'scale',)
+        transform = dict(zip(transform, [kwargs[k] for k in transform]))
+
+        # Queue the actions in thread safe manner
         with self._LOCK:
+            # Queue the add action
             fnc = self._add_objects
             args = (name, geometry, material, )
             if not fnc in self._actions_buf:
@@ -1112,11 +1219,16 @@ class Visualizer():
             else:
                 self._actions_buf[fnc].append(args)
 
-        # transform = self._get_transform(scale, translate, wxyz_quaternion)
-        # self.scene[urdf_name][link_name].set_transform(transform)
+            # Queue the transform action
+            fnc = self._set_transforms
+            args = (name, transform, )
+            if not fnc in self._actions_buf:
+                self._actions_buf[fnc] = [args, ]
+            else:
+                self._actions_buf[fnc].append(args)
 
         # Return the geometry and texture
-        return geometry, texture
+        return geometry, material
 
     def terminate(self):
         """
@@ -1140,114 +1252,6 @@ class Visualizer():
             return 0
 
         return -1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # def add_stl(self,
-    #             urdf_name,
-    #             link_name,
-    #             stl_path,
-    #             color = [91, 155, 213],
-    #             transparent=False,
-    #             opacity = 1.0,
-    #             scale=[1., 1., 1.],
-    #             translate=[0., 0., 0.],
-    #             wxyz_quaternion=[1., 0., 0., 0.]):
-    #     """
-    #     Adds a colored .stl to the visualization.
-
-    #     Parameters
-    #     ----------
-    #     urdf_name : string
-    #         The name of the urdf to which the .stl is being added as a link.
-    #         URDF objects define robots or assemblies.
-    #     link_name : string
-    #         The name of the link.
-    #     stl_path : string
-    #         The relative path pointing to the .stl description of the link that
-    #         is being added.
-    #     color : array-like, size (3,), optional
-    #         The 0-255 RGB color of the .stl. The default is [91, 155, 213].
-    #     transparent : boolean, optional
-    #         A boolean that indicates if the .stl is transparent.
-    #         The default is False.
-    #     opacity : float, optional
-    #         The opacity of the .stl. Can take float values between 0.0 and 1.0.
-    #         The default is 1.0.
-    #     scale : array-like, size (3,), optional
-    #         The initial scaling along the three axes applied to the .stl.
-    #         The default is [1., 1., 1.].
-    #     translate : array-like, size (3,), optional
-    #         The initial translation along the three axes applied to the .stl.
-    #         The default is [0., 0., 0.].
-    #     wxyz_quaternion : array-like, size (4,), optional
-    #         The wxyz quaternion that defines the initial rotation applied to
-    #         the .stl. The default is [1., 0., 0., 0.].
-
-    #     Returns
-    #     -------
-    #     link_geometry : meshcat.geometry.StlMeshGeometry
-    #         The link mesh.
-    #     link_mat : meshcat.geometry.MeshPhongMaterial
-    #         The link material.
-
-    #     """
-    #     # Set the parts's geometry
-    #     stl_path = format_path(stl_path)
-    #     link_geometry = geo.StlMeshGeometry.from_file(stl_path)
-
-    #     # Set the parts's color
-    #     color_int = color[0]*256**2 + color[1]*256 + color[2]
-
-    #     # Set the parts's material
-    #     link_mat = geo.MeshPhongMaterial(color=color_int,
-    #                                      transparent=False,
-    #                                      opacity=opacity,
-    #                                      reflectivity=0.3)
-
-    #     # Calculate the transform
-    #     transform = self._get_transform(scale, translate, wxyz_quaternion)
-
-    #     # Add and transform the link to its orientation and position
-    #     self.scene[urdf_name][link_name].set_object(link_geometry, link_mat)
-    #     self.scene[urdf_name][link_name].set_transform(transform)
-
-    #     # Return the geometry and material
-    #     return link_geometry, link_mat
 
 
     # def set_link_color(self,
@@ -1396,9 +1400,9 @@ class Visualizer():
 
 
 if __name__ == "__main__":
-    vis = Visualizer(frame_rate=0.5)
-    path = r'C:\Users\Grayson\Docs\Repos\condynsate\src\condynsate\__assets__'
-    vis.add_obj('foo', os.path.join(path, 'plane_med.obj'))
+    vis = Visualizer(frame_rate=30)
+    PATH = r'C:\Users\Grayson\Docs\Repos\condynsate\src\condynsate\__assets__'
+    vis.add_object('foo', os.path.join(PATH, 'pyramid.stl'))
     # N = 1000
     # srt = np.array([5., 1., 2.])
     # end = np.array([0., 0., 0.])
