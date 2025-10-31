@@ -156,7 +156,8 @@ class _Subplot():
             in_labs = kwarg in self.options['labels']
             in_arts = kwarg in self.options['artists']
             if not in_opts and not in_labs and not in_arts:
-                warnings.warn(f"{kwarg} is not a recognized kwarg.")
+                msg = f"{kwarg} is not a recognized kwarg."
+                warnings.warn(msg)
                 sys.stderr.flush()
                 continue
 

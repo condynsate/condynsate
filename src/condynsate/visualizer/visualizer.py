@@ -5,6 +5,7 @@ This module provides the Visualizer class.
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
+import os
 import time
 from warnings import warn
 import signal
@@ -14,6 +15,7 @@ import meshcat
 import meshcat.geometry as geo
 import umsgpack
 import cv2
+from condynsate import __assets__
 from condynsate.misc import (format_path,  wxyz_from_euler)
 
 ###############################################################################
@@ -220,24 +222,26 @@ class Visualizer():
         except (TypeError, ValueError):
             return False
 
-    def _is_3vector(self, arg):
+    def _is_nvector(self, arg, n):
         """
-        Ensures that an argument is a 3vector of numbers.
+        Ensures that an argument is a nvector of numbers.
 
         Parameters
         ----------
         arg : TYPE
             The argument being tested.
+        n : int
+            The desired length of vector.
 
         Returns
         -------
-        is_3vec : bool
+        is_nvec : bool
             A Boolean flag that indicates if arg is valid.
 
         """
         try:
             iter(arg) # Ensure iterable
-            if len(arg) != 3: # Ensure of length 3
+            if len(arg) != n: # Ensure of length 3
                 raise TypeError('Arg of wrong length')
 
             # Ensure each arg is number
@@ -384,14 +388,14 @@ class Visualizer():
         """
         # Ensure top is of the correct format
         if not top is None:
-            if not self._is_3vector(top):
+            if not self._is_nvector(top, 3):
                 m='When set_background, top must be 3 tuple of floats.'
                 warn(m)
                 return -1
 
         # Ensure bottom is of the correct format
         if not bottom is None:
-            if not self._is_3vector(bottom):
+            if not self._is_nvector(bottom, 3):
                 m='When set_background, bottom must be 3 tuple of floats.'
                 warn(m)
                 return -1
@@ -739,7 +743,7 @@ class Visualizer():
 
         """
         # Ensure argument is correct type
-        if not self._is_3vector(p):
+        if not self._is_nvector(p, 3):
             msg = "When set_cam_position, p must be 3 tuple of floats."
             warn(msg)
             return -1
@@ -786,7 +790,7 @@ class Visualizer():
 
         """
         # Ensure argument is correct type
-        if not self._is_3vector(t):
+        if not self._is_nvector(t, 3):
             msg = "When set_cam_target, t must be 3 tuple of floats."
             warn(msg)
             return -1
@@ -930,6 +934,190 @@ class Visualizer():
             self._actions_buf[fnc] = args
         return 0
 
+    def _path_valid(self, path):
+        """
+        Checks if a given file path is valid.
+
+        Parameters
+        ----------
+        path : string
+            The file path being validated.
+
+        Returns
+        -------
+        is_valid : bool
+            True if valid, else false.
+
+        """
+        split = list(os.path.split(path))
+        try:
+            if split[0] == '':
+                split[0] = '.'
+            if not split[1] in os.listdir(split[0]):
+                return False
+        except FileNotFoundError:
+            return False
+        return True
+
+    def _read_obj_kwargs(self, kwargs):
+        """
+        Reads and sanitizes the kwargs for function self.add_obj.
+
+        Parameters
+        ----------
+        kwargs : dict
+            The kwargs being sanitized.
+
+        Returns
+        -------
+        san : dict
+            The sanitized kwargs with default values set for non user defined
+            keys.
+
+        """
+        san = {'tex_path' : __assets__['check_img'],
+               'position' : (0.0, 0.0, 0.0),
+               'wxyz_quat' : (1.0, 0.0, 0.0, 0.0),
+               'roll' : 0.0,
+               'pitch' : 0.0,
+               'yaw' : 0.0,
+               'scale' : (1.0, 1.0, 1.0)}
+
+        # Validate each key given by user
+        for key, val in kwargs.items():
+            k = key.lower()
+            if not k in san:
+                msg = f"When add_obj, {key} is not recognized kwarg."
+                warn(msg)
+            elif k == 'tex_path':
+                if not isinstance(val, str):
+                    msg = f"When add_obj, {key} must be type string."
+                    warn(msg)
+                if not self._path_valid(val):
+                    msg = f"When add_obj, {val} is invalid texture path."
+                    warn(msg)
+                if not val.endswith('.png'):
+                    msg = f"When add_obj, {val} must point to .png."
+                    warn(msg)
+            elif k == 'position' and not self._is_nvector(val, 3):
+                msg = f"When add_obj, {key} must be 3vector of floats."
+                warn(msg)
+            elif k == 'wxyz_quat' and not self._is_nvector(val, 4):
+                msg = f"When add_obj, {key} must be 4vector of floats."
+                warn(msg)
+            elif k == 'roll' and not self._is_num(val):
+                msg = f"When add_obj, {key} must be type float."
+                warn(msg)
+            elif k == 'pitch' and not self._is_num(val):
+                msg = f"When add_obj, {key} must be type float."
+                warn(msg)
+            elif k == 'yaw' and not self._is_num(val):
+                msg = f"When add_obj, {key} must be type float."
+                warn(msg)
+            elif k == 'scale' and not self._is_nvector(val, 3):
+                msg = f"When add_obj, {key} must be 3vector of floats."
+                warn(msg)
+            else:
+                san[key] = val
+        return san
+
+    def _add_objects(self, *args):
+        """
+        Adds multiple objects to the scene.
+
+        Parameters
+        ----------
+        *args : List
+            List of set_object args. Each element of list has form
+            (name, geometry, material).
+
+        Returns
+        -------
+        None.
+
+        """
+        # Go through each obj to be added to the visualizer
+        for arg in args:
+            name = arg[0]
+            geometry = arg[1]
+            material = arg[2]
+            
+            # Get the scene path
+            if isinstance(name, (tuple, list, np.ndarray)):
+                scene_path = '/'+'/'.join(name)
+            else:
+                scene_path = '/'+name
+            
+            # Add the .obj to the scene
+            self._scene[scene_path].set_object(geometry, material)
+
+    def add_obj(self, name, path, **kwargs):
+        """
+        Adds a .obj to the visualizer scene.
+
+        Parameters
+        ----------
+        name : string or tuple of strings
+            A list of strings defining the name of the object as well
+            as its position in the scene heirarchy. For example, 
+            ('foo', 'bar') would insert a new object to the scene at location
+            /Scene/foo/bar while 'baz' would insert the object at 
+            /Scene/baz
+        path : string
+            Path pointing to the .obj file that describes the object's 
+            geometry.
+
+        Returns
+        -------
+        obj_geometry : meshcat.geometry.ObjMeshGeometry
+            The object mesh.
+        obj_texture : meshcat.geometry.MeshPhongMaterial
+            The object texture.
+
+        """
+        # Sanitize the name
+        if isinstance(name, (tuple, list, np.ndarray)):
+            if not all(isinstance(n, str) for n in name):
+                msg = "When add_obj, arg name must be str or tuple of str."
+                raise TypeError(msg)
+        elif not isinstance(name, str):
+            msg = "When add_obj, arg name must be str or tuple of str."
+            raise TypeError(msg)
+        
+        # Sanitize the path
+        if not isinstance(path, str):
+            msg = "When add_obj, arg path must be str."
+            raise TypeError(msg)
+            
+        # Check path integrity
+        if not self._path_valid(path):
+            msg = f"When add_obj, {path} is not valid."
+            raise FileNotFoundError(msg)
+            
+        # Sanitize the kwargs
+        kwargs = self._read_obj_kwargs(kwargs)
+
+        # Load geometry and material
+        geometry = geo.ObjMeshGeometry.from_file(path)
+        texture = geo.PngImage.from_file(kwargs['tex_path'])
+        texture = geo.ImageTexture(image=texture, wrap=[1, 1], repeat=[1, 1])
+        material = geo.MeshPhongMaterial(map = texture)
+
+         # Queue the action in thread safe manner
+        with self._LOCK:
+            fnc = self._add_objects
+            args = (name, geometry, material, )
+            if not fnc in self._actions_buf:
+                self._actions_buf[fnc] = [args, ]
+            else:
+                self._actions_buf[fnc].append(args)
+
+        # transform = self._get_transform(scale, translate, wxyz_quaternion)
+        # self.scene[urdf_name][link_name].set_transform(transform)
+
+        # Return the geometry and texture
+        return geometry, texture
+
     def terminate(self):
         """
         Terminates the visualizer's communication with the web browser.
@@ -987,67 +1175,6 @@ class Visualizer():
 
 
 
-
-    # def add_obj(self,
-    #             urdf_name,
-    #             link_name,
-    #             obj_path,
-    #             tex_path,
-    #             scale=[1., 1., 1.],
-    #             translate=[0., 0., 0.],
-    #             wxyz_quaternion=[1., 0., 0., 0.]):
-    #     """
-    #     Adds a textured .obj to the visualization.
-
-    #     Parameters
-    #     ----------
-    #     urdf_name : string
-    #         The name of the urdf to which the .obj is being added as a link.
-    #         URDF objects define robots or assemblies.
-    #     link_name : string
-    #         The name of the link.
-    #     tex_path : string
-    #         Relative path pointing to the .png file that provides the
-    #         texture.
-    #     scale : array-like, size (3,), optional
-    #         The initial scaling along the three axes applied to the .obj.
-    #         The default is [1., 1., 1.].
-    #     translate : array-like, size (3,), optional
-    #         The initial translation along the three axes applied to the .obj.
-    #         The default is [0., 0., 0.].
-    #     wxyz_quaternion : array-like, size (4,), optional
-    #         The wxyz quaternion that defines the initial rotation applied to
-    #         the .obj. The default is [1., 0., 0., 0.].
-
-    #     Returns
-    #     -------
-    #     obj_geometry : meshcat.geometry.ObjMeshGeometry
-    #         The object mesh.
-    #     obj_texture : meshcat.geometry.MeshPhongMaterial
-    #         The object texture.
-
-    #     """
-    #     # Get geometry of object from the .obj file at obj_path
-    #     obj_path = format_path(obj_path)
-    #     obj_geometry = geo.ObjMeshGeometry.from_file(obj_path)
-
-    #     # Get the texture of object from the .png file at tex_path
-    #     tex_path = format_path(tex_path)
-    #     meshcat_png = geo.PngImage.from_file(tex_path)
-    #     im_tex = geo.ImageTexture(image=meshcat_png,
-    #                               wrap=[1, 1],
-    #                               repeat=[1, 1])
-    #     obj_texture = geo.MeshPhongMaterial(map = im_tex)
-
-    #     # Calculate the transform
-    #     transform = self._get_transform(scale, translate, wxyz_quaternion)
-
-    #     # Add and transform the object to its orientation and position
-    #     self.scene[urdf_name][link_name].set_object(obj_geometry, obj_texture)
-    #     self.scene[urdf_name][link_name].set_transform(transform)
-
-    #     # Return the geometry and texture
-    #     return obj_geometry, obj_texture
 
 
     # def add_stl(self,
@@ -1269,13 +1396,15 @@ class Visualizer():
 
 
 if __name__ == "__main__":
-    vis = Visualizer(frame_rate=30.0)
-    N = 1000
-    srt = np.array([5., 1., 2.])
-    end = np.array([0., 0., 0.])
-    for i in range(N):
-        t = (i/(N-1))*srt + ((N-i+1)/(N-1))*end
-        t = tuple(t.tolist())
-        vis.set_cam_target(t)
-        time.sleep(0.005)
+    vis = Visualizer(frame_rate=0.5)
+    path = r'C:\Users\Grayson\Docs\Repos\condynsate\src\condynsate\__assets__'
+    vis.add_obj('foo', os.path.join(path, 'plane_med.obj'))
+    # N = 1000
+    # srt = np.array([5., 1., 2.])
+    # end = np.array([0., 0., 0.])
+    # for i in range(N):
+    #     t = (i/(N-1))*srt + ((N-i+1)/(N-1))*end
+    #     t = tuple(t.tolist())
+    #     vis.set_cam_target(t)
+    #     time.sleep(0.005)
     vis.terminate()
