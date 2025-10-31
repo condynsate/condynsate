@@ -55,7 +55,7 @@ class Visualizer():
         self._scene.delete()
 
         # Start the main thread
-        self._actions_buf = []
+        self._actions_buf = {}
         self._done = False
         self._last_refresh = cv2.getTickCount()
         self._LOCK = Lock()
@@ -115,7 +115,8 @@ class Visualizer():
 
         Returns
         -------
-        None.
+        ret_code : int
+            0 if successful, -1 if something went wrong.
 
         """
         # Continuously redraw
@@ -126,21 +127,11 @@ class Visualizer():
                 time.sleep(0.01)
                 continue
             
-            # Create a list to hold all the queued actions in actions buffer
-            actions = []
+            # Create a dict to hold all the queued actions in actions buffer
+            actions = {}
             
             # Aquire mutex lock to read flags and shared buffer
             with self._LOCK:
-                
-                # Extract all of the actions from the shared actions buffer
-                for i in range(len(self._actions_buf)):
-                    actions.append(self._actions_buf.pop(0))
-                
-                # If done, do the last actions then return success
-                if self._done:
-                    for action in actions:
-                        action[0](*action[1])
-                    return 0
                 
                 # If visualizer is closed unexpectedly, end main loop then 
                 # return failure
@@ -150,20 +141,27 @@ class Visualizer():
                     warn(msg)
                     self._done = True
                     return -1
+                
+                # If done, do the last actions then return success
+                if self._done:
+                    for fnc in self._actions_buf:
+                        fnc(*self._actions_buf[fnc])
+                    return 0
+                
+                # Extract all of the actions from the shared actions buffer
+                for fnc in list(self._actions_buf.keys()):
+                    actions[fnc] = self._actions_buf.pop(fnc)
 
             # If visualizer is open and not done, release the mutex lock and do
             # the actions read from the buffer this loop
-            for action in actions:
-                action[0](*action[1])
+            for fnc in actions:
+                fnc(*actions[fnc])
             
             # Set the current time as the last refresh time 
             self._last_refresh = cv2.getTickCount()
 
             # Remove CPU strain by sleeping for a little bit
             time.sleep(0.01)
-        
-        # Return 0 on success
-        return 0
 
 
     def _is_num(self, arg):
@@ -262,7 +260,7 @@ class Visualizer():
         with self._LOCK:
             fnc = self._set_grid
             args = (visible,)
-            self._actions_buf.append((fnc, args))
+            self._actions_buf[fnc] = args
         return 0
 
 
@@ -309,7 +307,7 @@ class Visualizer():
         with self._LOCK:
             fnc = self._set_axes
             args = (visible,)
-            self._actions_buf.append((fnc, args))
+            self._actions_buf[fnc] = args
         return 0
     
 
@@ -377,7 +375,7 @@ class Visualizer():
         with self._LOCK:
             fnc = self._set_background
             args = (top, bottom,)
-            self._actions_buf.append((fnc, args))
+            self._actions_buf[fnc] = args
         return 0
 
 
@@ -534,7 +532,7 @@ class Visualizer():
         with self._LOCK:
             fnc = self._set_light
             args = (name, on, intensity, distance, shadow, )
-            self._actions_buf.append((fnc, args))
+            self._actions_buf[fnc] = args
         return 0
 
 
@@ -573,7 +571,7 @@ class Visualizer():
         with self._LOCK:
             fnc = self._set_light
             args = (name, on, intensity, distance, shadow, )
-            self._actions_buf.append((fnc, args))
+            self._actions_buf[fnc] = args
         return 0
 
 
@@ -612,7 +610,7 @@ class Visualizer():
         with self._LOCK:
             fnc = self._set_light
             args = (name, on, intensity, distance, shadow, )
-            self._actions_buf.append((fnc, args))
+            self._actions_buf[fnc] = args
         return 0
 
 
@@ -648,7 +646,7 @@ class Visualizer():
         with self._LOCK:
             fnc = self._set_light
             args = (name, on, intensity, distance, shadow, )
-            self._actions_buf.append((fnc, args))
+            self._actions_buf[fnc] = args
         return 0
 
 
@@ -684,7 +682,7 @@ class Visualizer():
         with self._LOCK:
             fnc = self._set_light
             args = (name, on, intensity, distance, shadow, )
-            self._actions_buf.append((fnc, args))
+            self._actions_buf[fnc] = args
         return 0
 
 
@@ -734,7 +732,7 @@ class Visualizer():
         with self._LOCK:
             fnc = self._set_cam_position
             args = (p, )
-            self._actions_buf.append((fnc, args))
+            self._actions_buf[fnc] = args
         return 0
 
 
@@ -783,7 +781,7 @@ class Visualizer():
         with self._LOCK:
             fnc = self._set_cam_target
             args = (t, )
-            self._actions_buf.append((fnc, args))
+            self._actions_buf[fnc] = args
         return 0
 
 
@@ -831,7 +829,7 @@ class Visualizer():
         with self._LOCK:
             fnc = self._set_cam_zoom
             args = (zoom, )
-            self._actions_buf.append((fnc, args))
+            self._actions_buf[fnc] = args
         return 0
 
 
@@ -919,7 +917,7 @@ class Visualizer():
         with self._LOCK:
             fnc = self._set_cam_frustum
             args = (aspect, fov, near, far, )
-            self._actions_buf.append((fnc, args))
+            self._actions_buf[fnc] = args
         return 0
 
 
@@ -936,12 +934,14 @@ class Visualizer():
         with self._LOCK:
             self._done = True
         self._thread.join()
-            
+        
+        self._actions_buf = {}
+        
         if not self._socket.closed:
             self._scene.delete()
             self._socket.close()
             return 0
-        
+
         return -1
 
 
@@ -1260,7 +1260,7 @@ class Visualizer():
 
 
 if __name__ == "__main__":
-    vis = Visualizer(frame_rate=30)
+    vis = Visualizer(frame_rate=30.0)
     N = 1000
     for i in range(N):
         t = (i/(N-1))*np.array([5., 1., 2.]) + ((N-i+1)/(N-1))*np.array([0., 0., 0.])
