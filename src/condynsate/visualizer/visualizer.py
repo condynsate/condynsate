@@ -2,7 +2,6 @@
 This module provides the Visualizer class.
 """
 
-
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
@@ -16,7 +15,6 @@ import meshcat.geometry as geo
 import umsgpack
 import cv2
 from condynsate.misc import (format_path,  wxyz_from_euler)
-
 
 ###############################################################################
 #VISUALIZER CLASS
@@ -36,11 +34,15 @@ class Visualizer():
         The default is True.
 
     """
-    def __init__(self, frame_rate=None, record=False):
+    def __init__(self, frame_rate=None):
         """
         Constructor method.
 
         """
+        # Asynch listen for script exit
+        signal.signal(signal.SIGTERM, self._sig_handler)
+        signal.signal(signal.SIGINT, self._sig_handler)
+
         # Calculate time between frames
         if not frame_rate is None:
             self.frame_delta = 1.0 / frame_rate
@@ -61,29 +63,11 @@ class Visualizer():
         self._LOCK = Lock()
         self._start()
 
-        # Set the default visibility of grid and axes
-        self.set_grid(visible=True)
-        self.set_axes(visible=True)
-
-        # Set the default background color
-        self.set_background(top=(0.44, 0.62, 0.82), bottom=(0.82, 0.62, 0.44))
-
-        # Set the default lights
-        self.set_spotlight(on=False, intensity=0.8, distance=0, shadow=True)
-        self.set_posx_light(on=True, intensity=0.4, distance=0, shadow=True)
-        self.set_negx_light(on=True, intensity=0.4, distance=0, shadow=True)
-        self.set_ambient_light(on=True, intensity=0.6, shadow=True)
-        self.set_fill_light(on=True, intensity=0.4, shadow=True)
-
-        # Set the default camera properties
-        self.set_cam_position((3, 0.5, 2))
-        self.set_cam_target((0.0, 0.0, 0.0))
-        self.set_cam_zoom(1.0)
-        self.set_cam_frustum(near=0.01, far=1000.0)
+        # Set the default scene settings
+        self._set_defaults()
 
         # Wait for scene to fully load
         time.sleep(0.5)
-
 
     def __del__(self):
         """
@@ -92,6 +76,27 @@ class Visualizer():
         """
         self.terminate()
 
+    def _sig_handler(self, sig, frame):
+        """
+        Handles script termination events so the keyboard listener exits
+        gracefully.
+
+        Parameters
+        ----------
+        sig : int
+            The signal number.
+        frame : signal.frame object
+            The current stack frame.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        m = "Interrupt or termination signal detected. Terminating visualizer."
+        warn(m)
+        return self.terminate()
 
     def _start(self):
         """
@@ -106,7 +111,6 @@ class Visualizer():
         self._thread = Thread(target=self._main_loop)
         self._thread.daemon = True
         self._thread.start()
-
 
     def _main_loop(self):
         """
@@ -126,14 +130,14 @@ class Visualizer():
             if dt < self.frame_delta:
                 time.sleep(0.01)
                 continue
-            
+
             # Create a dict to hold all the queued actions in actions buffer
             actions = {}
-            
+
             # Aquire mutex lock to read flags and shared buffer
             with self._LOCK:
-                
-                # If visualizer is closed unexpectedly, end main loop then 
+
+                # If visualizer is closed unexpectedly, end main loop then
                 # return failure
                 if self._socket.closed:
                     msg = ("Cannot flush actions because visualizer closed"
@@ -141,28 +145,56 @@ class Visualizer():
                     warn(msg)
                     self._done = True
                     return -1
-                
+
                 # If done, do the last actions then return success
                 if self._done:
-                    for fnc in self._actions_buf:
-                        fnc(*self._actions_buf[fnc])
+                    for fnc, args in self._actions_buf.items():
+                        fnc(*args)
                     return 0
-                
+
                 # Extract all of the actions from the shared actions buffer
                 for fnc in list(self._actions_buf.keys()):
                     actions[fnc] = self._actions_buf.pop(fnc)
 
             # If visualizer is open and not done, release the mutex lock and do
             # the actions read from the buffer this loop
-            for fnc in actions:
-                fnc(*actions[fnc])
-            
-            # Set the current time as the last refresh time 
+            for fnc, args in actions.items():
+                fnc(*args)
+
+            # Set the current time as the last refresh time
             self._last_refresh = cv2.getTickCount()
 
             # Remove CPU strain by sleeping for a little bit
             time.sleep(0.01)
 
+    def _set_defaults(self):
+        """
+        Sets the default scene settings
+
+        Returns
+        -------
+        None.
+
+        """
+        # Set the default visibility of grid and axes
+        self.set_grid(visible=True)
+        self.set_axes(visible=True)
+
+        # Set the default background color
+        self.set_background(top=(0.44, 0.62, 0.82), bottom=(0.82, 0.62, 0.44))
+
+        # Set the default lights
+        self.set_spotlight(on=False, intensity=0.8, distance=0, shadow=True)
+        self.set_posx_light(on=True, intensity=0.4, distance=0, shadow=True)
+        self.set_negx_light(on=True, intensity=0.4, distance=0, shadow=True)
+        self.set_ambient_light(on=True, intensity=0.6, shadow=True)
+        self.set_fill_light(on=True, intensity=0.4, shadow=True)
+
+        # Set the default camera properties
+        self.set_cam_position((3, 0.5, 2))
+        self.set_cam_target((0.0, 0.0, 0.0))
+        self.set_cam_zoom(1.0)
+        self.set_cam_frustum(near=0.01, far=1000.0)
 
     def _is_num(self, arg):
         """
@@ -185,9 +217,8 @@ class Visualizer():
             return (not np.isinf(f)) and (not np.isnan(f))
 
         # If something went wrong, is not a number
-        except Exception:
+        except (TypeError, ValueError):
             return False
-
 
     def _is_3vector(self, arg):
         """
@@ -210,12 +241,11 @@ class Visualizer():
                 raise TypeError('Arg of wrong length')
 
             # Ensure each arg is number
-            return all([self._is_num(a) for a in arg])
+            return all(self._is_num(a) for a in arg)
 
         # If something went wrong, arg is not a 3vector
-        except Exception:
+        except TypeError:
             return False
-
 
     def _set_grid(self, visible):
         """
@@ -233,7 +263,6 @@ class Visualizer():
         """
         self._scene["/Grid"].set_property("visible", visible)
         self._scene["/Grid/<object>"].set_property("visible", visible)
-
 
     def set_grid(self, visible):
         """
@@ -263,7 +292,6 @@ class Visualizer():
             self._actions_buf[fnc] = args
         return 0
 
-
     def _set_axes(self, visible):
         """
         Sets the visibility of the axes.
@@ -280,7 +308,6 @@ class Visualizer():
         """
         self._scene["/Axes"].set_property("visible", visible)
         self._scene["/Axes/<object>"].set_property("visible", visible)
-
 
     def set_axes(self, visible):
         """
@@ -309,7 +336,6 @@ class Visualizer():
             args = (visible,)
             self._actions_buf[fnc] = args
         return 0
-    
 
     def _set_background(self, top, bottom):
         """
@@ -329,14 +355,13 @@ class Visualizer():
         """
         # Set the top color
         if not top is None:
-            top = [float(np.clip(float(t), 0.0, 1.0)) for t in top] 
+            top = [float(np.clip(float(t), 0.0, 1.0)) for t in top]
             self._scene["/Background"].set_property('top_color', top)
-            
+
         # Set the bottom color
         if not bottom is None:
             bottom = [float(np.clip(float(b), 0.0, 1.0)) for b in bottom]
             self._scene["/Background"].set_property('bottom_color', bottom)
-
 
     def set_background(self, top=None, bottom=None):
         """
@@ -367,17 +392,16 @@ class Visualizer():
         # Ensure bottom is of the correct format
         if not bottom is None:
             if not self._is_3vector(bottom):
-                    m='When set_background, bottom must be 3 tuple of floats.'
-                    warn(m)
-                    return -1
-            
+                m='When set_background, bottom must be 3 tuple of floats.'
+                warn(m)
+                return -1
+
         # Queue the action in thread safe manner
         with self._LOCK:
             fnc = self._set_background
             args = (top, bottom,)
             self._actions_buf[fnc] = args
         return 0
-
 
     def _set_light(self, light, on, intensity, distance, shadow):
         """
@@ -432,7 +456,6 @@ class Visualizer():
                                          umsgpack.packb(cmd_data)])
             self._socket.recv()
 
-
     def _set_light_ok(self, light, on, intensity, distance, shadow):
         """
         Ensures that a set of arguments to be passed to _set_light are all
@@ -476,7 +499,7 @@ class Visualizer():
         if not intensity is None:
             try:
                 intensity = float(intensity)
-            except Exception:
+            except (TypeError, ValueError):
                 warn("When setting light, argument intensity must be a float.")
                 return False
 
@@ -484,7 +507,7 @@ class Visualizer():
         if not distance is None:
             try:
                 distance = float(distance)
-            except Exception:
+            except (TypeError, ValueError):
                 warn("When setting light, argument distance must be a float.")
                 return False
 
@@ -493,10 +516,9 @@ class Visualizer():
             if not isinstance(shadow, bool):
                 warn("When setting light, argument shadow must be a boolean.")
                 return False
-            
+
         # IF all okay, return True
         return True
-
 
     def set_spotlight(self,on=None,intensity=None,distance=None,shadow=None):
         """
@@ -527,14 +549,13 @@ class Visualizer():
         name = 'SpotLight'
         if not self._set_light_ok(name, on, intensity, distance, shadow):
             return -1
-        
+
         # Queue the action in thread safe manner
         with self._LOCK:
             fnc = self._set_light
             args = (name, on, intensity, distance, shadow, )
             self._actions_buf[fnc] = args
         return 0
-
 
     def set_posx_light(self,on=None,intensity=None,distance=None,shadow=None):
         """
@@ -566,14 +587,13 @@ class Visualizer():
         name = 'PointLightPositiveX'
         if not self._set_light_ok(name, on, intensity, distance, shadow):
             return -1
-        
+
         # Queue the action in thread safe manner
         with self._LOCK:
             fnc = self._set_light
             args = (name, on, intensity, distance, shadow, )
             self._actions_buf[fnc] = args
         return 0
-
 
     def set_negx_light(self,on=None,intensity=None,distance=None,shadow=None):
         """
@@ -605,14 +625,13 @@ class Visualizer():
         name = 'PointLightNegativeX'
         if not self._set_light_ok(name, on, intensity, distance, shadow):
             return -1
-        
+
         # Queue the action in thread safe manner
         with self._LOCK:
             fnc = self._set_light
             args = (name, on, intensity, distance, shadow, )
             self._actions_buf[fnc] = args
         return 0
-
 
     def set_ambient_light(self, on=None, intensity=None, shadow=None):
         """
@@ -641,14 +660,13 @@ class Visualizer():
         distance = None
         if not self._set_light_ok(name, on, intensity, distance, shadow):
             return -1
-        
+
         # Queue the action in thread safe manner
         with self._LOCK:
             fnc = self._set_light
             args = (name, on, intensity, distance, shadow, )
             self._actions_buf[fnc] = args
         return 0
-
 
     def set_fill_light(self, on=None, intensity=None, shadow=None):
         """
@@ -677,14 +695,13 @@ class Visualizer():
         distance = None
         if not self._set_light_ok(name, on, intensity, distance, shadow):
             return -1
-        
+
         # Queue the action in thread safe manner
         with self._LOCK:
             fnc = self._set_light
             args = (name, on, intensity, distance, shadow, )
             self._actions_buf[fnc] = args
         return 0
-
 
     def _set_cam_position(self, p):
         """
@@ -703,7 +720,6 @@ class Visualizer():
         path = "/Cameras/default/rotated/<object>"
         p = (float(p[0]), float(p[2]), -float(p[1])) #Camera is rotated
         self._scene[path].set_property('position', p)
-
 
     def set_cam_position(self, p):
         """
@@ -735,7 +751,6 @@ class Visualizer():
             self._actions_buf[fnc] = args
         return 0
 
-
     def _set_cam_target(self, t):
         """
         Set the XYZ position of the point the camera is looking at.
@@ -752,7 +767,6 @@ class Visualizer():
         """
         p = (float(t[0]), float(t[1]), float(t[2]))
         self._scene.set_cam_target(p)
-
 
     def set_cam_target(self, t):
         """
@@ -784,7 +798,6 @@ class Visualizer():
             self._actions_buf[fnc] = args
         return 0
 
-
     def _set_cam_zoom(self, zoom):
         """
         Sets the zoom value of the camera
@@ -803,7 +816,6 @@ class Visualizer():
         zoom = np.clip(zoom, 0.0001, 100.0)
         path = "/Cameras/default/rotated/<object>"
         self._scene[path].set_property('zoom', zoom)
-
 
     def set_cam_zoom(self, zoom):
         """
@@ -831,7 +843,6 @@ class Visualizer():
             args = (zoom, )
             self._actions_buf[fnc] = args
         return 0
-
 
     def _set_cam_frustum(self, aspect, fov, near, far):
         """
@@ -862,7 +873,6 @@ class Visualizer():
             self._scene[path].set_property('near', near)
         if not far is None:
             self._scene[path].set_property('far', far)
-        
 
     def set_cam_frustum(self, aspect=None, fov=None, near=None, far=None):
         """
@@ -920,7 +930,6 @@ class Visualizer():
             self._actions_buf[fnc] = args
         return 0
 
-
     def terminate(self):
         """
         Terminates the visualizer's communication with the web browser.
@@ -934,9 +943,9 @@ class Visualizer():
         with self._LOCK:
             self._done = True
         self._thread.join()
-        
+
         self._actions_buf = {}
-        
+
         if not self._socket.closed:
             self._scene.delete()
             self._socket.close()
@@ -1262,8 +1271,10 @@ class Visualizer():
 if __name__ == "__main__":
     vis = Visualizer(frame_rate=30.0)
     N = 1000
+    srt = np.array([5., 1., 2.])
+    end = np.array([0., 0., 0.])
     for i in range(N):
-        t = (i/(N-1))*np.array([5., 1., 2.]) + ((N-i+1)/(N-1))*np.array([0., 0., 0.])
+        t = (i/(N-1))*srt + ((N-i+1)/(N-1))*end
         t = tuple(t.tolist())
         vis.set_cam_target(t)
         time.sleep(0.005)

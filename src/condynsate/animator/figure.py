@@ -1,3 +1,8 @@
+"""
+The figure class is used by the animator to generate and draw to a matplotlib 
+figure displayed by cv2's GUI.
+"""
+
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
@@ -7,7 +12,6 @@ from threading import (Thread, Lock)
 import numpy as np
 import matplotlib.pyplot as plt
 MAX_N_ROWS = 2
-
 
 ###############################################################################
 #FIGURE CLASS
@@ -42,13 +46,11 @@ class Figure():
         self._done = False
         self._start()
 
-
     def __del__(self):
         """
         Deconstructor method.
         """
         self.terminate()
-
 
     def _get_shape(self, n):
         """
@@ -69,7 +71,6 @@ class Figure():
         n_cols = int(np.ceil(n / MAX_N_ROWS))
         return (n_rows, n_cols)
 
-
     def _make(self):
         """
         Makes a figure and adds axes according to the figure shape.
@@ -85,8 +86,8 @@ class Figure():
         # Make the figure
         res = 240 * self.shape[0]
         height = 2.5 * self.shape[0]
-        AR = 1.7778*(self.shape[1]/self.shape[0]) # 16:9 AR
-        size = (AR*height, height)
+        aspect = 1.7778*(self.shape[1]/self.shape[0]) # 16:9 AR
+        size = (aspect*height, height)
         dpi = res/height
         fig = plt.figure(figsize=size, dpi=dpi, frameon=True,
                          facecolor="w")
@@ -99,9 +100,7 @@ class Figure():
 
         # General figure formatting
         # fig.tight_layout()
-
         return fig, axes_list
-
 
     def _start(self):
         """
@@ -114,12 +113,10 @@ class Figure():
         """
         # Threaded operations:
         if self._THREADED:
-
             # Start the drawing thread
             self._thread = Thread(target=self._drawer_loop)
             self._thread.daemon = True
             self._thread.start()
-
 
     def _drawer_loop(self):
         """
@@ -145,7 +142,6 @@ class Figure():
             # Remove CPU strain by sleeping for a little bit
             time.sleep(0.01)
 
-
     def get_axes(self):
         """
         Gets the ordered list of axes.
@@ -158,7 +154,6 @@ class Figure():
         """
         return self._axes_list
 
-
     def get_lock(self):
         """
         Gets the figure's mutex lock.
@@ -170,7 +165,6 @@ class Figure():
 
         """
         return self._LOCK
-
 
     def redraw(self):
         """
@@ -208,7 +202,6 @@ class Figure():
                 extra_col = 255*np.ones((img_shape[0], 1, 3), dtype=np.uint8)
                 self._img = np.concatenate((self._img, extra_col), axis=1)
 
-
     def get_image(self):
         """
         Gets the current figure image.
@@ -223,7 +216,6 @@ class Figure():
         with self._LOCK:
             image = copy(self._img)
         return image
-
 
     def terminate(self):
         """

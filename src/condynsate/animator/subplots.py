@@ -1,3 +1,9 @@
+"""
+The _Subplot classes provide functionality for drawing specifc types of 
+subplots to a matplotlib figure to be used and displayed by the Animator 
+module.
+"""
+
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
@@ -8,7 +14,6 @@ from copy import copy
 from threading import (Thread, Lock)
 import numpy as np
 FONT_SIZE = 7
-
 
 ###############################################################################
 #SUBPLOT SUPER CLASS
@@ -74,13 +79,11 @@ class _Subplot():
         # updated and therefore the axes must be redrawn
         self._need_redraw = [False,]*n_artists
 
-
     def __del__(self):
         """
         Deconstructor method.
         """
         self.terminate()
-
 
     def _parse_2_n(self, arg, arg_str, n):
         """
@@ -133,7 +136,6 @@ class _Subplot():
             parsed_val = self._parse_2_n(val, name, n)
             self.options['artists'][kwarg] = parsed_val
 
-
     def _apply_kwargs(self, kwargs):
         """
         Updates default values with kwargs. Parses those which are required.
@@ -154,7 +156,7 @@ class _Subplot():
             in_labs = kwarg in self.options['labels']
             in_arts = kwarg in self.options['artists']
             if not in_opts and not in_labs and not in_arts:
-                warnings.warn("{} is not a recognized kwarg.".format(kwarg))
+                warnings.warn(f"{kwarg} is not a recognized kwarg.")
                 sys.stderr.flush()
                 continue
 
@@ -169,53 +171,51 @@ class _Subplot():
         # Parse each artist kwarg so that it is a list with length n_artists.
         self._parse_artist_options()
 
-
     def _apply_settings(self):
-            """
-            Applies all settings to the axes on which the plot lives.
+        """
+        Applies all settings to the axes on which the plot lives.
 
-            Parameters
-            ----------
-            None.
+        Parameters
+        ----------
+        None.
 
-            Returns
-            -------
-            None.
+        Returns
+        -------
+        None.
 
-            """
-            # Extract options
-            title = self.options['labels']['title']
-            x_label = self.options['labels']['x_label']
-            y_label = self.options['labels']['y_label']
-            hline = self.options['axes']['h_zero_line']
-            vline = self.options['axes']['v_zero_line']
+        """
+        # Extract options
+        title = self.options['labels']['title']
+        x_label = self.options['labels']['x_label']
+        y_label = self.options['labels']['y_label']
+        hline = self.options['axes']['h_zero_line']
+        vline = self.options['axes']['v_zero_line']
 
-            # Aquire mutex lock to draw to figure axes
-            with self._FIG_LOCK:
+        # Aquire mutex lock to draw to figure axes
+        with self._FIG_LOCK:
 
-                # Clear the axis
-                self._axes.clear()
+            # Clear the axis
+            self._axes.clear()
 
-                # Set the labels
-                if not title is None:
-                    self._axes.set_title(title, fontsize=FONT_SIZE+1)
-                if not x_label is None:
-                    self._axes.set_xlabel(x_label, fontsize=FONT_SIZE)
-                if not y_label is None:
-                    self._axes.set_ylabel(y_label, fontsize=FONT_SIZE)
+            # Set the labels
+            if not title is None:
+                self._axes.set_title(title, fontsize=FONT_SIZE+1)
+            if not x_label is None:
+                self._axes.set_xlabel(x_label, fontsize=FONT_SIZE)
+            if not y_label is None:
+                self._axes.set_ylabel(y_label, fontsize=FONT_SIZE)
 
-                # Set the tick mark size
-                self._axes.tick_params(axis='both', which='major',
-                                      labelsize=FONT_SIZE)
-                self._axes.tick_params(axis='both', which='minor',
-                                      labelsize=FONT_SIZE)
+            # Set the tick mark size
+            self._axes.tick_params(axis='both', which='major',
+                                  labelsize=FONT_SIZE)
+            self._axes.tick_params(axis='both', which='minor',
+                                  labelsize=FONT_SIZE)
 
-                # Add the zero lines
-                if hline:
-                    self._axes.axhline(y=0, alpha=0.75, lw=0.75, c='k')
-                if vline:
-                    self._axes.axvline(x=0, alpha=0.75, lw=0.75, c='k')
-
+            # Add the zero lines
+            if hline:
+                self._axes.axhline(y=0, alpha=0.75, lw=0.75, c='k')
+            if vline:
+                self._axes.axvline(x=0, alpha=0.75, lw=0.75, c='k')
 
     def _get_l_extent(self, lower_limit, data_range):
         """
@@ -239,16 +239,14 @@ class _Subplot():
             # limit value takes priority
             lower_extent = float(copy(lower_limit))
 
-        elif not any([datum is None for datum in data_range]):
-           # If no user value, but there is data, set based on data range
-           lower_extent = data_range[0] - 0.05*(data_range[1] - data_range[0])
+        elif not any(datum is None for datum in data_range):
+            # If no user value, but there is data, set based on data range
+            lower_extent = data_range[0] - 0.05*(data_range[1] - data_range[0])
 
         else:
             # If no user set value or data, set default extent to 0.0
             lower_extent = 0.0
-
         return lower_extent
-
 
     def _get_u_extent(self, upper_limit, data_range):
         """
@@ -272,16 +270,14 @@ class _Subplot():
             # upper limit takes priority
             upper_extent = float(copy(upper_limit))
 
-        elif not any([datum is None for datum in data_range]):
-           # If no user value, but there is data, set based on data range
-           upper_extent = data_range[1] + 0.05*(data_range[1] - data_range[0])
+        elif not any(datum is None for datum in data_range):
+            # If no user value, but there is data, set based on data range
+            upper_extent = data_range[1] + 0.05*(data_range[1] - data_range[0])
 
         else:
             # If no user set value or data, set default extent to 1.0
             upper_extent = 1.0
-
         return upper_extent
-
 
     def _get_ranges(self):
         """
@@ -332,7 +328,6 @@ class _Subplot():
             ranges[key] = tuple(ranges[key])
         return ranges
 
-
     def _update_x_extent(self, x_range = (None, None)):
         """
         Sets the extents of the x axis.
@@ -355,7 +350,6 @@ class _Subplot():
         # Aquire mutex lock to set figure axes' extents
         with self._FIG_LOCK:
             self._axes.set_xlim(x_extents[0], x_extents[1])
-
 
     def _update_y_extent(self, y_range = (None, None)):
         """
@@ -380,7 +374,6 @@ class _Subplot():
         with self._FIG_LOCK:
             self._axes.set_ylim(y_extents[0], y_extents[1])
 
-
     def redraw(self):
         """
         Placeholder for the redraw function. Must be redefined for each
@@ -391,8 +384,6 @@ class _Subplot():
         None.
 
         """
-        pass
-
 
     def _drawer_loop(self):
         """
@@ -418,7 +409,6 @@ class _Subplot():
             # Remove CPU strain by sleeping for a little bit
             time.sleep(0.01)
 
-
     def _start(self):
         """
         Starts the drawing thread.
@@ -436,7 +426,6 @@ class _Subplot():
             self._thread.daemon = True
             self._thread.start()
 
-
     def terminate(self):
         """
         Terminate the drawer thread (if it exists). MAKE SURE TO CALL THIS
@@ -452,7 +441,6 @@ class _Subplot():
                 self._done = True
             if not self._thread is None:
                 self._thread.join()
-
 
 ###############################################################################
 #LINE PLOT CLASS
@@ -559,7 +547,6 @@ class Lineplot(_Subplot):
         # Start the drawing thread
         self._start()
 
-
     def _update_extents(self):
         """
         Updates the x and y axes' extents.
@@ -575,7 +562,6 @@ class Lineplot(_Subplot):
         # Update the plot extents
         self._update_x_extent(ranges['x'])
         self._update_y_extent(ranges['y'])
-
 
     def _make_lines(self):
         """
@@ -619,14 +605,12 @@ class Lineplot(_Subplot):
                 lines.append(line)
 
         # Add a legend if needed
-        if not all([l is None for l in self.options['artists']['label']]):
+        if not all(l is None for l in self.options['artists']['label']):
             ncols = self.options['axes']['n_artists']
             self._axes.legend(loc='lower center', fontsize=FONT_SIZE-1,
                               frameon=False, fancybox=False, shadow=False,
                               bbox_to_anchor=(0.5,1.0), ncols=ncols)
-
         return lines
-
 
     def append_point(self, x_point, y_point, line_ind=0):
         """
@@ -661,7 +645,6 @@ class Lineplot(_Subplot):
         if not self._THREADED:
             self.redraw()
 
-
     def reset_data(self):
         """
         Clears all data from plot.
@@ -673,7 +656,6 @@ class Lineplot(_Subplot):
         """
         for line_ind in range(self.options['axes']['n_artists']):
             self.set_data([], [], line_ind=line_ind)
-
 
     def set_data(self, x_data, y_data, line_ind=0):
         """
@@ -708,7 +690,6 @@ class Lineplot(_Subplot):
         if not self._THREADED:
             self.redraw()
 
-
     def redraw(self):
         """
         Redraws all artists in plot. Resizes axes.
@@ -731,12 +712,11 @@ class Lineplot(_Subplot):
         # Update the axes extents. We only need to do this step if the
         # user has not set at least one limit and at least one artist was
         # redrawn
-        update_x = any([x is None for x in self.options['axes']['x_lim']])
-        update_y = any([y is None for y in self.options['axes']['y_lim']])
+        update_x = any(x is None for x in self.options['axes']['x_lim'])
+        update_y = any(y is None for y in self.options['axes']['y_lim'])
         update_lines = len(line_inds) > 0
         if update_x or update_y and update_lines:
             self._update_extents()
-
 
     def _redraw_line(self, line_ind):
         """
@@ -776,7 +756,6 @@ class Lineplot(_Subplot):
 
             # Note that the artist has been redrawn
             self._need_redraw[line_ind] = False
-
 
 ###############################################################################
 #BAR CHART CLASS
@@ -844,7 +823,7 @@ class Barchart(_Subplot):
         super().__init__(axes, fig_lock, n_bars, threaded)
 
         # Set the default lineplot specific artist options
-        self.options['artists']['label'] = ['Bar {}'.format(i+1)
+        self.options['artists']['label'] = [f'Bar {i+1}'
                                             for i in range(n_bars)]
         self.options['artists']['color'] = 'blue'
 
@@ -866,7 +845,6 @@ class Barchart(_Subplot):
         # Start the drawing thread
         self._start()
 
-
     def _update_extents(self):
         """
         Updates the x and y axes' extents.
@@ -881,7 +859,6 @@ class Barchart(_Subplot):
 
         # Update the plot extents
         self._update_x_extent(ranges['x'])
-
 
     def _make_bars(self):
         """
@@ -914,9 +891,8 @@ class Barchart(_Subplot):
                                             values, **kwargs)
 
         # Extract bar artists from the container
-        bars = [artist for artist in container]
+        bars = list(container)
         return bars
-
 
     def set_value(self, value, bar_ind=0):
         """
@@ -949,7 +925,6 @@ class Barchart(_Subplot):
         if not self._THREADED:
             self.redraw()
 
-
     def reset_data(self):
         """
         Clears all data from chart.
@@ -962,7 +937,6 @@ class Barchart(_Subplot):
         with self._LOCK:
             n_bars = self.options['axes']['n_artists']
             self.data['x'] = np.array([[0.0],]*n_bars).tolist()
-
 
     def redraw(self):
         """
@@ -986,11 +960,10 @@ class Barchart(_Subplot):
         # Update the axes extents. We only need to do this step if the
         # user has not set at least one limit and at least one bar was
         # redrawn
-        update_x = any([x is None for x in self.options['axes']['x_lim']])
+        update_x = any(x is None for x in self.options['axes']['x_lim'])
         update_bars = len(bar_inds) > 0
         if update_x and update_bars:
             self._update_extents()
-
 
     def _redraw_bar(self, bar_ind):
         """
@@ -1007,7 +980,7 @@ class Barchart(_Subplot):
 
         """
         # Aquire the artist
-        bar = self._bars[bar_ind]
+        bar_artist = self._bars[bar_ind]
 
         # Aquire mutex lock to read self.data and set flag
         with self._LOCK:
@@ -1016,7 +989,7 @@ class Barchart(_Subplot):
             with self._FIG_LOCK:
 
                 # Update the line artist's data
-                bar.set_width(self.data['x'][bar_ind][-1])
+                bar_artist.set_width(self.data['x'][bar_ind][-1])
 
             # Note that the artist has been redrawn
             self._need_redraw[bar_ind] = False

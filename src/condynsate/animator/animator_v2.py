@@ -1,3 +1,7 @@
+"""
+This module provides the Animator class.
+"""
+
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
@@ -11,7 +15,6 @@ from condynsate.animator.figure import Figure
 from condynsate.animator.subplots import (Lineplot, Barchart)
 from condynsate.exceptions import InvalidNameException
 from condynsate.misc.exception_handling import ESC
-
 
 ###############################################################################
 #ANIMATOR CLASS
@@ -68,13 +71,11 @@ class Animator():
         signal.signal(signal.SIGTERM, self._sig_handler)
         signal.signal(signal.SIGINT, self._sig_handler)
 
-
     def __del__(self):
         """
         Deconstructor func.
         """
         self.terminate()
-
 
     def _sig_handler(self, sig, frame):
         """
@@ -96,7 +97,6 @@ class Animator():
         """
         warn("Interrupt or termination signal detected. Terminating animator.")
         return self.terminate()
-
 
     def add_lineplot(self, n_lines, **kwargs):
         """
@@ -197,7 +197,6 @@ class Animator():
                      for a_ind in plot_data['artist_inds']]
         return lines_ids
 
-
     def add_barchart(self, n_bars, **kwargs):
         """
         Adds a barchart to the animator window. Neither the barchart nor the
@@ -280,7 +279,6 @@ class Animator():
                    for a_ind in plot_data['artist_inds']]
         return bar_ids
 
-
     def start(self):
         """
         Starts the animator. Creates a new window and begins displaying live
@@ -313,14 +311,14 @@ class Animator():
 
         try:
             # Make each subplot
-            for subplot_ind in range(len(self._plots)):
+            for subplot_ind, subplot in enumerate(self._plots):
 
                 # Make a lineplot
-                if (self._plots[subplot_ind]['type']).lower() == 'lineplot':
+                if (subplot['type']).lower() == 'lineplot':
                     self._make_lineplot(subplot_ind)
 
                 # Make a barchart
-                elif (self._plots[subplot_ind]['type']).lower() == 'barchart':
+                elif (subplot['type']).lower() == 'barchart':
                     self._make_barchart(subplot_ind)
 
         except Exception as e:
@@ -336,9 +334,7 @@ class Animator():
         cv2.namedWindow(self._WINDOW_NAME, cv2.WINDOW_AUTOSIZE)
         cv2.waitKey(1)
         self.refresh()
-
         return 0
-
 
     def refresh(self):
         """
@@ -376,7 +372,6 @@ class Animator():
             return 0
         except Exception:
             return -1
-
 
     def barchart_set_value(self, value, bar_id):
         """
@@ -416,7 +411,6 @@ class Animator():
         # Refresh the viewer
         self.refresh()
         return 0
-
 
     def lineplot_append_point(self, x_val, y_val, line_id):
         """
@@ -506,7 +500,6 @@ class Animator():
         self.refresh()
         return 0
 
-
     def reset_all(self):
         """
         Resets all data on all subplots.
@@ -523,13 +516,12 @@ class Animator():
             return -1
 
         # Reset all subplot data
-        for subplot_ind in range(len(self._plots)):
-            self._plots[subplot_ind]['Subplot'].reset_data()
+        for subplot in self._plots:
+            subplot['Subplot'].reset_data()
 
         # Refresh the viewer
         self.refresh()
         return 0
-
 
     def terminate(self):
         """
@@ -543,9 +535,9 @@ class Animator():
 
         """
         # Attempt to terminate each subplot
-        for subplot_ind in range(len(self._plots)):
+        for subplot in self._plots:
             try:
-                self._plots[subplot_ind]['Subplot'].terminate()
+                subplot['Subplot'].terminate()
             except Exception:
                 pass
 
@@ -571,9 +563,7 @@ class Animator():
         self._plots = []
         self._started = False
         self._last_refresh = cv2.getTickCount()
-
         return 0
-
 
     def _assert_not_started(self):
         """
@@ -595,7 +585,6 @@ class Animator():
             err = ("Cannot add more subplots after start function is called."
                    " Terminating animator")
             raise RuntimeError(err)
-
 
     def _assert_n_artists_valid(self, n_artists):
         """
@@ -623,7 +612,6 @@ class Animator():
                    "between 1 and 16, inclusive.")
             raise ValueError(err)
 
-
     def _assert_can_add_subplot(self):
         """
         Asserts can add another subplot. There can only be up to 16 subplots
@@ -643,7 +631,6 @@ class Animator():
         if self._n_plots >= 17:
             err = "Cannot include more than 16 plots."
             raise RuntimeError(err)
-
 
     def _make_lineplot(self, subplot_ind):
         """
@@ -670,7 +657,6 @@ class Animator():
         # Add the lineplot and figure to the plot data structure
         self._plots[subplot_ind]['Subplot'] = subplot
 
-
     def _make_barchart(self, subplot_ind):
         """
         Creates and starts a barchart object.
@@ -695,7 +681,6 @@ class Animator():
 
         # Add the barchart and figure to the plot data structure
         self._plots[subplot_ind]['Subplot'] = subplot
-
 
     def _is_valid_id(self, artist_id):
         """
@@ -725,7 +710,6 @@ class Animator():
         # All conditions met, is valid artist_id
         return True
 
-
     def _is_subplot_ind(self, artist_id):
         """
         Checks that the artist id refers to a valid subplot.
@@ -754,9 +738,7 @@ class Animator():
         sp_ok = sp_ok == 'condynsate.animator.subplots'
         if not sp_ok:
             return False
-
         return True
-
 
     def _is_barchart(self, artist_id):
         """
@@ -779,7 +761,6 @@ class Animator():
             return False
         return True
 
-
     def _is_lineplot(self, artist_id):
         """
         Checks that the artist id refers to a lineplot.
@@ -800,7 +781,6 @@ class Animator():
         if not typ.lower() == 'lineplot':
             return False
         return True
-
 
     def _artist_ind_ok(self, artist_id):
         """
@@ -825,9 +805,7 @@ class Animator():
         ub_ok = artist_ind < self._plots[subplot_ind]['n_artists']
         if not lb_ok or not ub_ok:
             return False
-
         return True
-
 
     def _is_int(self, val):
         """
@@ -844,12 +822,11 @@ class Animator():
             True if int, else false.
 
         """
-        INTS = [np.int64, np.int32, np.int16, np.int8,
-                np.uint64, np.uint64, np.uint64, np.uint64, int]
-        if type(val) in INTS:
+        ints = (np.int64, np.int32, np.int16, np.int8,
+                np.uint64, np.uint64, np.uint64, np.uint64, int, )
+        if isinstance(val, ints):
             return True
         return False
-
 
     def _is_float(self, val):
         """
@@ -867,11 +844,10 @@ class Animator():
             True if float, else false.
 
         """
-        FLOATS = [np.float64, np.float32, np.float16, float]
-        if type(val) in FLOATS and not np.isnan(val) and not np.isinf(val):
+        floats = (np.float64, np.float32, np.float16, float, )
+        if isinstance(val, floats) and not np.isnan(val) and not np.isinf(val):
             return True
         return False
-
 
     def _is_number(self, val):
         """
@@ -894,7 +870,6 @@ class Animator():
             return True
         return False
 
-
     def _is_number_list(self, vals):
         """
         Checks if candidate values are list or numpy.ndarray of numbers.
@@ -913,13 +888,12 @@ class Animator():
             True if list or array of numbers, else false.
 
         """
-        if isinstance(vals,list) or isinstance(vals,np.ndarray):
+        if isinstance(vals, (list, np.ndarray)):
             for val in vals:
                 if not self._is_number(val):
                     return False
             return True
         return False
-
 
     def _sanitize_barchart(self, bar_id):
         """
@@ -947,7 +921,6 @@ class Animator():
         cond_3 = self._artist_ind_ok(bar_id)
         return cond_1 and cond_2 and cond_3
 
-
     def _sanitize_lineplot(self, line_id):
         """
         Checks if an artist id
@@ -973,7 +946,6 @@ class Animator():
         cond_2 = self._is_lineplot(line_id)
         cond_3 = self._artist_ind_ok(line_id)
         return cond_1 and cond_2 and cond_3
-
 
     def _get_valid_name_(self, file_name, file_container):
         """
@@ -1010,20 +982,19 @@ class Animator():
             msg = msg.format(file_name)
             raise InvalidNameException(msg, (file_name, -1))
 
-        valid_file = '{}.{}'.format(file_name, file_container)
+        valid_file = f"{file_name}.{file_container}"
         if not valid_file in os.listdir(os.path.abspath(os.getcwd())):
             return valid_file
 
         max_append = 99
         for i in range(max_append):
-            valid_file = '{}_{:02}.{}'.format(file_name, i+1, file_container)
+            valid_file = f"{file_name}_{i+1:02}.{file_container}"
             if not valid_file in os.listdir(os.path.abspath(os.getcwd())):
                 return valid_file
 
         msg = "Too many files already exist with the same name."
         msg = msg.format(file_name)
         raise InvalidNameException(msg, (file_name, max_append))
-
 
     def _get_valid_name(self, file_name, file_container):
         """
@@ -1058,7 +1029,6 @@ class Animator():
             file_name = input(s)
             print(ESC.fail(bars), flush=True)
             return self._get_valid_name(file_name, file_container)
-
 
     def _get_fps_and_frames(self):
         """
@@ -1102,9 +1072,7 @@ class Animator():
                 prev_cap_frame = vid_frames[i]
             else:
                 vid_frames[i] = prev_cap_frame
-
         return vid_fps, vid_frames
-
 
     def _make_video(self, vid_fps, vid_frames):
         """
@@ -1165,7 +1133,6 @@ class Animator():
             out.write(img)
         out.release()
         return 0
-
 
     def _save_recording(self):
         """
