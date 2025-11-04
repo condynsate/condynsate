@@ -1,3 +1,3 @@
-from condynsate.animator.animator_v2 import Animator
+from condynsate.animator.animator import Animator
 
 __all__ = ["Animator",]

@@ -14,7 +14,7 @@ import meshcat
 import meshcat.geometry as geo
 import umsgpack
 import cv2
-from condynsate.visualizer.utilities import (is_num, is_nvector,
+from condynsate.visualizer.utilities import (is_instance, is_num, is_nvector,
                                              path_valid, name_valid)
 from condynsate.visualizer.utilities import homogeneous_transform
 from condynsate.visualizer.utilities import get_scene_path
@@ -129,18 +129,15 @@ class Visualizer():
         """
         # Continuously redraw
         while True:
-            # Check if it is a frame time
             dt = (cv2.getTickCount()-self._last_refresh)/cv2.getTickFrequency()
             if dt < self.frame_delta:
                 time.sleep(0.005)
                 continue
 
-            # Create a dict to hold all the queued actions in actions buffer
-            actions = {}
-
             # Aquire mutex lock to read flags and shared buffer
+            actions = []
+            priorities = []
             with self._LOCK:
-
                 # If visualizer is closed unexpectedly, end main loop then
                 # return failure
                 if self._socket.closed:
@@ -150,26 +147,86 @@ class Visualizer():
                     self._done = True
                     return -1
 
-                # If done, do the last actions then return success
+                # Extract all of the actions from the shared actions buffer
+                for fnc in list(self._actions_buf.keys()):
+                    for args in self._actions_buf.pop(fnc).values():
+                        actions.append((fnc, args))
+                        priorities.append(self._fnc_priority(fnc))
+
+                # Sort the actions based on their priorities
+                actions = [x for _, x in sorted(zip(priorities, actions),
+                                                key=lambda pair: pair[0])]
+
+                # If done, do all the last actions under lock and then end
+                # the thread loop
                 if self._done:
-                    for fnc, args in self._actions_buf.items():
+                    for (fnc, args) in actions:
                         fnc(*args)
                     return 0
 
-                # Extract all of the actions from the shared actions buffer
-                for fnc in list(self._actions_buf.keys()):
-                    actions[fnc] = self._actions_buf.pop(fnc)
-
-            # If visualizer is open and not done, release the mutex lock and do
-            # the actions read from the buffer this loop
-            for fnc, args in actions.items():
+            # Do all the actions
+            for (fnc, args) in actions:
                 fnc(*args)
-
-            # Set the current time as the last refresh time
             self._last_refresh = cv2.getTickCount()
-
-            # Remove CPU strain by sleeping for a little bit
             time.sleep(0.01)
+
+    def _fnc_priority(self, fnc):
+        """
+        Assigns a priority (with low values being the highest priority) to
+        function execution order during main loop.
+
+        Parameters
+        ----------
+        fnc : function
+            The function whose priority is being measured.
+
+        Returns
+        -------
+        int
+            The execution order priority of fnc.
+
+        """
+        if fnc in (self._add_object, ):
+            return 1
+        if fnc in (self._set_transform, self._set_material):
+            return 2
+        if fnc in (self._set_cam_position, self._set_cam_target,
+                   self._set_cam_zoom, self._set_cam_frustum):
+            return 3
+        if fnc in (self._set_grid, self._set_axes,
+                   self._set_background, self._set_light):
+            return 4
+        return 5
+
+    def _queue_action(self, fnc, scene_path, args):
+        """
+        Queues a function argument pair to the scene object at position
+        scene_path for execution on the next frame time.
+
+        Parameters
+        ----------
+        fnc : function
+            A function pointer.
+        scene_path : String
+            The scene path to the object on which the function is operated.
+        args : tuple
+            The star args applied to function fnc.
+
+        Returns
+        -------
+        None.
+
+        """
+        # Aquire mutex lock to interact with actions buffer
+        with self._LOCK:
+            # If the function is not in the actions buffer, add it.
+            if not fnc in self._actions_buf:
+                self._actions_buf[fnc] = {scene_path : args}
+                return
+
+            # If the function is in the buffer, overwrite the args applied
+            # to the object at scene_path
+            self._actions_buf[fnc][scene_path] = args
 
     def _set_defaults(self):
         """
@@ -232,17 +289,11 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
-        # Input sanitize
-        if not isinstance(visible, bool):
-            msg='When set_grid, visible must be boolean.'
-            warn(msg)
+        if not is_instance(visible, bool, arg_name='visible'):
             return -1
-
-        # Queue the action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_grid
-            args = (visible,)
-            self._actions_buf[fnc] = args
+        scene_path = '/Grid'
+        args = (visible,)
+        self._queue_action(self._set_grid, scene_path, args)
         return 0
 
     def _set_axes(self, visible):
@@ -277,17 +328,11 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
-        # Input sanitize
-        if not isinstance(visible, bool):
-            msg='When set_axes, visible must be boolean.'
-            warn(msg)
+        if not is_instance(visible, bool, arg_name='visible'):
             return -1
-
-        # Queue the action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_axes
-            args = (visible,)
-            self._actions_buf[fnc] = args
+        scene_path = '/Axes'
+        args = (visible,)
+        self._queue_action(self._set_axes, scene_path, args)
         return 0
 
     def _set_background(self, top, bottom):
@@ -335,25 +380,16 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
-        # Ensure top is of the correct format
-        if not top is None:
-            if not is_nvector(top, 3):
-                m='When set_background, top must be 3 tuple of floats.'
-                warn(m)
-                return -1
-
-        # Ensure bottom is of the correct format
-        if not bottom is None:
-            if not is_nvector(bottom, 3):
-                m='When set_background, bottom must be 3 tuple of floats.'
-                warn(m)
-                return -1
+        # Ensure top and bottom are of the correct format
+        if not top is None and not is_nvector(top, 3, 'top'):
+            return -1
+        if not bottom is None and not is_nvector(bottom, 3, 'bottom'):
+            return -1
 
         # Queue the action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_background
-            args = (top, bottom,)
-            self._actions_buf[fnc] = args
+        scene_path = '/Background'
+        args = (top, bottom,)
+        self._queue_action(self._set_background, scene_path, args)
         return 0
 
     def _set_light(self, light, on, intensity, distance, shadow):
@@ -383,48 +419,31 @@ class Visualizer():
 
         """
         # Get the scene tree paths
-        p1 = '/Lights/'+light
-        p2 = '/Lights/'+light+'/<object>'
+        scene_path_1 = '/Lights/'+light
+        scene_path_2 = '/Lights/'+light+'/<object>'
 
         # Set the properties
         if not on is None:
-            self._scene[p1].set_property('visible', on)
-            self._scene[p2].set_property('visible', on)
+            self._scene[scene_path_1].set_property('visible', on)
+            self._scene[scene_path_2].set_property('visible', on)
         if not intensity is None:
             intensity = np.clip(intensity, 0.0, 20.0)
-            self._scene[p2].set_property('intensity', intensity)
+            self._scene[scene_path_2].set_property('intensity', intensity)
         if not distance is None:
             distance = np.clip(distance, 0.0, 100.0)
-            self._scene[p2].set_property('distance', distance)
+            self._scene[scene_path_2].set_property('distance', distance)
 
         # Because of a typo in the meshcat repo, setting castShadow is a little
         # harder and requires us to directly send the ZQM message
         if not shadow is None:
             cmd_data = {'type': 'set_property',
-                        'path': p2,
+                        'path': scene_path_2,
                         'property': 'castShadow',
                         'value': shadow}
             self._socket.send_multipart([cmd_data["type"].encode("utf-8"),
                                          cmd_data["path"].encode("utf-8"),
                                          umsgpack.packb(cmd_data)])
             self._socket.recv()
-
-    def _set_lights(self, *args):
-        """
-        Sets all light parameters given list of args.
-
-        Parameters
-        ----------
-        *args
-            List of self._set_light args.
-
-        Returns
-        -------
-        None.
-
-        """
-        for arg in args:
-            self._set_light(*arg)
 
     def _light_args_ok(self, light, on, intensity, distance, shadow):
         """
@@ -454,41 +473,17 @@ class Visualizer():
             All inputs are valid.
 
         """
-        # Check light argument
-        if not isinstance(light, str):
-            warn("When _set_light, argument light must be string.")
-            return False
-
-        # Check on argument
+        is_okay = True
+        is_okay = is_okay and is_instance(light, str, arg_name='light')
         if not on is None:
-            if not isinstance(on, bool):
-                warn("When setting light, argument on must be a boolean.")
-                return False
-
-        # Check intensity argument
+            is_okay = is_okay and is_instance(on, bool, arg_name='on')
         if not intensity is None:
-            try:
-                intensity = float(intensity)
-            except (TypeError, ValueError):
-                warn("When setting light, argument intensity must be a float.")
-                return False
-
-        # Check distance argument
+            is_okay = is_okay and is_num(intensity, arg_name='intensity')
         if not distance is None:
-            try:
-                distance = float(distance)
-            except (TypeError, ValueError):
-                warn("When setting light, argument distance must be a float.")
-                return False
-
-        # Check shadow argument
+            is_okay = is_okay and is_num(distance, arg_name='distance')
         if not shadow is None:
-            if not isinstance(shadow, bool):
-                warn("When setting light, argument shadow must be a boolean.")
-                return False
-
-        # IF all okay, return True
-        return True
+            is_okay = is_okay and is_instance(shadow, bool, arg_name='shadow')
+        return is_okay
 
     def set_spotlight(self,on=None,intensity=None,distance=None,shadow=None):
         """
@@ -521,20 +516,9 @@ class Visualizer():
             return -1
 
         # Queue the action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_lights
-            args = (name, on, intensity, distance, shadow, )
-            if fnc in self._actions_buf:
-                new_name = True
-                for i, a in enumerate(self._actions_buf[fnc]):
-                    if a[0] == name:
-                        self._actions_buf[fnc][i] = args
-                        new_name = False
-                        break
-                if new_name:
-                    self._actions_buf[fnc].append(args)
-            else:
-                self._actions_buf[fnc] = [args, ]
+        scene_path = '/Lights/SpotLight'
+        args = (name, on, intensity, distance, shadow, )
+        self._queue_action(self._set_light, scene_path, args)
         return 0
 
     def set_posx_light(self,on=None,intensity=None,distance=None,shadow=None):
@@ -569,20 +553,9 @@ class Visualizer():
             return -1
 
         # Queue the action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_lights
-            args = (name, on, intensity, distance, shadow, )
-            if fnc in self._actions_buf:
-                new_name = True
-                for i, a in enumerate(self._actions_buf[fnc]):
-                    if a[0] == name:
-                        self._actions_buf[fnc][i] = args
-                        new_name = False
-                        break
-                if new_name:
-                    self._actions_buf[fnc].append(args)
-            else:
-                self._actions_buf[fnc] = [args, ]
+        scene_path = '/Lights/PointLightPositiveX'
+        args = (name, on, intensity, distance, shadow, )
+        self._queue_action(self._set_light, scene_path, args)
         return 0
 
     def set_negx_light(self,on=None,intensity=None,distance=None,shadow=None):
@@ -617,20 +590,9 @@ class Visualizer():
             return -1
 
         # Queue the action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_lights
-            args = (name, on, intensity, distance, shadow, )
-            if fnc in self._actions_buf:
-                new_name = True
-                for i, a in enumerate(self._actions_buf[fnc]):
-                    if a[0] == name:
-                        self._actions_buf[fnc][i] = args
-                        new_name = False
-                        break
-                if new_name:
-                    self._actions_buf[fnc].append(args)
-            else:
-                self._actions_buf[fnc] = [args, ]
+        scene_path = '/Lights/PointLightNegativeX'
+        args = (name, on, intensity, distance, shadow, )
+        self._queue_action(self._set_light, scene_path, args)
         return 0
 
     def set_ambient_light(self, on=None, intensity=None, shadow=None):
@@ -657,25 +619,13 @@ class Visualizer():
         """
         # Make sure inputs are valid
         name = 'AmbientLight'
-        distance = None
-        if not self._light_args_ok(name, on, intensity, distance, shadow):
+        if not self._light_args_ok(name, on, intensity, None, shadow):
             return -1
 
         # Queue the action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_lights
-            args = (name, on, intensity, distance, shadow, )
-            if fnc in self._actions_buf:
-                new_name = True
-                for i, a in enumerate(self._actions_buf[fnc]):
-                    if a[0] == name:
-                        self._actions_buf[fnc][i] = args
-                        new_name = False
-                        break
-                if new_name:
-                    self._actions_buf[fnc].append(args)
-            else:
-                self._actions_buf[fnc] = [args, ]
+        scene_path = '/Lights/AmbientLight'
+        args = (name, on, intensity, None, shadow, )
+        self._queue_action(self._set_light, scene_path, args)
         return 0
 
     def set_fill_light(self, on=None, intensity=None, shadow=None):
@@ -702,25 +652,13 @@ class Visualizer():
         """
         # Make sure inputs are valid
         name = 'FillLight'
-        distance = None
-        if not self._light_args_ok(name, on, intensity, distance, shadow):
+        if not self._light_args_ok(name, on, intensity, None, shadow):
             return -1
 
         # Queue the action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_lights
-            args = (name, on, intensity, distance, shadow, )
-            if fnc in self._actions_buf:
-                new_name = True
-                for i, a in enumerate(self._actions_buf[fnc]):
-                    if a[0] == name:
-                        self._actions_buf[fnc][i] = args
-                        new_name = False
-                        break
-                if new_name:
-                    self._actions_buf[fnc].append(args)
-            else:
-                self._actions_buf[fnc] = [args, ]
+        scene_path = '/Lights/FillLight'
+        args = (name, on, intensity, None, shadow, )
+        self._queue_action(self._set_light, scene_path, args)
         return 0
 
     def _set_cam_position(self, p):
@@ -737,9 +675,9 @@ class Visualizer():
         None.
 
         """
-        path = "/Cameras/default/rotated/<object>"
+        scene_path = "/Cameras/default/rotated/<object>"
         p = (float(p[0]), float(p[2]), -float(p[1])) #Camera is rotated
-        self._scene[path].set_property('position', p)
+        self._scene[scene_path].set_property('position', p)
 
     def set_cam_position(self, p):
         """
@@ -759,16 +697,13 @@ class Visualizer():
 
         """
         # Ensure argument is correct type
-        if not is_nvector(p, 3):
-            msg = "When set_cam_position, p must be 3 tuple of floats."
-            warn(msg)
+        if not is_nvector(p, 3, arg_name='p'):
             return -1
 
         # Queue the action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_cam_position
-            args = (p, )
-            self._actions_buf[fnc] = args
+        scene_path = '/Cameras/default/rotated'
+        args = (p, )
+        self._queue_action(self._set_cam_position, scene_path, args)
         return 0
 
     def _set_cam_target(self, t):
@@ -806,16 +741,13 @@ class Visualizer():
 
         """
         # Ensure argument is correct type
-        if not is_nvector(t, 3):
-            msg = "When set_cam_target, t must be 3 tuple of floats."
-            warn(msg)
+        if not is_nvector(t, 3, arg_name='t'):
             return -1
 
         # Queue the action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_cam_target
-            args = (t, )
-            self._actions_buf[fnc] = args
+        scene_path = '/Cameras/default/rotated'
+        args = (t, )
+        self._queue_action(self._set_cam_target, scene_path, args)
         return 0
 
     def _set_cam_zoom(self, zoom):
@@ -834,8 +766,8 @@ class Visualizer():
         """
         # Ensure zoom in (0, 100]
         zoom = np.clip(zoom, 0.0001, 100.0)
-        path = "/Cameras/default/rotated/<object>"
-        self._scene[path].set_property('zoom', zoom)
+        scene_path = "/Cameras/default/rotated/<object>"
+        self._scene[scene_path].set_property('zoom', zoom)
 
     def set_cam_zoom(self, zoom):
         """
@@ -852,16 +784,14 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
-        # Ensure proper format
-        if not is_num(zoom):
-            warn("When set_cam_zoom, zoom must be float")
+        # Ensure correct type
+        if not is_num(zoom, arg_name='zoom'):
             return -1
 
         # Queue the action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_cam_zoom
-            args = (zoom, )
-            self._actions_buf[fnc] = args
+        scene_path = '/Cameras/default/rotated'
+        args = (zoom, )
+        self._queue_action(self._set_cam_zoom, scene_path, args)
         return 0
 
     def _set_cam_frustum(self, aspect, fov, near, far):
@@ -884,15 +814,15 @@ class Visualizer():
         None.
 
         """
-        path = "/Cameras/default/rotated/<object>"
+        scene_path = "/Cameras/default/rotated/<object>"
         if not aspect is None:
-            self._scene[path].set_property('aspect', aspect)
+            self._scene[scene_path].set_property('aspect', aspect)
         if not fov is None:
-            self._scene[path].set_property('fov', fov)
+            self._scene[scene_path].set_property('fov', fov)
         if not near is None:
-            self._scene[path].set_property('near', near)
+            self._scene[scene_path].set_property('near', near)
         if not far is None:
-            self._scene[path].set_property('far', far)
+            self._scene[scene_path].set_property('far', far)
 
     def set_cam_frustum(self, aspect=None, fov=None, near=None, far=None):
         """
@@ -919,35 +849,23 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
-        # Check the aspect ratio
+        # Check the inputs are in the correct type
+        is_okay = True
         if not aspect is None:
-            if not is_num(aspect):
-                warn("When set_cam_frustum, aspect must be float")
-                return -1
-
-        # Check the vertical field of view
+            is_okay = is_okay and is_num(aspect, arg_name='aspect')
         if not fov is None:
-            if not is_num(fov):
-                warn("When set_cam_frustum, fov must be float")
-                return -1
-
-        # Check the distance to the near plane
+            is_okay = is_okay and is_num(fov, arg_name='fov')
         if not near is None:
-            if not is_num(near):
-                warn("When set_cam_frustum, near must be float")
-                return -1
-
-        # Check the distance to the far plane
+            is_okay = is_okay and is_num(near, arg_name='near')
         if not far is None:
-            if not is_num(far):
-                warn("When set_cam_frustum, far must be float")
-                return -1
+            is_okay = is_okay and is_num(far, arg_name='far')
+        if not is_okay:
+            return -1
 
         # Queue the action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_cam_frustum
-            args = (aspect, fov, near, far, )
-            self._actions_buf[fnc] = args
+        scene_path = '/Cameras/default/rotated'
+        args = (aspect, fov, near, far, )
+        self._queue_action(self._set_cam_frustum, scene_path, args)
         return 0
 
     def _get_geometry(self, path):
@@ -975,7 +893,7 @@ class Visualizer():
             geometry = geo.DaeMeshGeometry.from_file(path)
         return geometry
 
-    def _get_material(self, tex_path, color, reflectivity, shininess, opacity):
+    def _get_material(self, tex_path, color, shininess, opacity):
         """
         Makes a Phong material.
 
@@ -990,9 +908,6 @@ class Visualizer():
         color : 3vec of floats
             The color to apply to the object being added. In the form of 
             (R, G, B) where all elements range from 0.0 to 1.0.
-        reflectivity : float
-            The reflectivity of the object being added. Ranges from 0.0 to
-            1.0.
         shininess : float
             The shininess of the object being added. Ranges from 0.0 to 1.0.
         opacity : float
@@ -1012,13 +927,12 @@ class Visualizer():
         color = tuple(int(255*c) for c in color)
         color = int("0x{:02x}{:02x}{:02x}".format(*color), 16)
         mat_kwargs = {'color' : color,
-                      'reflectivity' : reflectivity,
                       'map' : texture,
                       'opacity' : opacity,
                       'shininess' : shininess}
         return geo.MeshPhongMaterial(**mat_kwargs)
 
-    def _add_object(self, name, geometry, material_kwargs):
+    def _add_object(self, name, path, material_kwargs):
         """
         Adds an object to the scene.
 
@@ -1030,11 +944,12 @@ class Visualizer():
             ('foo', 'bar') would insert a new object to the scene at location
             /Scene/foo/bar while 'baz' would insert the object at 
             /Scene/baz
-        geometry : meshcat.geometry.ObjMeshGeometry
-            The object's mesh.
+        path : string
+            Path pointing to the file that describes the object's 
+            geometry. The file may be of type .obj, .stl, or .dae.
         material_kwargs : dict
             The material kwargs of the object being added. Includes arguments
-            tex_path, color, reflectivity, shininess, and opacity.
+            tex_path, color, shininess, and opacity.
         
         Returns
         -------
@@ -1043,26 +958,10 @@ class Visualizer():
         """
         # Add the .obj to the scene
         scene_path = get_scene_path(name)
+        geometry = self._get_geometry(path)
+        self._objects[scene_path] = geometry
         material = self._get_material(**material_kwargs)
         self._scene[scene_path].set_object(geometry, material)
-
-    def _add_objects(self, *args):
-        """
-        Adds multiple objects to the scene.
-
-        Parameters
-        ----------
-        *args
-            List of set_object args. Each element of list has form
-            (name, geometry, material_kwargs).
-
-        Returns
-        -------
-        None.
-
-        """
-        for arg in args:
-            self._add_object(*arg)
 
     def add_object(self, name, path, **kwargs):
         """
@@ -1091,9 +990,6 @@ class Visualizer():
                 The color to apply to the object being added. In the form of 
                 (R, G, B) where all elements range from 0.0 to 1.0. The default
                 is (1.0, 1.0, 1.0).
-            reflectivity : float, optional
-                The reflectivity of the object being added. Ranges from 0.0 to
-                1.0. The default value is 0.2
             shininess : float, optional
                 The shininess of the object being added. Ranges from 0.0 to 1.0
                 The default value of 0.01.
@@ -1125,76 +1021,25 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
-        # Sanitize the name
-        if not name_valid(name):
-            msg = "When add_obj, name is not valid."
-            warn(msg)
+        # Check the args
+        if not name_valid(name, arg_name='name'):
             return -1
-
-        # Check path integrity
-        if not path_valid(path):
-            msg = "When add_obj, path is not valid."
-            warn(msg)
-            return -1
-        if not path.endswith(('.obj', '.dae', '.stl')):
-            msg = "When add_obj, path must point to .obj, .stl, or .dae file."
-            warn(msg)
+        if not path_valid(path, ftype=('.obj', '.dae', '.stl'), arg_name=path):
             return -1
 
         # Sanitize the kwargs
-        keys = ('tex_path', 'color', 'reflectivity', 'shininess', 'opacity')
-        material_kwargs = {k : v for k,v in kwargs.items() if k in keys}
-        material_kwargs = self._read_material_kwargs(material_kwargs)
-        keys = ('position', 'wxyz_quat', 'yaw', 'pitch', 'roll', 'scale')
-        transform_kwargs = {k: v for k,v in kwargs.items() if k in keys}
-        transform_kwargs = self._read_transform_kwargs(transform_kwargs)
+        material_kwargs = self._read_material_kwargs(kwargs)
+        transform_kwargs = self._read_transform_kwargs(kwargs)
 
-        # Keep track of the object's geometry
-        geometry = self._get_geometry(path)
-        self._objects[get_scene_path(name)] = geometry
+        # Queue loading the object into the scene
+        scene_path = get_scene_path(name)
+        args = (name, path, material_kwargs, )
+        self._queue_action(self._add_object, scene_path, args)
 
-        # Queue the actions in thread safe manner
-        with self._LOCK:
-            # Queue the add action
-            fnc = self._add_objects
-            args = (name, geometry, material_kwargs, )
-            if not fnc in self._actions_buf:
-                self._actions_buf[fnc] = [args, ]
-            else:
-                self._actions_buf[fnc].append(args)
-
-            # Queue the transform action
-            fnc = self._set_transforms
-            args = (name, transform_kwargs, )
-            if fnc in self._actions_buf:
-                new_name = True
-                for i, a in enumerate(self._actions_buf[fnc]):
-                    if a[0] == name:
-                        self._actions_buf[fnc][i] = args
-                        new_name = False
-                        break
-                if new_name:
-                    self._actions_buf[fnc].append(args)
-            else:
-                self._actions_buf[fnc] = [args, ]
+        # Queue transforming the object
+        args = (name, transform_kwargs, )
+        self._queue_action(self._set_transform, scene_path, args)
         return 0
-
-    def _set_transforms(self, *args):
-        """
-        Sets transform of multiple objects.
-
-        Parameters
-        ----------
-        *args
-            List of self._set_transform arguments.
-
-        Returns
-        -------
-        None.
-
-        """
-        for arg in args:
-            self._set_transform(*arg)
 
     def _set_transform(self, name, transform):
         """
@@ -1245,61 +1090,47 @@ class Visualizer():
 
         Returns
         -------
-        trans : dict
+        sanitized : dict
             The sanitized kwargs with default values set for non user defined
             keys.
 
         """
         # Set the default transform kwargs
-        trans = {'position' : (0.0, 0.0, 0.0),
-                 'wxyz_quat' : (1.0, 0.0, 0.0, 0.0),
-                 'yaw' : 0.0,
-                 'pitch' : 0.0,
-                 'roll' : 0.0,
-                 'scale' : (1.0, 1.0, 1.0)}
+        sanitized = {'position' : (0.0, 0.0, 0.0),
+                     'wxyz_quat' : (1.0, 0.0, 0.0, 0.0),
+                     'yaw' : 0.0,
+                     'pitch' : 0.0,
+                     'roll' : 0.0,
+                     'scale' : (1.0, 1.0, 1.0)}
 
         # Validate each key given by user
         for key, val in kwargs.items():
             k = key.lower()
 
-            # Ensure is valid kwarg
-            if not k in trans:
-                msg = f"{key} is not recognized kwarg."
-                warn(msg)
-                continue
-
             # Validate the position
             if k == 'position':
-                if not is_nvector(val, 3):
-                    msg = f"{key} must be 3vec of floats"
-                    warn(msg)
+                if not is_nvector(val, 3, arg_name=key):
                     continue
-                trans[key] = val
+                sanitized[key] = val
 
             # Validate the wxyz_quat
             elif k == 'wxyz_quat':
-                if not is_nvector(val, 4):
-                    msg = f"{key} must be 4vec of floats"
-                    warn(msg)
+                if not is_nvector(val, 4, arg_name=key):
                     continue
-                trans[key] = tuple(float(np.clip(c, -1.0, 1.0)) for c in val)
+                sanitized[key] = tuple(float(max(-1, min(x, 1))) for x in val)
 
             # Validate the roll, pitch, and yaw
             elif k in ('yaw', 'pitch', 'roll'):
-                if not is_num(val):
-                    msg = f"{key} must be float"
-                    warn(msg)
+                if not is_num(val, arg_name=key):
                     continue
-                trans[key] = float(np.clip(val, -180.0, 180.0))
+                sanitized[key] = float(max(-180, min(val, 180)))
 
             # Validate the scale
-            elif k in 'scale':
-                if not is_nvector(val, 3):
-                    msg = f"{key} must be 3vec of floats"
-                    warn(msg)
+            elif k == 'scale':
+                if not is_nvector(val, 3, arg_name=key):
                     continue
-                trans[key] = tuple(float(np.clip(s, 0.0, np.inf)) for s in val)
-        return trans
+                sanitized[key] = tuple(float(max(0, x)) for x in val)
+        return sanitized
 
     def set_transform(self, name, **kwargs):
         """
@@ -1340,37 +1171,15 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
-        # Sanitize the name
-        if not name_valid(name):
-            msg = "When add_obj, name is not valid."
-            warn(msg)
+        # Check the args
+        if not name_valid(name, arg_name='name'):
             return -1
 
-        # Ensure the object whose transform is being set is alread a
-        # member of the scene
-        if not get_scene_path(name) in self._objects:
-            msg = f"While set_transform, {name} is unset object."
-            warn(msg)
-            return -1
-
-        # Sanitize the kwargs
-        transform = self._read_transform_kwargs(kwargs)
-
-        # Queue the transform action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_transforms
-            args = (name, transform, )
-            if fnc in self._actions_buf:
-                new_name = True
-                for i, a in enumerate(self._actions_buf[fnc]):
-                    if a[0] == name:
-                        self._actions_buf[fnc][i] = args
-                        new_name = False
-                        break
-                if new_name:
-                    self._actions_buf[fnc].append(args)
-            else:
-                self._actions_buf[fnc] = [args, ]
+        # Queue transforming the object
+        transform_kwargs = self._read_transform_kwargs(kwargs)
+        scene_path = get_scene_path(name)
+        args = (name, transform_kwargs, )
+        self._queue_action(self._set_transform, scene_path, args)
         return 0
 
     def _read_material_kwargs(self, kwargs):
@@ -1384,68 +1193,45 @@ class Visualizer():
 
         Returns
         -------
-        san : dict
+        sanitized : dict
             The sanitized kwargs with default values set for non user defined
             keys.
 
         """
         # Set default values
-        san = {'tex_path' : None,
-               'color' : (1.0, 1.0, 1.0),
-               'reflectivity' : 0.2,
-               'shininess' : 0.01,
-               'opacity' : 1.0,}
+        sanitized = {'tex_path' : None,
+                     'color' : (1.0, 1.0, 1.0),
+                     'shininess' : 0.01,
+                     'opacity' : 1.0,}
 
         # Validate each key given by user
         for key, val in kwargs.items():
             k = key.lower()
 
-            # Ensure is valid kwarg
-            if not k in san:
-                msg = f"{key} is not recognized kwarg."
-                warn(msg)
-                continue
-
             # Validate the texture path
             if k == 'tex_path':
-                if val is None:
-                    san[key] = val
+                if val is None or not path_valid(val, ".png", val):
                     continue
-                if not path_valid(val):
-                    msg = f"{key} is invalid texture path."
-                    warn(msg)
-                    continue
-                if not val.endswith('.png'):
-                    msg = f"{key} must point to .png."
-                    warn(msg)
-                    continue
-                san[key] = val
+                sanitized[key] = val
 
             # Validate the color
             elif k == 'color':
-                if not is_nvector(val, 3):
-                    msg = f"{key} must be 3vector of floats"
-                    warn(msg)
+                if not is_nvector(val, 3, arg_name=key):
                     continue
-                san[key] = tuple(float(np.clip(c, 0.0, 1.0)) for c in val)
+                sanitized[key] = tuple(float(max(0, min(c, 1))) for c in val)
 
-            # Validate the reflectivity and opacity
-            elif k in ('reflectivity', 'opacity'):
-                if not is_num(val):
-                    msg = f"{key} must be float"
-                    warn(msg)
+            # Validate the and opacity
+            elif k == 'opacity':
+                if not is_num(val, arg_name=key):
                     continue
-                san[key] = float(np.clip(val, 0.0, 1.0))
+                sanitized[key] = float(max(0, min(val, 1)))
 
             # Validate the shininess
             elif k == 'shininess':
-                if not is_num(val):
-                    msg = f"{key} must be float"
-                    warn(msg)
+                if not is_num(val, arg_name=key):
                     continue
-                san[key] = float(np.clip(val*500.0, 0.0, 500.0))
-
-        return san
+                sanitized[key] = float(max(0, min(500*val, 500)))
+        return sanitized
 
     def _set_material(self, name, material_kwargs):
         """
@@ -1460,7 +1246,7 @@ class Visualizer():
             /Scene/foo/bar while 'baz' refers to the object at scene location
             /Scene/baz
         material_kwargs : dict
-            Defines the material. Has keys 'tex_path', 'color', 'reflectivity', 
+            Defines the material. Has keys 'tex_path', 'color', 
             'shininess', and 'opacity'.
 
         Returns
@@ -1469,26 +1255,13 @@ class Visualizer():
 
         """
         scene_path = get_scene_path(name)
-        geometry = self._objects[scene_path]
+        try:
+            geometry = self._objects[scene_path]
+        except KeyError:
+            msg = f'{name} is not object in scene, cannot set material.'
+            warn(msg)
         material = self._get_material(**material_kwargs)
         self._scene[scene_path].set_object(geometry, material)
-
-    def _set_materials(self, *args):
-        """
-        Sets the materials of multiple objects
-
-        Parameters
-        ----------
-        *args 
-            List of args to self._set_material
-
-        Returns
-        -------
-        None.
-
-        """
-        for arg in args:
-            self._set_material(*arg)
 
     def set_material(self, name, **kwargs):
         """
@@ -1514,51 +1287,28 @@ class Visualizer():
                 The color to apply to the object. In the form of 
                 (R, G, B) where all elements range from 0.0 to 1.0. The default
                 is (1.0, 1.0, 1.0).
-            reflectivity : float, optional
-                The reflectivity of the object. Ranges from 0.0 to
-                1.0. The default value is 0.2
             shininess : float, optional
                 The shininess of the object. Ranges from 0.0 to 1.0.
                 The default value is 0.01
             opacity : float, optional
                 The opacity of the object. Ranges from 0.0 to 1.0.
                 The default value is 1.0.
+                
         Returns
         -------
-        None.
-
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+            
         """
-        # Sanitize the name
-        if not name_valid(name):
-            msg = "When add_obj, name is not valid."
-            warn(msg)
+        # Check the args
+        if not name_valid(name, arg_name='name'):
             return -1
 
-        # Ensure the object whose material is being set is alread a
-        # member of the scene
-        if not get_scene_path(name) in self._objects:
-            msg = f"While set_material, {name} is unset object."
-            warn(msg)
-            return -1
-
-        # Sanitize the kwargs
+        # Queue transforming the object
         material_kwargs = self._read_material_kwargs(kwargs)
-
-        # Queue the transform action in thread safe manner
-        with self._LOCK:
-            fnc = self._set_materials
-            args = (name, material_kwargs, )
-            if fnc in self._actions_buf:
-                new_name = True
-                for i, a in enumerate(self._actions_buf[fnc]):
-                    if a[0] == name:
-                        self._actions_buf[fnc][i] = args
-                        new_name = False
-                        break
-                if new_name:
-                    self._actions_buf[fnc].append(args)
-            else:
-                self._actions_buf[fnc] = [args, ]
+        scene_path = get_scene_path(name)
+        args = (name, material_kwargs, )
+        self._queue_action(self._set_material, scene_path, args)
         return 0
 
     def terminate(self):

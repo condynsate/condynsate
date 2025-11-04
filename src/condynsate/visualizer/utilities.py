@@ -7,115 +7,217 @@ This module provides utilities functions used by the Visualizer class.
 ###############################################################################
 import os
 import numpy as np
+from warnings import warn
 
 ###############################################################################
 #ARGUMENT CHECKING FUNCTIONS
 ###############################################################################
-def is_num(arg):
+def is_instance(arg, typ, arg_name=None):
     """
-    Ensures that an argument is a number.
+    Returns True if arg is type typ. Else, False.
 
     Parameters
     ----------
-    arg : TYPE
-        The argument being tested.
+    arg
+        The variable being tested.
+    typ
+        The type against which arg is compared.
+    arg_name : String, optional
+        The name of the argument. When not None, a warning will be output if
+        function returns false. The default is None
 
     Returns
     -------
-    is_num : bool
-        A Boolean flag that indicates if arg is valid.
+    bool
+        If arg is type typ.
 
     """
-    # If float castable, not inf, and not nan, is a number
-    try:
-        f = float(arg)
-        return (not np.isinf(f)) and (not np.isnan(f))
-
-    # If something went wrong, is not a number
-    except (TypeError, ValueError):
+    # Check arg is not None.
+    if arg is None:
+        if not arg_name is None:
+            msg = f"{arg_name} cannot be None."
+            warn(msg)
         return False
-
-def is_nvector(arg, n):
-    """
-    Ensures that an argument is a nvector of numbers.
-
-    Parameters
-    ----------
-    arg : TYPE
-        The argument being tested.
-    n : int
-        The desired length of vector.
-
-    Returns
-    -------
-    is_nvec : bool
-        A Boolean flag that indicates if arg is valid.
-
-    """
-    try:
-        iter(arg) # Ensure iterable
-        if len(arg) != n: # Ensure of length 3
-            raise TypeError('Arg of wrong length')
-
-        # Ensure each arg is number
-        return all(is_num(a) for a in arg)
-
-    # If something went wrong, arg is not a 3vector
-    except TypeError:
+        
+    # Check arg is correct type
+    if not isinstance(arg, typ):
+        if not arg_name is None:
+            msg = f"{arg_name} must be type {typ}."
+            warn(msg)
         return False
-
-def name_valid(name):
-    """
-    Ensures that a name tuple is valid. Does not check if the object is 
-    actually a member of the scene.
-
-    Parameters
-    ----------
-    name : string or tuple of strings
-        A list of strings defining the name of a scene object as well
-        as its position in the scene heirarchy. For example, 
-        ('foo', 'bar') refers to the object at the scene location
-        /Scene/foo/bar while 'baz' refers to the object at scene location
-        /Scene/baz
-
-    Returns
-    -------
-    name_valid : bool
-        A Boolean flag that indicates if the name tuple is a valid name tuple.
-
-    """
-    if isinstance(name, (tuple, list, np.ndarray)):
-        if not all(isinstance(n, str) for n in name):
-            return False
-    elif not isinstance(name, str):
-        return False
+    
+    # All tests passed
     return True
 
-def path_valid(path):
+def is_num(arg, arg_name=None):
     """
-    Checks if a given file path is valid.
+    Returns True if arg is float castable and not inf and not nan. Else, False.
 
     Parameters
     ----------
-    path : string
-        The file path being validated.
+    arg
+        The variable being tested.
+    arg_name : String, optional
+        The name of the argument. When not None, a warning will be output if
+        function returns false. The default is None
 
     Returns
     -------
-    is_valid : bool
-        True if valid, else false.
+    bool
+        If arg is float castable and not inf and not nan.
 
     """
-    if not  isinstance(path, str):
+    # Check if float castable
+    try:
+        float(arg)
+    except (TypeError, ValueError):
+        if not arg_name is None:
+            msg = f"{arg_name} must be castable to <class 'float'>."
+            warn(msg)
         return False
-    split = list(os.path.split(path))
+    
+    # Check if not inf and not nan
+    is_inf_or_nan = np.isinf(float(arg)) or np.isnan(float(arg))
+    if is_inf_or_nan and not arg_name is None:
+        msg = f"{arg_name} cannot be inf or nan."
+        warn(msg)
+    return not is_inf_or_nan
+
+def is_nvector(arg, n, arg_name=None):
+    """
+    Returns True if arg is n-vector of non-inf, non-nan, float castables.
+    Else, False.
+
+    Parameters
+    ----------
+    arg
+        The variable being tested.
+    n : int
+        The required length of arg.
+    arg_name : String, optional
+        The name of the argument. When not None, a warning will be output if
+        function returns false. The default is None
+
+    Returns
+    -------
+    bool
+        If arg is n-vector of non-inf, non-nan, float castables.
+
+    """
+    # Ensure iterable
+    try:
+        iter(arg) 
+    except TypeError:
+        if not arg_name is None:
+            msg = f"{arg_name} must be iterable."
+            warn(msg)
+        return False
+    
+    # Ensure of length 3
+    if len(arg) != n:
+        if not arg_name is None:
+            msg = f"{arg_name} must be length {n}."
+            warn(msg)
+        return False
+
+    # Ensure each arg is number
+    all_num = all(is_num(a) for a in arg)
+    if not all_num and not arg_name is None:
+        msg = (f"Elements of {arg_name} must be non-inf, "
+               "non-nan, float castables.")
+        warn(msg)
+    return all_num
+
+def name_valid(arg, arg_name=None):
+    """
+    True if arg string or tuple of strings, else False.
+
+    Parameters
+    ----------
+    arg
+        The variable being tested.
+    arg_name : String, optional
+        The name of the argument. When not None, a warning will be output if
+        function returns false. The default is None
+
+    Returns
+    -------
+    bool
+        If arg string or tuple of strings.
+
+    """
+    # Tuple of strings case
+    if isinstance(arg, (tuple, list, np.ndarray)):
+        if not all(isinstance(name, str) for name in arg):
+            if not arg_name is None:
+                msg = f"When {arg_name} is tuple, must be tuple of strings."
+                warn(msg)
+            return False
+        
+    # String only case
+    elif not isinstance(arg, str):
+        if not arg_name is None:
+            msg = f"{arg_name} must be tuple of strings or string."
+            warn(msg)
+        return False
+    
+    # All tests passed
+    return True
+
+def path_valid(arg, ftype=None, arg_name=None):
+    """
+    True if arg is path string that points to a valid file. Else False.
+
+    Parameters
+    ----------
+    arg
+        The variable being tested.
+    ftype : None, String, or tuple of Strings, optional
+        The list of valid file extensions the file pointed to can have. When 
+        None, the file may have any extension. The default is None
+    arg_name : String, optional
+        The name of the argument. When not None, a warning will be output if
+        function returns false. The default is None
+
+    Returns
+    -------
+    bool
+        If arg is a path string that points to a valid file.
+
+    """
+    # Check if is string
+    if not isinstance(arg, str):
+        if not arg_name is None:
+            msg = f"{arg_name} must be a string."
+            warn(msg)
+        return False
+
+    # Check if file is in dirpath
+    split = list(os.path.split(arg))
     try:
         if split[0] == '':
             split[0] = '.'
         if not split[1] in os.listdir(split[0]):
+            if not arg_name is None:
+                msg = f"The file pointed to by {arg_name} does not exist."
+                warn(msg)
             return False
+
+    # Check if file exists
     except FileNotFoundError:
+        if not arg_name is None:
+            msg = f"The parent file pointed to by {arg_name} does not exist."
+            warn(msg)
         return False
+    
+    # Check file extension
+    if not ftype is None and not arg.endswith(ftype):
+        if not arg_name is None:
+            msg = f"The file pointed to by {arg_name} must be type {ftype}."
+            warn(msg)
+        return False
+            
+    # All cases true
     return True
 
 ###############################################################################
@@ -136,12 +238,17 @@ def from_quat(wxyz_quat):
         The equivalent homogeneous transform matrix.
 
     """               
+    # Ensure the quat's norm is greater than 0
+    s = np.linalg.norm(wxyz_quat)
+    if s == 0.0:
+        return np.eye(4)
+    s = s**-2
+    
     # Extract the values from Q
     qr = wxyz_quat[0]
     qi = wxyz_quat[1]
     qj = wxyz_quat[2]
     qk = wxyz_quat[3]
-    s = np.linalg.norm(wxyz_quat)**(-2)
      
     # First row of the rotation matrix
     r00 = 1. - 2.*s*(qj*qj + qk*qk)
