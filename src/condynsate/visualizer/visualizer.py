@@ -5,7 +5,7 @@ This module provides the Visualizer class.
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
-import time
+import zlib
 from warnings import warn
 import signal
 from threading import (Thread, Lock)
@@ -18,6 +18,7 @@ from condynsate.visualizer.utilities import (is_instance, is_num, is_nvector,
                                              path_valid, name_valid)
 from condynsate.visualizer.utilities import homogeneous_transform
 from condynsate.visualizer.utilities import get_scene_path
+from condynsate.misc.videomaker import save_recording
 
 ###############################################################################
 #VISUALIZER CLASS
@@ -29,15 +30,13 @@ class Visualizer():
     Parameters
     ----------
 
-    grid_vis : bool, optional
-        The boolean value to which the visibility of the XY grid is set.
-        The default is True.
-    axes_vis : bool, optional
-        The boolean value to which the visibility of the axes is set.
-        The default is True.
+    frame_rate : bool, optional
+        
+    record : bool, optional
+        
 
     """
-    def __init__(self, frame_rate=None):
+    def __init__(self, frame_rate=None, record=False):
         """
         Constructor method.
 
@@ -59,16 +58,21 @@ class Visualizer():
         # Delete all instances from the visualizer
         self._scene.delete()
 
+        # Track each object's geometry file in case the user wants to change
+        # their textures.
+        self._objects = {}
+        
+        # Recording support
+        self.record = record
+        self._frames = []
+        self._frame_ticks = []
+
         # Start the main thread
         self._actions_buf = {}
         self._done = False
         self._last_refresh = cv2.getTickCount()
         self._LOCK = Lock()
         self._start()
-
-        # Track each object's geometry file in case the user wants to change
-        # their textures.
-        self._objects = {}
 
         # Set the default scene settings
         self._set_defaults()
@@ -129,9 +133,9 @@ class Visualizer():
         """
         # Continuously redraw
         while True:
+            # Time since last frame was rendered
             dt = (cv2.getTickCount()-self._last_refresh)/cv2.getTickFrequency()
             if dt < self.frame_delta:
-                time.sleep(0.005)
                 continue
 
             # Aquire mutex lock to read flags and shared buffer
@@ -168,7 +172,14 @@ class Visualizer():
             for (fnc, args) in actions:
                 fnc(*args)
             self._last_refresh = cv2.getTickCount()
-            time.sleep(0.01)
+            
+            # If recording, save the current image
+            if self.record:
+                image = self._scene.get_image(w=800, h=600)
+                image = np.asarray(image, dtype=np.uint8)[:,:,:-1]
+                image = image.copy()
+                self._frames.append((zlib.compress(image), image.shape))
+                self._frame_ticks.append(self._last_refresh)
 
     def _fnc_priority(self, fnc):
         """
@@ -214,19 +225,26 @@ class Visualizer():
 
         Returns
         -------
-        None.
+        ret_code : int
+            0 if successful, -1 if something went wrong.
 
         """
         # Aquire mutex lock to interact with actions buffer
         with self._LOCK:
+            if self._socket.closed or self._done:
+                msg = "Cannot complete action because visualizer is stopped."
+                warn(msg)
+                return -1
+                    
             # If the function is not in the actions buffer, add it.
             if not fnc in self._actions_buf:
                 self._actions_buf[fnc] = {scene_path : args}
-                return
+                return 0
 
             # If the function is in the buffer, overwrite the args applied
             # to the object at scene_path
             self._actions_buf[fnc][scene_path] = args
+            return 0
 
     def _set_defaults(self):
         """
@@ -293,8 +311,7 @@ class Visualizer():
             return -1
         scene_path = '/Grid'
         args = (visible,)
-        self._queue_action(self._set_grid, scene_path, args)
-        return 0
+        return self._queue_action(self._set_grid, scene_path, args)
 
     def _set_axes(self, visible):
         """
@@ -332,8 +349,7 @@ class Visualizer():
             return -1
         scene_path = '/Axes'
         args = (visible,)
-        self._queue_action(self._set_axes, scene_path, args)
-        return 0
+        return self._queue_action(self._set_axes, scene_path, args)
 
     def _set_background(self, top, bottom):
         """
@@ -389,8 +405,7 @@ class Visualizer():
         # Queue the action in thread safe manner
         scene_path = '/Background'
         args = (top, bottom,)
-        self._queue_action(self._set_background, scene_path, args)
-        return 0
+        return self._queue_action(self._set_background, scene_path, args)
 
     def _set_light(self, light, on, intensity, distance, shadow):
         """
@@ -518,8 +533,7 @@ class Visualizer():
         # Queue the action in thread safe manner
         scene_path = '/Lights/SpotLight'
         args = (name, on, intensity, distance, shadow, )
-        self._queue_action(self._set_light, scene_path, args)
-        return 0
+        return self._queue_action(self._set_light, scene_path, args)
 
     def set_posx_light(self,on=None,intensity=None,distance=None,shadow=None):
         """
@@ -555,8 +569,7 @@ class Visualizer():
         # Queue the action in thread safe manner
         scene_path = '/Lights/PointLightPositiveX'
         args = (name, on, intensity, distance, shadow, )
-        self._queue_action(self._set_light, scene_path, args)
-        return 0
+        return self._queue_action(self._set_light, scene_path, args)
 
     def set_negx_light(self,on=None,intensity=None,distance=None,shadow=None):
         """
@@ -592,8 +605,7 @@ class Visualizer():
         # Queue the action in thread safe manner
         scene_path = '/Lights/PointLightNegativeX'
         args = (name, on, intensity, distance, shadow, )
-        self._queue_action(self._set_light, scene_path, args)
-        return 0
+        return self._queue_action(self._set_light, scene_path, args)
 
     def set_ambient_light(self, on=None, intensity=None, shadow=None):
         """
@@ -625,8 +637,7 @@ class Visualizer():
         # Queue the action in thread safe manner
         scene_path = '/Lights/AmbientLight'
         args = (name, on, intensity, None, shadow, )
-        self._queue_action(self._set_light, scene_path, args)
-        return 0
+        return self._queue_action(self._set_light, scene_path, args)
 
     def set_fill_light(self, on=None, intensity=None, shadow=None):
         """
@@ -658,8 +669,7 @@ class Visualizer():
         # Queue the action in thread safe manner
         scene_path = '/Lights/FillLight'
         args = (name, on, intensity, None, shadow, )
-        self._queue_action(self._set_light, scene_path, args)
-        return 0
+        return self._queue_action(self._set_light, scene_path, args)
 
     def _set_cam_position(self, p):
         """
@@ -703,8 +713,7 @@ class Visualizer():
         # Queue the action in thread safe manner
         scene_path = '/Cameras/default/rotated'
         args = (p, )
-        self._queue_action(self._set_cam_position, scene_path, args)
-        return 0
+        return self._queue_action(self._set_cam_position, scene_path, args)
 
     def _set_cam_target(self, t):
         """
@@ -747,8 +756,7 @@ class Visualizer():
         # Queue the action in thread safe manner
         scene_path = '/Cameras/default/rotated'
         args = (t, )
-        self._queue_action(self._set_cam_target, scene_path, args)
-        return 0
+        return self._queue_action(self._set_cam_target, scene_path, args)
 
     def _set_cam_zoom(self, zoom):
         """
@@ -791,8 +799,7 @@ class Visualizer():
         # Queue the action in thread safe manner
         scene_path = '/Cameras/default/rotated'
         args = (zoom, )
-        self._queue_action(self._set_cam_zoom, scene_path, args)
-        return 0
+        return self._queue_action(self._set_cam_zoom, scene_path, args)
 
     def _set_cam_frustum(self, aspect, fov, near, far):
         """
@@ -865,8 +872,7 @@ class Visualizer():
         # Queue the action in thread safe manner
         scene_path = '/Cameras/default/rotated'
         args = (aspect, fov, near, far, )
-        self._queue_action(self._set_cam_frustum, scene_path, args)
-        return 0
+        return self._queue_action(self._set_cam_frustum, scene_path, args)
 
     def _get_geometry(self, path):
         """
@@ -1034,12 +1040,13 @@ class Visualizer():
         # Queue loading the object into the scene
         scene_path = get_scene_path(name)
         args = (name, path, material_kwargs, )
-        self._queue_action(self._add_object, scene_path, args)
+        ret_code = self._queue_action(self._add_object, scene_path, args)
+        if ret_code < 0:
+            return ret_code
 
         # Queue transforming the object
         args = (name, transform_kwargs, )
-        self._queue_action(self._set_transform, scene_path, args)
-        return 0
+        return self._queue_action(self._set_transform, scene_path, args)
 
     def _set_transform(self, name, transform):
         """
@@ -1179,8 +1186,7 @@ class Visualizer():
         transform_kwargs = self._read_transform_kwargs(kwargs)
         scene_path = get_scene_path(name)
         args = (name, transform_kwargs, )
-        self._queue_action(self._set_transform, scene_path, args)
-        return 0
+        return self._queue_action(self._set_transform, scene_path, args)
 
     def _read_material_kwargs(self, kwargs):
         """
@@ -1308,8 +1314,7 @@ class Visualizer():
         material_kwargs = self._read_material_kwargs(kwargs)
         scene_path = get_scene_path(name)
         args = (name, material_kwargs, )
-        self._queue_action(self._set_material, scene_path, args)
-        return 0
+        return self._queue_action(self._set_material, scene_path, args)
 
     def terminate(self):
         """
@@ -1327,6 +1332,15 @@ class Visualizer():
 
         self._actions_buf = {}
         self._objects = {}
+
+        if self.record and len(self._frames) > 1:
+            # Convert frame ticks to frame times
+            frame_times = np.array(self._frame_ticks, dtype=float)
+            frame_times /= cv2.getTickFrequency()
+            frame_times -= frame_times[0]
+            save_recording(self._frames, frame_times, 'visualizer')
+        self._frames = []
+        self._frame_ticks = []
 
         if not self._socket.closed:
             self._scene.delete()

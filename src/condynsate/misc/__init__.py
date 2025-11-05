@@ -11,7 +11,7 @@ from condynsate.misc.utils import (get_rot_from_2_vecs,
                                    OAB_to_OBA,
                                    vc_inA_toB,
                                    pt_inA_toB)
-
+from condynsate.misc.videomaker import save_recording
 from condynsate.misc.exception_handling import print_exception
 
 __all__ = ["get_rot_from_2_vecs",
@@ -27,4 +27,5 @@ __all__ = ["get_rot_from_2_vecs",
            "OAB_to_OBA",
            "vc_inA_toB",
            "pt_inA_toB",
+           "save_recording",
            "print_exception",]

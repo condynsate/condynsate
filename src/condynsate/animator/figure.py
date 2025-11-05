@@ -69,7 +69,7 @@ class Figure():
         """
         n_rows = min(n, MAX_N_ROWS)
         n_cols = int(np.ceil(n / MAX_N_ROWS))
-        return (n_rows, n_cols)
+        return (n, n_rows, n_cols)
 
     def _make(self):
         """
@@ -84,9 +84,9 @@ class Figure():
 
         """
         # Make the figure
-        res = 240 * self.shape[0]
-        height = 2.5 * self.shape[0]
-        aspect = 1.7778*(self.shape[1]/self.shape[0]) # 16:9 AR
+        res = 240 * self.shape[1]
+        height = 2.5 * self.shape[1]
+        aspect = 1.7778*(self.shape[2]/self.shape[1]) # 16:9 AR
         size = (aspect*height, height)
         dpi = res/height
         fig = plt.figure(figsize=size, dpi=dpi, frameon=True,
@@ -94,12 +94,37 @@ class Figure():
 
         # Add axes to the figure
         axes_list = []
-        for i in range(self.shape[0]*self.shape[1]):
-            axes = fig.add_subplot(self.shape[0], self.shape[1], i+1)
+        for i in range(self.shape[0]):
+            axes = fig.add_subplot(self.shape[1], self.shape[2], i+1)
             axes_list.append(axes)
+            
+        # Positioning constants
+        EDGE_PAD = 0.075
+        PAD = 0.125
+            
+        # Position the axes vertically
+        h = (1. - 2.*EDGE_PAD - (self.shape[1]-1)*PAD) / self.shape[1]
+        for i, axes in enumerate(axes_list):
+            axes_pos = axes.get_position()
+            row_ind = i // self.shape[2]
+            tag_y1 = 1. - EDGE_PAD - row_ind*PAD - row_ind*h
+            tag_y0 = tag_y1 - h
+            axes_pos.y0 = tag_y0
+            axes_pos.y1 = tag_y1
+            axes.set_position(axes_pos)
+            
+        # Position the axes horizontally
+        w = (1. - 2.*EDGE_PAD - (self.shape[2]-1)*PAD) / self.shape[2]
+        for i, axes in enumerate(axes_list):
+            axes_pos = axes.get_position()
+            col_ind = i % self.shape[1]
+            tag_x0 = EDGE_PAD + col_ind*PAD + col_ind*h
+            tag_x1 = tag_x0 + w
+            axes_pos.x0 = tag_x0
+            axes_pos.x1 = tag_x1
+            axes.set_position(axes_pos)
 
         # General figure formatting
-        # fig.tight_layout()
         return fig, axes_list
 
     def _start(self):

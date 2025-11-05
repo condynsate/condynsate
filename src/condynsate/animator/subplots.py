@@ -607,10 +607,9 @@ class Lineplot(_Subplot):
 
         # Add a legend if needed
         if not all(l is None for l in self.options['artists']['label']):
-            ncols = self.options['axes']['n_artists']
-            self._axes.legend(loc='lower center', fontsize=FONT_SIZE-1,
-                              frameon=False, fancybox=False, shadow=False,
-                              bbox_to_anchor=(0.5,1.0), ncols=ncols)
+            self._axes.legend(loc='upper right', fontsize=FONT_SIZE-1,
+                              frameon=True, fancybox=True, shadow=False,
+                              ncols=1)
         return lines
 
     def append_point(self, x_point, y_point, line_ind=0):
