@@ -1,3 +1,7 @@
+"""
+This module provides the Keyboard class.
+"""
+
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
@@ -5,7 +9,6 @@ import signal
 from copy import copy
 from warnings import warn
 from pynput.keyboard import (Listener, Key)
-
 
 ###############################################################################
 #KEYS CLASS
@@ -400,14 +403,3 @@ class Keyboard:
         """
         self._remove_from_buffer(key)
         return True
-
-
-if __name__ == "__main__":
-    import time
-    keyboard = Keyboard()
-    for i in range(10000):
-        pressed = keyboard.get_pressed()
-        if len(pressed) > 0:
-            print(pressed)
-        time.sleep(0.01)
-    keyboard.terminate()
