@@ -97,12 +97,10 @@ class Figure():
         for i in range(self.shape[0]):
             axes = fig.add_subplot(self.shape[1], self.shape[2], i+1)
             axes_list.append(axes)
-            
-        # Positioning constants
+
+        # Position the axes vertically
         EDGE_PAD = 0.075
         PAD = 0.125
-            
-        # Position the axes vertically
         h = (1. - 2.*EDGE_PAD - (self.shape[1]-1)*PAD) / self.shape[1]
         for i, axes in enumerate(axes_list):
             axes_pos = axes.get_position()
@@ -114,11 +112,13 @@ class Figure():
             axes.set_position(axes_pos)
             
         # Position the axes horizontally
+        EDGE_PAD = 0.075
+        PAD = 0.1
         w = (1. - 2.*EDGE_PAD - (self.shape[2]-1)*PAD) / self.shape[2]
         for i, axes in enumerate(axes_list):
             axes_pos = axes.get_position()
-            col_ind = i % self.shape[1]
-            tag_x0 = EDGE_PAD + col_ind*PAD + col_ind*h
+            col_ind = i % self.shape[2]
+            tag_x0 = EDGE_PAD + col_ind*PAD + col_ind*w
             tag_x1 = tag_x0 + w
             axes_pos.x0 = tag_x0
             axes_pos.x1 = tag_x1
