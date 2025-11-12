@@ -1,6 +1,9 @@
+# -*- coding: utf-8 -*-
 """
 This module provides utilities functions used to render videos from zlib
 compressed frame data.
+
+@author: G. Schaer
 """
 
 ###############################################################################
@@ -121,8 +124,8 @@ def _get_fps_and_frames(frames, frame_times):
     Parameters
     ----------
     frames: list of tuples of (image bytes, image.shape)
-        The zlib compressed frame data. Each frame should a tuple of the zlib 
-        compressed m x n x 3 numpy array of dtype np.uint8 and its shape in 
+        The zlib compressed frame data. Each frame should a tuple of the zlib
+        compressed m x n x 3 numpy array of dtype np.uint8 and its shape in
         the form (m, n, 3).
     frame_times : list of floats
         The times in seconds at which each frame was recorded.
@@ -230,8 +233,8 @@ def save_recording(frames, frame_times, name='recording'):
     Parameters
     ----------
     frames: list of tuples of (image bytes, image.shape)
-        The zlib compressed frame data. Each frame should a tuple of the zlib 
-        compressed m x n x 3 numpy array of dtype np.uint8 and its shape in 
+        The zlib compressed frame data. Each frame should a tuple of the zlib
+        compressed m x n x 3 numpy array of dtype np.uint8 and its shape in
         the form (m, n, 3).
     frame_times : list of floats
         The times in seconds at which each frame was recorded.

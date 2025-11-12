@@ -1,6 +1,9 @@
+# -*- coding: utf-8 -*-
 """
-This modules provides utility functions that are used by the 
+This modules provides utility functions that are used by the
 visualizer and simulator modules.
+
+@author: G. Schaer
 """
 
 
@@ -26,7 +29,7 @@ def get_rot_from_2_vecs(vec1,
         The initial vector.
     vec2 : array-like, shape(3,)
         The vector to which the transformation is calculated.
-        
+
     Returns
     -------
     xyzw_rot : array-like, shape(4,)
@@ -37,25 +40,25 @@ def get_rot_from_2_vecs(vec1,
     # Convert to numpy array
     arr1 = np.array(vec1)
     arr2 = np.array(vec2)
-    
+
     # Calculate the norm of vec
     mag1 = np.linalg.norm(arr1)
     mag2 = np.linalg.norm(arr2)
-    
+
     # If either magnitude is 0, no rotation can be found.
     if mag1==0. or mag2==0.:
         xyzw_rot = [0., 0., 0., 1.]
         return xyzw_rot
-    
+
     # If the magnitude is not zero, get the direction of vec
     dirn1 = arr1/mag1
     dirn2 = arr2/mag2
-    
+
     # If the vec is exactly 180 degrees away, set the 180 deg quaternion
     if (dirn2==-1*dirn1).all():
         xyzw_rot = [0.5*np.sqrt(2), -0.5*np.sqrt(2), 0., 0.]
         return xyzw_rot
-    
+
     # If the vec is some other relative orientation, calculate it
     q_xyz = np.cross(dirn1, dirn2)
     q_w = 1.0 + np.dot(dirn1, dirn2)
@@ -112,7 +115,7 @@ def wxyz_to_xyzw(wxyz_quaternion):
 
 def xyzw_quat_mult(q1, q2):
     """
-    Gets the resultant JPL quaternion (xyzw) that arises from first 
+    Gets the resultant JPL quaternion (xyzw) that arises from first
     applying the q1 (xyzw) rotation then applying the q2 (xyzw) rotation.
 
     Parameters
@@ -138,7 +141,7 @@ def xyzw_quat_mult(q1, q2):
 
 def wxyz_quat_mult(q1, q2):
     """
-    Gets the resultant Hamilton quaternion (wxyz) that arises from first 
+    Gets the resultant Hamilton quaternion (wxyz) that arises from first
     applying the q1 (wxyz) rotation then applying the q2 (wxyz) rotation.
 
     Parameters
@@ -196,12 +199,12 @@ def wxyz_from_euler(roll, pitch, yaw):
     sp = np.sin(pitch * 0.5)
     cy = np.cos(yaw * 0.5)
     sy = np.sin(yaw * 0.5)
-    
+
     w = cr * cp * cy + sr * sp * sy
     x = sr * cp * cy - cr * sp * sy
     y = cr * sp * cy + sr * cp * sy
     z = cr * cp * sy - sr * sp * cy
-    
+
     wxyz_quaternion = [w, x, y, z]
     return wxyz_quaternion
 
@@ -264,7 +267,7 @@ def format_path(unformatted_path):
     formatted_path = os.path.abspath(unformatted_path)
     #formatted_path = str(Path(unformatted_path))
     return formatted_path
-    
+
 
 def format_RGB(unformatted_rgb,
                 range_to_255=True):
@@ -313,7 +316,7 @@ def RAB_to_RBA(R_ofA_inB):
     """
     R_ofB_inA = np.array(R_ofA_inB).T
     return R_ofB_inA
-    
+
 
 def OAB_to_OBA(R_ofA_inB, O_ofA_inB):
     """
@@ -340,9 +343,9 @@ def OAB_to_OBA(R_ofA_inB, O_ofA_inB):
 
 def vc_inA_toB(R_ofA_inB, vc_inA):
     """
-    Based on a relative cosine matrix, takes vecotrs in frame A coords to 
+    Based on a relative cosine matrix, takes vecotrs in frame A coords to
     frame B coords.
-    
+
     Parameters
     ----------
     R_ofA_inB : valid rotation matrix, shape(3,3)
@@ -358,7 +361,7 @@ def vc_inA_toB(R_ofA_inB, vc_inA):
     """
     vc_inB = np.array(R_ofA_inB) @ np.array(vc_inA)
     return vc_inB
-    
+
 
 def pt_inA_toB(R_ofA_inB, O_ofA_inB, pt_inA):
     """

@@ -1,5 +1,9 @@
+# -*- coding: utf-8 -*-
 """
-This module provides the Keyboard class.
+This module provides the Keyboard class which monitors the keyboard and tells
+users which keys are pressed.
+
+@author: G. Schaer
 """
 
 ###############################################################################

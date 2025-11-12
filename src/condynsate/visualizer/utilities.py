@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
 """
 This module provides utilities functions used by the Visualizer class.
+
+@author: G. Schaer
 """
 
 ###############################################################################
@@ -38,14 +41,14 @@ def is_instance(arg, typ, arg_name=None):
             msg = f"{arg_name} cannot be None."
             warn(msg)
         return False
-        
+
     # Check arg is correct type
     if not isinstance(arg, typ):
         if not arg_name is None:
             msg = f"{arg_name} must be type {typ}."
             warn(msg)
         return False
-    
+
     # All tests passed
     return True
 
@@ -75,7 +78,7 @@ def is_num(arg, arg_name=None):
             msg = f"{arg_name} must be castable to <class 'float'>."
             warn(msg)
         return False
-    
+
     # Check if not inf and not nan
     is_inf_or_nan = np.isinf(float(arg)) or np.isnan(float(arg))
     if is_inf_or_nan and not arg_name is None:
@@ -106,13 +109,13 @@ def is_nvector(arg, n, arg_name=None):
     """
     # Ensure iterable
     try:
-        iter(arg) 
+        iter(arg)
     except TypeError:
         if not arg_name is None:
             msg = f"{arg_name} must be iterable."
             warn(msg)
         return False
-    
+
     # Ensure of length 3
     if len(arg) != n:
         if not arg_name is None:
@@ -153,14 +156,14 @@ def name_valid(arg, arg_name=None):
                 msg = f"When {arg_name} is tuple, must be tuple of strings."
                 warn(msg)
             return False
-        
+
     # String only case
     elif not isinstance(arg, str):
         if not arg_name is None:
             msg = f"{arg_name} must be tuple of strings or string."
             warn(msg)
         return False
-    
+
     # All tests passed
     return True
 
@@ -173,7 +176,7 @@ def path_valid(arg, ftype=None, arg_name=None):
     arg
         The variable being tested.
     ftype : None, String, or tuple of Strings, optional
-        The list of valid file extensions the file pointed to can have. When 
+        The list of valid file extensions the file pointed to can have. When
         None, the file may have any extension. The default is None
     arg_name : String, optional
         The name of the argument. When not None, a warning will be output if
@@ -209,21 +212,21 @@ def path_valid(arg, ftype=None, arg_name=None):
             msg = f"The parent file pointed to by {arg_name} does not exist."
             warn(msg)
         return False
-    
+
     # Check file extension
     if not ftype is None and not arg.endswith(ftype):
         if not arg_name is None:
             msg = f"The file pointed to by {arg_name} must be type {ftype}."
             warn(msg)
         return False
-            
+
     # All cases true
     return True
 
 ###############################################################################
 #TRANSFORMATION FUNCTIONS
 ###############################################################################
-def from_quat(wxyz_quat):
+def _from_quat(wxyz_quat):
     """
     Converts a wxyz quaternion into a 4x4 homogeneous transform matrix
 
@@ -237,34 +240,34 @@ def from_quat(wxyz_quat):
     R : 4X4 matrix
         The equivalent homogeneous transform matrix.
 
-    """               
+    """
     # Ensure the quat's norm is greater than 0
     s = np.linalg.norm(wxyz_quat)
     if s == 0.0:
         return np.eye(4)
     s = s**-2
-    
+
     # Extract the values from Q
     qr = wxyz_quat[0]
     qi = wxyz_quat[1]
     qj = wxyz_quat[2]
     qk = wxyz_quat[3]
-     
+
     # First row of the rotation matrix
     r00 = 1. - 2.*s*(qj*qj + qk*qk)
     r01 = 2.*s*(qi*qj - qk*qr)
     r02 = 2.*s*(qi*qk + qj*qr)
-     
+
     # Second row of the rotation matrix
     r10 = 2.*s*(qi*qj + qk*qr)
     r11 = 1. - 2.*s*(qi*qi + qk*qk)
     r12 = 2.*s*(qj*qk - qi*qr)
-     
+
     # Third row of the rotation matrix
     r20 = 2.*s*(qi*qk - qj*qr)
     r21 = 2.*s*(qj*qk + qi*qr)
     r22 = 1. - 2.*s*(qi*qi + qj*qj)
-     
+
     # Build the rotation matrix
     R = np.array([[r00, r01, r02, 0.0],
                   [r10, r11, r12, 0.0],
@@ -272,7 +275,7 @@ def from_quat(wxyz_quat):
                   [0.0, 0.0, 0.0, 1.0]])
     return R
 
-def from_ypr(yaw, pitch, roll):
+def _from_ypr(yaw, pitch, roll):
     """
     Converts intrinsic yaw, pitch, and roll angles in degrees to the
     equivalient homogeneous rotation matrix.
@@ -280,13 +283,13 @@ def from_ypr(yaw, pitch, roll):
     Parameters
     ----------
     yaw : float
-        The intrinsic yaw angle in degrees. Defined about the object's 
+        The intrinsic yaw angle in degrees. Defined about the object's
         intrinsic Z axis.
     pitch : float
-        The intrinsic pitch angle in degrees. Defined about the object's 
+        The intrinsic pitch angle in degrees. Defined about the object's
         intrinsic Y axis.
     roll : float
-        The intrinsic roll angle in degrees. Defined about the object's 
+        The intrinsic roll angle in degrees. Defined about the object's
         intrinsic X axis.
 
     Returns
@@ -328,7 +331,7 @@ def from_ypr(yaw, pitch, roll):
 
 def homogeneous_transform(translation, wxyz_quat, yaw, pitch, roll, scale):
     """
-    Builds a homogeneous cooridinate transform matrix representing the 
+    Builds a homogeneous cooridinate transform matrix representing the
     equivalent transform described by a translation, wxyz quaternion, yaw
     pitch, roll, and scale arguments. The transforms are applied in the order
     scaling, wxyz quaternion rotation, YPR rotation, translation such that the
@@ -360,16 +363,16 @@ def homogeneous_transform(translation, wxyz_quat, yaw, pitch, roll, scale):
     S = np.eye(4)
     for i,s in enumerate(scale):
         S[i,i] = s
-    
+
     # Build the rotation matrix
-    R_quat = from_quat(wxyz_quat)
-    R_ypr = from_ypr(yaw, pitch, roll)
-    
+    R_quat = _from_quat(wxyz_quat)
+    R_ypr = _from_ypr(yaw, pitch, roll)
+
     # Build the translation matrix
     T = np.eye(4)
     for i,t in enumerate(translation):
         T[i,3] = t
-    
+
     # Combine the translation, rotation, and scaling matrices
     H = T @ R_ypr @ R_quat @ S
     return H
@@ -384,8 +387,8 @@ def get_scene_path(name):
     Parameters
     ----------
     name : string or tuple of strings
-        A list of strings defining the name and position of a scene element 
-        as well  in the scene heirarchy. For example, 
+        A list of strings defining the name and position of a scene element
+        as well  in the scene heirarchy. For example,
         ('foo', 'bar') refers to /Scene/foo/bar while 'baz' refers to
         /Scene/baz
 

@@ -1,6 +1,9 @@
+# -*- coding: utf-8 -*-
 """
-The figure class is used by the animator to generate and draw to a matplotlib 
+The figure class is used by the animator to generate and draw to a matplotlib
 figure displayed by cv2's GUI.
+
+@author: G. Schaer
 """
 
 ###############################################################################
@@ -110,7 +113,7 @@ class Figure():
             axes_pos.y0 = tag_y0
             axes_pos.y1 = tag_y1
             axes.set_position(axes_pos)
-            
+
         # Position the axes horizontally
         EDGE_PAD = 0.075
         PAD = 0.1

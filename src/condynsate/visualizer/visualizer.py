@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
 """
 This module provides the Visualizer class.
+
+@author: G. Schaer
 """
 
 ###############################################################################
@@ -31,9 +34,9 @@ class Visualizer():
     ----------
 
     frame_rate : bool, optional
-        
+
     record : bool, optional
-        
+
 
     """
     def __init__(self, frame_rate=None, record=False):
@@ -61,7 +64,7 @@ class Visualizer():
         # Track each object's geometry file in case the user wants to change
         # their textures.
         self._objects = {}
-        
+
         # Recording support
         self.record = record
         self._frames = []
@@ -172,7 +175,7 @@ class Visualizer():
             for (fnc, args) in actions:
                 fnc(*args)
             self._last_refresh = cv2.getTickCount()
-            
+
             # If recording, save the current image
             if self.record:
                 image = self._scene.get_image(w=800, h=600)
@@ -235,7 +238,7 @@ class Visualizer():
                 msg = "Cannot complete action because visualizer is stopped."
                 warn(msg)
                 return -1
-                    
+
             # If the function is not in the actions buffer, add it.
             if not fnc in self._actions_buf:
                 self._actions_buf[fnc] = {scene_path : args}
@@ -463,7 +466,7 @@ class Visualizer():
     def _light_args_ok(self, light, on, intensity, distance, shadow):
         """
         Ensures that a set of arguments to be passed to _set_light are all
-        valid. Returns True if all valid, returns False if at least one 
+        valid. Returns True if all valid, returns False if at least one
         invalid. Raises exception if the visualizer is not open or if the
         light argument is not a string.
 
@@ -507,16 +510,16 @@ class Visualizer():
         Parameters
         ----------
         on : bool, optional
-            Boolean flag that indicates if the light is on. When None, 
+            Boolean flag that indicates if the light is on. When None,
             is not changed from current value. The default is None.
         intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. When None, 
+            Numeric value of the light's strength/intensity. When None,
             is not changed from current value. The default is None.
         distance : float [0. to 100.], optional
             Maximum range of the light. When 0, the range in infinite.
             When None, is not changed from current value. The default is None.
         shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. When None, 
+            Boolean flag that indicates if the light casts a shadow. When None,
             is not changed from current value. The default is None.
 
         Returns
@@ -543,16 +546,16 @@ class Visualizer():
         Parameters
         ----------
         on : bool, optional
-            Boolean flag that indicates if the light is on. When None, 
+            Boolean flag that indicates if the light is on. When None,
             is not changed from current value. The default is None.
         intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. When None, 
+            Numeric value of the light's strength/intensity. When None,
             is not changed from current value. The default is None.
         distance : float [0. to 100.], optional
             Maximum range of the light. When 0, the range in infinite.
             When None, is not changed from current value. The default is None.
         shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. When None, 
+            Boolean flag that indicates if the light casts a shadow. When None,
             is not changed from current value. The default is None.
 
         Returns
@@ -579,16 +582,16 @@ class Visualizer():
         Parameters
         ----------
         on : bool, optional
-            Boolean flag that indicates if the light is on. When None, 
+            Boolean flag that indicates if the light is on. When None,
             is not changed from current value. The default is None.
         intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. When None, 
+            Numeric value of the light's strength/intensity. When None,
             is not changed from current value. The default is None.
         distance : float [0. to 100.], optional
             Maximum range of the light. When 0, the range in infinite.
             When None, is not changed from current value. The default is None.
         shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. When None, 
+            Boolean flag that indicates if the light casts a shadow. When None,
             is not changed from current value. The default is None.
 
         Returns
@@ -614,13 +617,13 @@ class Visualizer():
         Parameters
         ----------
         on : bool, optional
-            Boolean flag that indicates if the light is on. When None, 
+            Boolean flag that indicates if the light is on. When None,
             is not changed from current value. The default is None.
         intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. When None, 
+            Numeric value of the light's strength/intensity. When None,
             is not changed from current value. The default is None.
         shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. When None, 
+            Boolean flag that indicates if the light casts a shadow. When None,
             is not changed from current value. The default is None.
 
         Returns
@@ -652,7 +655,7 @@ class Visualizer():
             Numeric value of the light's strength/intensity. When None, is not
             changed from current value. The default is None.
         shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. When None, 
+            Boolean flag that indicates if the light casts a shadow. When None,
             is not changed from current value. The default is None.
 
         Returns
@@ -881,7 +884,7 @@ class Visualizer():
         Parameters
         ----------
         path : string
-            Path pointing to the file that describes the object's 
+            Path pointing to the file that describes the object's
             geometry. The file may be of type .obj, .stl, or .dae.
 
         Returns
@@ -906,13 +909,13 @@ class Visualizer():
         Parameters
         ----------
         tex_path : string
-            The path pointing to a .png file that defines the texture of 
-            the object being added. Is only applied correctly if object is 
-            of type .obj or .dae. .stl files do not support proper 
+            The path pointing to a .png file that defines the texture of
+            the object being added. Is only applied correctly if object is
+            of type .obj or .dae. .stl files do not support proper
             texturing and attempting to apply texture to .stl may result in
             unexpected viual results. If None, no texture is applied.
         color : 3vec of floats
-            The color to apply to the object being added. In the form of 
+            The color to apply to the object being added. In the form of
             (R, G, B) where all elements range from 0.0 to 1.0.
         shininess : float
             The shininess of the object being added. Ranges from 0.0 to 1.0.
@@ -946,17 +949,17 @@ class Visualizer():
         ----------
         name : string or tuple of strings
             A list of strings defining the name of the object as well
-            as its position in the scene heirarchy. For example, 
+            as its position in the scene heirarchy. For example,
             ('foo', 'bar') would insert a new object to the scene at location
-            /Scene/foo/bar while 'baz' would insert the object at 
+            /Scene/foo/bar while 'baz' would insert the object at
             /Scene/baz
         path : string
-            Path pointing to the file that describes the object's 
+            Path pointing to the file that describes the object's
             geometry. The file may be of type .obj, .stl, or .dae.
         material_kwargs : dict
             The material kwargs of the object being added. Includes arguments
             tex_path, color, shininess, and opacity.
-        
+
         Returns
         -------
         None.
@@ -977,23 +980,23 @@ class Visualizer():
         ----------
         name : string or tuple of strings
             A list of strings defining the name of the object as well
-            as its position in the scene heirarchy. For example, 
+            as its position in the scene heirarchy. For example,
             ('foo', 'bar') would insert a new object to the scene at location
-            /Scene/foo/bar while 'baz' would insert the object at 
+            /Scene/foo/bar while 'baz' would insert the object at
             /Scene/baz
         path : string
-            Path pointing to the file that describes the object's 
+            Path pointing to the file that describes the object's
             geometry. The file may be of type .obj, .stl, or .dae.
         **kwargs
             tex_path : string, optional
-                The path pointing to a .png file that defines the texture of 
-                the object being added. Is only applied correctly if object is 
-                of type .obj or .dae. .stl files do not support proper 
+                The path pointing to a .png file that defines the texture of
+                the object being added. Is only applied correctly if object is
+                of type .obj or .dae. .stl files do not support proper
                 texturing and attempting to apply texture to .stl may result in
                 unexpected viual results. If None, no texture is applied. The
                 default is None
             color : 3vec of floats, optional
-                The color to apply to the object being added. In the form of 
+                The color to apply to the object being added. In the form of
                 (R, G, B) where all elements range from 0.0 to 1.0. The default
                 is (1.0, 1.0, 1.0).
             shininess : float, optional
@@ -1003,7 +1006,7 @@ class Visualizer():
                 The opacity of the object being added. Ranges from 0.0 to 1.0.
                 The default value is 1.0.
             position : 3vec of floats, optional
-                The extrinsic position to set. 
+                The extrinsic position to set.
                 The default value is (0., 0., 0.)
             wxyz_quat : 4vec of floats, optional
                 The extrinsic rotation to set as defined by a quaternion.
@@ -1018,7 +1021,7 @@ class Visualizer():
                 The intrinsic roll angle to set in degrees. Defined about the
                 object's X axis. The default value is 0.0.
             scale : 3vec of floats, optional
-                The intrinsic scale of the object. When not set, defaults to 
+                The intrinsic scale of the object. When not set, defaults to
                 (1., 1., 1.).
 
         Returns
@@ -1056,13 +1059,13 @@ class Visualizer():
         ----------
         name : string or tuple of strings
             A list of strings defining the name of the object as well
-            as its position in the scene heirarchy. For example, 
+            as its position in the scene heirarchy. For example,
             ('foo', 'bar') would insert a new object to the scene at location
-            /Scene/foo/bar while 'baz' would insert the object at 
+            /Scene/foo/bar while 'baz' would insert the object at
             /Scene/baz
         transform : dict
-            Defines the transform. Has keys 'position', 'wxyz_quat', 
-            'yaw', 'pitch', 'roll', and 'scale'. yaw, pitch, and roll are in 
+            Defines the transform. Has keys 'position', 'wxyz_quat',
+            'yaw', 'pitch', 'roll', and 'scale'. yaw, pitch, and roll are in
             degrees
 
         Returns
@@ -1141,20 +1144,20 @@ class Visualizer():
 
     def set_transform(self, name, **kwargs):
         """
-        Sets the position, orientation, and scale of a scene object relative to 
-        its original origin and size. 
+        Sets the position, orientation, and scale of a scene object relative to
+        its original origin and size.
 
         Parameters
         ----------
         name : string or tuple of strings
             A list of strings defining the name of the object as well
-            as its position in the scene heirarchy. For example, 
+            as its position in the scene heirarchy. For example,
             ('foo', 'bar') would refers to the object at the scene location
             /Scene/foo/bar while 'baz' refers to the object at scene location
             /Scene/baz
         **kwargs
             position : 3vec of floats, optional
-                The extrinsic position to set. 
+                The extrinsic position to set.
                 The default value is (0., 0., 0.)
             wxyz_quat : 4vec of floats, optional
                 The extrinsic rotation to set as defined by a quaternion.
@@ -1169,7 +1172,7 @@ class Visualizer():
                 The intrinsic roll angle to set in degrees. Defined about the
                 object's X axis. The default value is 0.0.
             scale : 3vec of floats, optional
-                The intrinsic scale of the object. When not set, defaults to 
+                The intrinsic scale of the object. When not set, defaults to
                 (1., 1., 1.).
 
         Returns
@@ -1247,12 +1250,12 @@ class Visualizer():
         ----------
         name : string or tuple of strings
             A list of strings defining the name of the object as well
-            as its position in the scene heirarchy. For example, 
+            as its position in the scene heirarchy. For example,
             ('foo', 'bar') would refers to the object at the scene location
             /Scene/foo/bar while 'baz' refers to the object at scene location
             /Scene/baz
         material_kwargs : dict
-            Defines the material. Has keys 'tex_path', 'color', 
+            Defines the material. Has keys 'tex_path', 'color',
             'shininess', and 'opacity'.
 
         Returns
@@ -1271,26 +1274,26 @@ class Visualizer():
 
     def set_material(self, name, **kwargs):
         """
-        Sets an objects material. 
+        Sets an objects material.
 
         Parameters
         ----------
         name : string or tuple of strings
             A list of strings defining the name of the object as well
-            as its position in the scene heirarchy. For example, 
+            as its position in the scene heirarchy. For example,
             ('foo', 'bar') refers to the object at the scene location
             /Scene/foo/bar while 'baz' refers to the object at scene location
             /Scene/baz
         **kwargs
             tex_path : string, optional
-                The path pointing to a .png file that defines the texture of 
-                the object being added. Is only applied correctly if object is 
-                of type .obj or .dae. .stl files do not support proper 
+                The path pointing to a .png file that defines the texture of
+                the object being added. Is only applied correctly if object is
+                of type .obj or .dae. .stl files do not support proper
                 texturing and attempting to apply texture to .stl may result in
                 unexpected viual results. If None, no texture is applied. The
                 default is None
             color : 3vec of floats, optional
-                The color to apply to the object. In the form of 
+                The color to apply to the object. In the form of
                 (R, G, B) where all elements range from 0.0 to 1.0. The default
                 is (1.0, 1.0, 1.0).
             shininess : float, optional
@@ -1299,12 +1302,12 @@ class Visualizer():
             opacity : float, optional
                 The opacity of the object. Ranges from 0.0 to 1.0.
                 The default value is 1.0.
-                
+
         Returns
         -------
         ret_code : int
             0 if successful, -1 if something went wrong.
-            
+
         """
         # Check the args
         if not name_valid(name, arg_name='name'):

@@ -1,7 +1,10 @@
+# -*- coding: utf-8 -*-
 """
-The _Subplot classes provide functionality for drawing specifc types of 
-subplots to a matplotlib figure to be used and displayed by the Animator 
+The _Subplot classes provide functionality for drawing specifc types of
+subplots to a matplotlib figure to be used and displayed by the Animator
 module.
+
+@author: G. Schaer
 """
 
 ###############################################################################

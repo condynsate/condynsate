@@ -1,5 +1,9 @@
+# -*- coding: utf-8 -*-
 """
-This module provides the Animator class.
+This module provides the Animator class which is used to draw data to a plot
+in real time.
+
+@author: G. Schaer
 """
 
 ###############################################################################
