@@ -179,6 +179,54 @@ def wxyz_from_euler(yaw, pitch, roll):
     z = cr * cp * sy - sr * sp * cy
     return np.array([w, x, y, z])
 
+def Rbw_from_wxyz(wxyz):
+    """
+    Converts a wxyz quaternion into a rotation matrix
+
+    Parameters
+    ----------
+    wxyz : 4vector of floats
+        The wxyz quaternion being converted.
+
+    Returns
+    -------
+    Rbw : 3x3 matrix
+        The equivalent rotation matrix.
+
+    """
+    # Ensure the quat's norm is greater than 0
+    s = np.linalg.norm(wxyz)
+    if s == 0.0:
+        return np.eye(4)
+    s = s**-2
+
+    # Extract the values from Q
+    qr = wxyz[0]
+    qi = wxyz[1]
+    qj = wxyz[2]
+    qk = wxyz[3]
+
+    # First row of the rotation matrix
+    r00 = 1. - 2.*s*(qj*qj + qk*qk)
+    r01 = 2.*s*(qi*qj - qk*qr)
+    r02 = 2.*s*(qi*qk + qj*qr)
+
+    # Second row of the rotation matrix
+    r10 = 2.*s*(qi*qj + qk*qr)
+    r11 = 1. - 2.*s*(qi*qi + qk*qk)
+    r12 = 2.*s*(qj*qk - qi*qr)
+
+    # Third row of the rotation matrix
+    r20 = 2.*s*(qi*qk - qj*qr)
+    r21 = 2.*s*(qj*qk + qi*qr)
+    r22 = 1. - 2.*s*(qi*qi + qj*qj)
+
+    # Build the rotation matrix
+    Rbw = np.array([[r00, r01, r02],
+                    [r10, r11, r12],
+                    [r20, r21, r22]])
+    return Rbw
+
 def Rbw_from_euler(yaw, pitch, roll):
     """
     Gets the orientation of a body in world coordinates from the euler angles

@@ -9,8 +9,54 @@ simulations using the PyBullet package.
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
+from dataclasses import dataclass
 import pybullet
 from pybullet_utils import bullet_client as bc
+
+###############################################################################
+#SIMULATOR OBJECT STATE DATACLASS
+###############################################################################
+@dataclass
+class _State():
+    """
+    Stores state information.
+    """
+    position: tuple = (0.0, 0.0, 0.0)
+    velocity: tuple = (0.0, 0.0, 0.0)
+    orientation: tuple = (1.0, 0.0, 0.0, 0.0)
+    omega: tuple = (0.0, 0.0, 0.0)
+    
+    def set_position(self, position):
+        self.position = tuple(p for i,p in enumerate(position) if i < 3)
+        
+    def set_position(self, position):
+        self.position = tuple(p for i,p in enumerate(position) if i < 3)
+        
+    def set_position(self, position):
+        self.position = tuple(p for i,p in enumerate(position) if i < 3)
+            
+        def set_position(self, position):
+            self.position = tuple(p for i,p in enumerate(position) if i < 3)
+
+@dataclass 
+class Sim_Obj_State(_State):
+    """
+    Stores current state information about simulator object.
+    """
+
+@dataclass
+class Sim_Obj_Init_State(_State):
+    """
+    Stores initial state information about simulator object.
+    """
+    
+###############################################################################
+#SIMULATOR OBJECT CLASS
+###############################################################################
+class Sim_Obj():
+    
+    def __init__(self):
+        pass
 
 ###############################################################################
 #SIMULATOR CLASS
