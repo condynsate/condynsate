@@ -59,7 +59,7 @@ def xyzw_from_vecs(vec1, vec2):
     xyzw = xyzw/_np.linalg.norm(xyzw)
     return xyzw
 
-def xyzw_to_wxyz(xyzw):
+def wxyz_from_xyzw(xyzw):
     """
     Converts a JPL quaternion (xyzw) to a Hamilton quaternion (wxyz)
 
@@ -76,7 +76,7 @@ def xyzw_to_wxyz(xyzw):
     """
     return _np.array([xyzw[3], xyzw[0], xyzw[1], xyzw[2]])
 
-def wxyz_to_xyzw(wxyz):
+def xyzw_from_wxyz(wxyz):
     """
     Converts a Hamilton quaternion (wxyz) to a JPL quaternion (xyzw)
 
@@ -112,8 +112,8 @@ def xyzw_mult(q1, q2):
         then doing the q2 transformation. Given in JPL form (xyzw).
 
     """
-    q3_wxyz = wxyz_mult(xyzw_to_wxyz(q1), xyzw_to_wxyz(q2))
-    return wxyz_to_xyzw(q3_wxyz)
+    q3_wxyz = wxyz_mult(wxyz_from_xyzw(q1), wxyz_from_xyzw(q2))
+    return xyzw_from_wxyz(q3_wxyz)
 
 def wxyz_mult(q1, q2):
     """
@@ -181,7 +181,7 @@ def wxyz_from_euler(yaw, pitch, roll):
 
 def euler_from_wxyz(wxyz):
     """
-    Converts a Hamilton quaternion (wxyz) to (Tait–Bryan) Euler Angles.
+    Converts a Hamilton quaternion (wxyz) to (z-y'-x' Tait–Bryan) Euler Angles.
 
     Parameters
     ----------
@@ -202,12 +202,19 @@ def euler_from_wxyz(wxyz):
     x = wxyz[1]
     y = wxyz[2]
     z = wxyz[3]
-    roll = _np.arctan2(2.*(w*x+y*z), 1.-2.*(x*x+y*y))
-    p1 = _np.sqrt(1.+2.*(w*y-x*z))
-    p2 = _np.sqrt(1.-2.*(w*y-x*z))
-    pitch = 2.*_np.arctan2(p1, p2) - 0.5*_np.pi
-    yaw = _np.arctan2(2.*(w*z+x*y), 1.-2.*(y*y+z*z))
-    return yaw, pitch, roll
+
+    sinr_cosp = 2 * (w * x + y * z)
+    cosr_cosp = 1 - 2 * (x * x + y * y)
+    roll = _np.arctan2(sinr_cosp, cosr_cosp)
+
+    sinp = _np.sqrt(1 + 2 * (w * y - x * z))
+    cosp = _np.sqrt(1 - 2 * (w * y - x * z))
+    pitch = 2 * _np.arctan2(sinp, cosp) - _np.pi / 2
+
+    siny_cosp = 2 * (w * z + x * y)
+    cosy_cosp = 1 - 2 * (y * y + z * z)
+    yaw = _np.arctan2(siny_cosp, cosy_cosp)
+    return (float(yaw), float(pitch), float(roll))
 
 def Rbw_from_wxyz(wxyz):
     """
@@ -232,28 +239,27 @@ def Rbw_from_wxyz(wxyz):
     s = _np.linalg.norm(wxyz)
     if s == 0.0:
         return _np.eye(4)
-    s = s**-2
 
     # Extract the values from Q
-    qr = wxyz[0]
-    qi = wxyz[1]
-    qj = wxyz[2]
-    qk = wxyz[3]
+    q0 = wxyz[0] / s
+    q1 = wxyz[1] / s
+    q2 = wxyz[2] / s
+    q3 = wxyz[3] / s
 
     # First row of the rotation matrix
-    r00 = 1. - 2.*s*(qj*qj + qk*qk)
-    r01 = 2.*s*(qi*qj - qk*qr)
-    r02 = 2.*s*(qi*qk + qj*qr)
+    r00 = 2 * (q0 * q0 + q1 * q1) - 1
+    r01 = 2 * (q1 * q2 - q0 * q3)
+    r02 = 2 * (q1 * q3 + q0 * q2)
 
     # Second row of the rotation matrix
-    r10 = 2.*s*(qi*qj + qk*qr)
-    r11 = 1. - 2.*s*(qi*qi + qk*qk)
-    r12 = 2.*s*(qj*qk - qi*qr)
+    r10 = 2 * (q1 * q2 + q0 * q3)
+    r11 = 2 * (q0 * q0 + q2 * q2) - 1
+    r12 = 2 * (q2 * q3 - q0 * q1)
 
     # Third row of the rotation matrix
-    r20 = 2.*s*(qi*qk - qj*qr)
-    r21 = 2.*s*(qj*qk + qi*qr)
-    r22 = 1. - 2.*s*(qi*qi + qj*qj)
+    r20 = 2 * (q1 * q3 - q0 * q2)
+    r21 = 2 * (q2 * q3 + q0 * q1)
+    r22 = 2 * (q0 * q0 + q3 * q3) - 1
 
     # Build the rotation matrix
     Rbw = _np.array([[r00, r01, r02],
@@ -263,8 +269,8 @@ def Rbw_from_wxyz(wxyz):
 
 def Rbw_from_euler(yaw, pitch, roll):
     """
-    Gets the orientation of a body in world coordinates from the (Tait–Bryan)
-    Euler Angles of the body.
+    Gets the orientation of a body in world coordinates from the
+    (z-y'-x' Tait–Bryan) Euler Angles of the body.
 
     Parameters
     ----------
@@ -282,22 +288,22 @@ def Rbw_from_euler(yaw, pitch, roll):
         takes vectors in body coordinates to world coordinates .
 
     """
-    cx = _np.cos(roll)
-    sx = _np.sin(roll)
-    cy = _np.cos(pitch)
-    sy = _np.sin(pitch)
-    cz = _np.cos(yaw)
-    sz = _np.sin(yaw)
-    Rx = _np.array([[1., 0., 0.],
-                    [0., cx, -sx],
-                    [0., sx, cx]])
-    Ry = _np.array([[cy, 0., sy],
-                    [0., 1., 0.],
-                    [-sy, 0., cy]])
-    Rz = _np.array([[cz, -sz, 0.],
-                    [sz, cz, 0.],
-                    [0., 0., 1.]])
-    return Rz@Ry@Rx
+    cr = _np.cos(roll)
+    sr = _np.sin(roll)
+    cp = _np.cos(pitch)
+    sp = _np.sin(pitch)
+    cy = _np.cos(yaw)
+    sy = _np.sin(yaw)
+    Rr = _np.array([[ 1.,  0.,  0.],
+                    [ 0.,  cr,  sr],
+                    [ 0., -sr,  cr]])
+    Rp = _np.array([[ cp,  0., -sp],
+                    [ 0.,  1.,  0.],
+                    [ sp,  0.,  cp]])
+    Ry = _np.array([[ cy,  sy,  0.],
+                    [-sy,  cy,  0.],
+                    [ 0.,  0.,  1.]])
+    return (Rr@Rp@Ry).T
 
 def Rab_to_Rba(Rab):
     """
