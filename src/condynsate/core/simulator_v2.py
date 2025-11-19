@@ -10,6 +10,7 @@ simulations using the PyBullet package.
 #DEPENDENCIES
 ###############################################################################
 from dataclasses import dataclass
+from warnings import warn
 import numpy as np
 import pybullet
 from pybullet_utils import bullet_client as bc
@@ -21,7 +22,23 @@ import condynsate.core.transforms as t
 @dataclass(frozen=True)
 class BaseState():
     """
-    Stores state information about the base of an object.
+    Stores state information about the base of an object. Has 7 attributes:
+        position : 3 tuple of floats
+            The (x,y,z) position in world coordinates.
+        orientation : 4 tuple of floats
+            The wxyz quaternion representation of the orientation in world
+            coordinates.
+        ypr : 3 tuple of floats
+            The (z-y'-x' Tait–Bryan) Euler angles in radians ordered as
+            (yaw, pitch, roll).
+        velocity : 3 tuple of floats
+            The (x,y,z) velocity in world coordinates.
+        omega : 3 tuple of floats
+            The (x,y,z) angular velocity in world coordinates.
+        velocity_in_body : 3 tuple of floats
+            The (x,y,z) velocity in body coordinates.
+        omega_in_body : 3 tuple of floats
+            The (x,y,z) angular velocity in body coordinates.
 
     Parameters
     ----------
@@ -149,17 +166,30 @@ class Body():
         return urdf_id
 
     def _build_links_and_joints(self):
-        base_link, body = self._client.getBodyInfo(self._id)
-        base_link = base_link.decode('UTF-8')
-        body = body.decode('UTF-8')
-        links = {base_link : -1}
+        # Make the base link
+        base_name, _ = self._client.getBodyInfo(self._id)
+        base_name = base_name.decode('UTF-8')
+        links = {base_name : Link(self, -1)}
+        link_ids = {-1 : base_name}
         joints = {}
+
+        # Make each joint and non-base link
         for joint_id in range(self._client.getNumJoints(self._id)):
+
+            # Get the joint's name along with its parent and child links' names
             info = self._client.getJointInfo(self._id, joint_id)
             joint_name = info[1].decode('UTF-8')
-            child_link = info[12].decode('UTF-8')
-            joints[joint_name] = Joint(self, joint_name, joint_id)
-            links[child_link] = Link(self, child_link, joint_id)
+            child_name = info[12].decode('UTF-8')
+            parent_name = link_ids[info[16]]
+
+            # Build the child link
+            links[child_name] = Link(self, joint_id)
+            link_ids[joint_id] = child_name
+
+            # Get the parent and children links and make the joint
+            parent = links[parent_name]
+            child = links[child_name]
+            joints[joint_name] = Joint(self, joint_id, parent, child)
         return links, joints
 
     @property
@@ -181,6 +211,32 @@ class Body():
                                velocity=vel,
                                omega=omg)
         return base_state
+
+    @property
+    def center_of_mass(self):
+        """ The position of the center of mass of the object. """
+        masses = []
+        coms = []
+        for link in self.links.values():
+            masses.append(link.mass)
+            coms.append(link.center_of_mass)
+        return tuple(np.average(coms, weights=masses, axis=0).tolist())
+
+    def _state_kwargs_ok(self, **kwargs):
+        try:
+            _ = tuple(float(x) for x in
+                      kwargs.get('position', (0.0, 0.0, 0.0)))
+            _ = float(kwargs.get('yaw', 0.0))
+            _ = float(kwargs.get('pitch', 0.0))
+            _ = float(kwargs.get('roll', 0.0))
+            _ = tuple(float(x) for x in
+                      kwargs.get('velocity', (0.0, 0.0, 0.0)))
+            _ = tuple(float(x) for x in
+                      kwargs.get('omega', (0.0, 0.0, 0.0)))
+            _ = bool(kwargs.get('body', False))
+            return True
+        except (TypeError, ValueError):
+            return False
 
     def set_initial_base_state(self, **kwargs):
         """
@@ -218,24 +274,19 @@ class Body():
             0 if successful, -1 if something went wrong.
 
         """
-        # Convert the euler angles to quaternion
-        yaw = kwargs.get('yaw', 0.0)
-        pitch = kwargs.get('pitch', 0.0)
-        roll = kwargs.get('roll', 0.0)
+        if not self._state_kwargs_ok(**kwargs):
+            warn('Unable to set state, erroneous kwargs.')
+            return -1
+
+        # ypr to orientation
+        yaw = float(kwargs.get('yaw', 0.0))
+        pitch = float(kwargs.get('pitch', 0.0))
+        roll = float(kwargs.get('roll', 0.0))
         kwargs['orientation'] = t.wxyz_from_euler(yaw, pitch, roll)
 
         # Set the initial base state
         self._init_base_state = BaseState(**kwargs)
-
-        # Set the base state to the initial state
-        args = {
-                'position' : self._init_base_state.position,
-                'velocity' : self._init_base_state.velocity,
-                'orientation' : self._init_base_state.orientation,
-                'omega' : self._init_base_state.omega,
-                'body' : kwargs.get('body', False)
-                }
-        return self.set_base_state(**args)
+        return self.set_base_state(**kwargs)
 
     def set_base_state(self, **kwargs):
         """
@@ -272,6 +323,10 @@ class Body():
             0 if successful, -1 if something went wrong.
 
         """
+        if not self._state_kwargs_ok(**kwargs):
+            warn('Unable to set state, erroneous kwargs.')
+            return -1
+
         # Get the current state of the body
         base_state = self.base_state
         ypr0 = base_state.ypr
@@ -319,6 +374,32 @@ class Body():
                                        angularVelocity=angularVelocity)
         return 0
 
+    def reset(self):
+        """
+        Resets body and each of its joints to their initial conditions.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        kwargs = {}
+        kwargs['position'] = self._init_base_state.position
+        ypr = self._init_base_state.ypr
+        kwargs['yaw'] = ypr[0]
+        kwargs['pitch'] = ypr[1]
+        kwargs['roll'] = ypr[2]
+        kwargs['velocity'] = self._init_base_state.velocity
+        kwargs['omega'] = self._init_base_state.omega
+        kwargs['body'] = False
+        self.set_base_state(**kwargs)
+
+        for joint in self.joints.values():
+            joint.reset()
+
+        return 0
+
 ###############################################################################
 #JOINT CLASS
 ###############################################################################
@@ -353,11 +434,12 @@ class JointState():
 class Joint:
     """
     """
-    def __init__(self, sim_obj, name, idx):
-        self.name = name
+    def __init__(self, sim_obj, idx, parent, child):
         self._client = sim_obj._client
         self._body_id = sim_obj._id
         self._id = idx
+        self._parent = parent
+        self._child = child
         self._init_state = JointState()
         self._set_defaults()
 
@@ -401,6 +483,17 @@ class Joint:
         joint_state = JointState(angle=angle, omega=omega)
         return joint_state
 
+    @property
+    def axis(self):
+        """ The axis about which the joint operates """
+        info = self._client.getJointInfo(self._body_id, self._id)
+        axis_j = info[13]
+        Rjp = t.Rbw_from_wxyz(t.wxyz_from_xyzw(info[15]))
+        axis_p = t.va_to_vb(Rjp, axis_j)
+        Rpw = t.Rbw_from_wxyz(self._parent.state.orientation)
+        axis_w = t.va_to_vb(Rpw, axis_p)
+        return axis_w
+
     def set_dynamics(self, **kwargs):
         """
         Set the joint resistance (damping) and the maximum joint angular
@@ -429,6 +522,7 @@ class Joint:
             if 'max_omega' in kwargs:
                 args['maxJointVelocity'] = float(kwargs['max_omega'])
         except (TypeError, ValueError):
+            warn('Unable to set dynamics, erroneous kwargs.')
             return -1
         self._client.changeDynamics(self._body_id, self._id, **args)
         return 0
@@ -454,7 +548,13 @@ class Joint:
             0 if successful, -1 if something went wrong.
 
         """
-        self._init_state = JointState(**kwargs)
+        try:
+            angle = float(kwargs.get('angle', 0.0))
+            omega = float(kwargs.get('omega', 0.0))
+        except (TypeError, ValueError):
+            warn('Unable to set state, erroneous kwargs.')
+            return -1
+        self._init_state = JointState(angle=angle, omega=omega)
         return self.set_state(angle=self._init_state.angle,
                               omega=self._init_state.omega)
 
@@ -486,6 +586,7 @@ class Joint:
             targetValue = float(targetValue)
             targetVelocity = float(targetVelocity)
         except (TypeError, ValueError):
+            warn('Unable to set state, erroneous kwargs.')
             return -1
         self._client.resetJointState(self._body_id,
                                      self._id,
@@ -493,14 +594,75 @@ class Joint:
                                      targetVelocity=targetVelocity)
         return 0
 
+    def reset(self):
+        """
+        Resets the joint to its initial conditions.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        kwargs = {}
+        kwargs['angle'] = self._init_state.angle
+        kwargs['omega'] = self._init_state.omega
+        self.set_state(**kwargs)
+        return 0
+
 ###############################################################################
 #LINK CLASS
 ###############################################################################
+@dataclass(frozen=True)
+class LinkState(BaseState):
+    """
+    Stores state information about the base of an object. Has 7 attributes:
+        position : 3 tuple of floats
+            The (x,y,z) position in world coordinates.
+        orientation : 4 tuple of floats
+            The wxyz quaternion representation of the orientation in world
+            coordinates.
+        ypr : 3 tuple of floats
+            The (z-y'-x' Tait–Bryan) Euler angles in radians ordered as
+            (yaw, pitch, roll).
+        velocity : 3 tuple of floats
+            The (x,y,z) velocity in world coordinates.
+        omega : 3 tuple of floats
+            The (x,y,z) angular velocity in world coordinates.
+        velocity_in_body : 3 tuple of floats
+            The (x,y,z) velocity in body coordinates.
+        omega_in_body : 3 tuple of floats
+            The (x,y,z) angular velocity in body coordinates.
+
+    Parameters
+    ----------
+    **kwargs :
+        State information with the following acceptable keys
+        position : 3 tuple of floats, optional
+            The XYZ position in world coordinates.
+            The default is (0., 0., 0.)
+        orientation : 4 tuple of floats, optional
+            The wxyz quaternion representation of the orientation in world
+            coordinates. The default is (1., 0., 0., 0.)
+        velocity : 3 tuple of floats, optional
+            The XYZ velocity in either world or body coordinates. Body
+            coordinates are defined based on objects orientation.
+            The default is (0., 0., 0.)
+        omega : 3 tuple of floats, optional
+            The XYZ angular velocity in either world or body coordinates.
+            Body coordinates are defined based on objects orientation.
+            The default is (0., 0., 0.)
+        body : bool, optional
+            Whether velocity and omega are being set in world or body
+            coordinates. The default is False
+    """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
 class Link:
     """
     """
-    def __init__(self, sim_obj, name, idx):
-        self.name = name
+    def __init__(self, sim_obj, idx):
         self._client = sim_obj._client
         self._body_id = sim_obj._id
         self._id = idx
@@ -513,12 +675,96 @@ class Link:
                              'rolling_contact_friction' : 0.0,
                              'bounciness' : 0.0,
                              'linear_air_resistance' : 0.0,
-                             'angular_air_resistance' : 0.0,
-                             'contact_damping' : -1.0,
-                             'contact_stiffness' : -1.0,}
+                             'angular_air_resistance' : 0.0,}
         self.set_dynamics(**default_dyanamics)
 
+    @property
+    def state(self):
+        """ The current state of the Link. """
+        # Base link case, return base state
+        if self._id == -1:
+            pos, ori=self._client.getBasePositionAndOrientation(self._body_id)
+            ori = t.wxyz_from_xyzw(ori)
+            vel, omg = self._client.getBaseVelocity(self._body_id)
+            state = LinkState(position=pos,
+                              orientation=ori,
+                              velocity=vel,
+                              omega=omg)
+            return state
+
+        # Otherwise return link state
+        state = self._client.getLinkState(self._body_id,
+                                          self._id,
+                                          computeLinkVelocity=1)
+        pos = state[0]
+        ori = t.wxyz_from_xyzw(state[1])
+        vel = state[6]
+        omg = state[7]
+        state = LinkState(position = pos,
+                          orientation = ori,
+                          velocity = vel,
+                          omega = omg,)
+        return state
+
+    @property
+    def mass(self):
+        """ The mass of the link. """
+        info = self._client.getDynamicsInfo(self._body_id, self._id,)
+        return info[0]
+
+    @property
+    def center_of_mass(self):
+        """ The center of mass of the link in world coordinates. """
+        info = self._client.getDynamicsInfo(self._body_id, self._id,)
+        com_b = info[3]
+        state = self.state
+        Obw = state.position
+        Rbw = t.Rbw_from_wxyz(state.orientation)
+        com_w = tuple(t.pa_to_pb(Rbw, Obw, com_b).tolist())
+        return com_w
+
     def set_dynamics(self, **kwargs):
+        """
+        Sets the dynamics properties of a single link. Allows user to change
+        the mass, contact friction, the bounciness, and the air resistance.
+
+        Parameters
+        ----------
+        **kwargs
+            Dynamics values with the following acceptable keys
+            mass : float, optional
+                The mass of the link.
+            lateral_contact_friction : float, optional
+                The lateral (linear) contact friction of the link. 0.0 for
+                no friction, increasing friction with increasing value.
+            spinning_contact_friction : float, optional
+                The torsional contact friction of the link about
+                contact normals. 0.0 for no friction, increasing friction
+                with increasing value.
+            rolling_contact_friction : float, optional
+                The torsional contact friction of the link orthogonal to
+                contact normals. 0.0 for no friction, increasing friction
+                with increasing value. Keep this value either 0.0 or very close
+                to 0.0, otherwise the simulations can become unstable.
+            bounciness : float, optional
+                How bouncy this link is. 0.0 for inelastic collisions, 0.95 for
+                mostly elastic collisions. Setting above 0.95 can result in
+                unstable simulations.
+            linear_air_resistance : float, optional
+                The air resistance opposing linear movement applied to the
+                center of mass of the link. Usually set to either 0.0 or a
+                low value such as 0.04.
+            angular_air_resistance : float, optional
+                The air resistance opposing rotational movement applied about
+                the center of rotation of the link. Usually set to either 0.0
+                or a low value such as 0.04.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
         args = {}
         if 'mass' in kwargs:
             args['mass'] = kwargs['mass']
@@ -534,10 +780,15 @@ class Link:
             args['linearDamping'] = kwargs['linear_air_resistance']
         if 'angular_air_resistance' in kwargs:
             args['angularDamping'] = kwargs['angular_air_resistance']
-        if 'contact_damping' in kwargs:
-            args['contactDamping'] = kwargs['contact_damping']
-        if 'contact_stiffness' in kwargs:
-            args['contactStiffness'] = kwargs['contact_stiffness']
+
+        # Ensure all args are floats
+        try:
+            for i in args.items():
+                args[i[0]] = float(i[1])
+        except (TypeError, ValueError):
+            warn('Unable to set dynamics, erroneous kwargs.')
+            return -1
+
         self._client.changeDynamics(self._body_id, self._id, **args)
         return 0
 
@@ -586,9 +837,7 @@ class Simulator():
         return 0
 
     def load_urdf(self, path, **kwargs):
-        # Build the object and return it
-        body = Body(self._client, path, **kwargs)
-        return body
+        return Body(self._client, path, **kwargs)
 
     def terminate(self):
         """
