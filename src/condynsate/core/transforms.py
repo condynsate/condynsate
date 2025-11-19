@@ -8,7 +8,7 @@ This modules provides transform functions that are used by the simulator.
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
-import numpy as _np
+import numpy as np
 
 ###############################################################################
 #TRANSFORM FUNCTIONS
@@ -33,16 +33,16 @@ def xyzw_from_vecs(vec1, vec2):
 
     """
     # Convert to numpy array
-    arr1 = _np.array(vec1)
-    arr2 = _np.array(vec2)
+    arr1 = np.array(vec1)
+    arr2 = np.array(vec2)
 
     # Calculate the norm of vec
-    mag1 = _np.linalg.norm(arr1)
-    mag2 = _np.linalg.norm(arr2)
+    mag1 = np.linalg.norm(arr1)
+    mag2 = np.linalg.norm(arr2)
 
     # If either magnitude is 0, no rotation can be found.
     if mag1==0. or mag2==0.:
-        return _np.array([0., 0., 0., 1.])
+        return np.array([0., 0., 0., 1.])
 
     # If the magnitude is not zero, get the direction of vec
     dirn1 = arr1/mag1
@@ -50,13 +50,13 @@ def xyzw_from_vecs(vec1, vec2):
 
     # If the vec is exactly 180 degrees away, set the 180 deg quaternion
     if (dirn2==-1*dirn1).all():
-        return _np.array([0.5*_np.sqrt(2), -0.5*_np.sqrt(2), 0., 0.])
+        return np.array([0.5*np.sqrt(2), -0.5*np.sqrt(2), 0., 0.])
 
     # If the vec is some other relative orientation, calculate it
-    q_xyz = _np.cross(dirn1, dirn2)
-    q_w = 1.0 + _np.dot(dirn1, dirn2)
-    xyzw = _np.append(q_xyz, q_w)
-    xyzw = xyzw/_np.linalg.norm(xyzw)
+    q_xyz = np.cross(dirn1, dirn2)
+    q_w = 1.0 + np.dot(dirn1, dirn2)
+    xyzw = np.append(q_xyz, q_w)
+    xyzw = xyzw/np.linalg.norm(xyzw)
     return xyzw
 
 def wxyz_from_xyzw(xyzw):
@@ -74,7 +74,7 @@ def wxyz_from_xyzw(xyzw):
         The Hamilton representation of the input JPL quaterion
 
     """
-    return _np.array([xyzw[3], xyzw[0], xyzw[1], xyzw[2]])
+    return np.array([xyzw[3], xyzw[0], xyzw[1], xyzw[2]])
 
 def xyzw_from_wxyz(wxyz):
     """
@@ -91,7 +91,7 @@ def xyzw_from_wxyz(wxyz):
         The JPL representation of the input Hamilton quaterion.
 
     """
-    return _np.array([wxyz[1], wxyz[2], wxyz[3], wxyz[0]])
+    return np.array([wxyz[1], wxyz[2], wxyz[3], wxyz[0]])
 
 def xyzw_mult(q1, q2):
     """
@@ -146,7 +146,7 @@ def wxyz_mult(q1, q2):
     q3x = a2*b1 + b2*a1 + c2*d1 - d2*c1
     q3y = a2*c1 - b2*d1 + c2*a1 + d2*b1
     q3z = a2*d1 + b2*c1 - c2*b1 + d2*a1
-    return _np.array([q3w, q3x, q3y, q3z])
+    return np.array([q3w, q3x, q3y, q3z])
 
 def wxyz_from_euler(yaw, pitch, roll):
     """
@@ -167,17 +167,17 @@ def wxyz_from_euler(yaw, pitch, roll):
         The Hamilton quaternion representation of the input Euler angles.
 
     """
-    cr = _np.cos(roll * 0.5)
-    sr = _np.sin(roll * 0.5)
-    cp = _np.cos(pitch * 0.5)
-    sp = _np.sin(pitch * 0.5)
-    cy = _np.cos(yaw * 0.5)
-    sy = _np.sin(yaw * 0.5)
+    cr = np.cos(roll * 0.5)
+    sr = np.sin(roll * 0.5)
+    cp = np.cos(pitch * 0.5)
+    sp = np.sin(pitch * 0.5)
+    cy = np.cos(yaw * 0.5)
+    sy = np.sin(yaw * 0.5)
     w = cr * cp * cy + sr * sp * sy
     x = sr * cp * cy - cr * sp * sy
     y = cr * sp * cy + sr * cp * sy
     z = cr * cp * sy - sr * sp * cy
-    return _np.array([w, x, y, z])
+    return np.array([w, x, y, z])
 
 def euler_from_wxyz(wxyz):
     """
@@ -205,15 +205,15 @@ def euler_from_wxyz(wxyz):
 
     sinr_cosp = 2 * (w * x + y * z)
     cosr_cosp = 1 - 2 * (x * x + y * y)
-    roll = _np.arctan2(sinr_cosp, cosr_cosp)
+    roll = np.arctan2(sinr_cosp, cosr_cosp)
 
-    sinp = _np.sqrt(1 + 2 * (w * y - x * z))
-    cosp = _np.sqrt(1 - 2 * (w * y - x * z))
-    pitch = 2 * _np.arctan2(sinp, cosp) - _np.pi / 2
+    sinp = np.sqrt(1 + 2 * (w * y - x * z))
+    cosp = np.sqrt(1 - 2 * (w * y - x * z))
+    pitch = 2 * np.arctan2(sinp, cosp) - np.pi / 2
 
     siny_cosp = 2 * (w * z + x * y)
     cosy_cosp = 1 - 2 * (y * y + z * z)
-    yaw = _np.arctan2(siny_cosp, cosy_cosp)
+    yaw = np.arctan2(siny_cosp, cosy_cosp)
     return (float(yaw), float(pitch), float(roll))
 
 def Rbw_from_wxyz(wxyz):
@@ -232,13 +232,13 @@ def Rbw_from_wxyz(wxyz):
 
     """
     # Trivial case
-    if all(_np.isclose(wxyz, [1., 0., 0., 0.])):
-        return _np.eye(3)
+    if all(np.isclose(wxyz, [1., 0., 0., 0.])):
+        return np.eye(3)
 
     # Ensure the quat's norm is greater than 0
-    s = _np.linalg.norm(wxyz)
+    s = np.linalg.norm(wxyz)
     if s == 0.0:
-        return _np.eye(4)
+        return np.eye(4)
 
     # Extract the values from Q
     q0 = wxyz[0] / s
@@ -262,7 +262,7 @@ def Rbw_from_wxyz(wxyz):
     r22 = 2 * (q0 * q0 + q3 * q3) - 1
 
     # Build the rotation matrix
-    Rbw = _np.array([[r00, r01, r02],
+    Rbw = np.array([[r00, r01, r02],
                      [r10, r11, r12],
                      [r20, r21, r22]])
     return Rbw
@@ -288,19 +288,19 @@ def Rbw_from_euler(yaw, pitch, roll):
         takes vectors in body coordinates to world coordinates .
 
     """
-    cr = _np.cos(roll)
-    sr = _np.sin(roll)
-    cp = _np.cos(pitch)
-    sp = _np.sin(pitch)
-    cy = _np.cos(yaw)
-    sy = _np.sin(yaw)
-    Rr = _np.array([[ 1.,  0.,  0.],
+    cr = np.cos(roll)
+    sr = np.sin(roll)
+    cp = np.cos(pitch)
+    sp = np.sin(pitch)
+    cy = np.cos(yaw)
+    sy = np.sin(yaw)
+    Rr = np.array([[ 1.,  0.,  0.],
                     [ 0.,  cr,  sr],
                     [ 0., -sr,  cr]])
-    Rp = _np.array([[ cp,  0., -sp],
+    Rp = np.array([[ cp,  0., -sp],
                     [ 0.,  1.,  0.],
                     [ sp,  0.,  cp]])
-    Ry = _np.array([[ cy,  sy,  0.],
+    Ry = np.array([[ cy,  sy,  0.],
                     [-sy,  cy,  0.],
                     [ 0.,  0.,  1.]])
     return (Rr@Rp@Ry).T
@@ -321,7 +321,7 @@ def Rab_to_Rba(Rab):
         The rotation cosine matrix of the b frame in a coords.
 
     """
-    return _np.array(Rab).T
+    return np.array(Rab).T
 
 def Oab_to_Oba(Rab, Oab):
     """
@@ -341,7 +341,7 @@ def Oab_to_Oba(Rab, Oab):
         The origin of frame b in a coords.
 
     """
-    return -Rab_to_Rba(Rab) @ _np.array(Oab)
+    return -Rab_to_Rba(Rab) @ np.array(Oab)
 
 def va_to_vb(Rab, va):
     """
@@ -361,7 +361,7 @@ def va_to_vb(Rab, va):
         The same 3 vector in frame b coords.
 
     """
-    return _np.array(Rab) @ _np.array(va)
+    return np.array(Rab) @ np.array(va)
 
 def pa_to_pb(Rab, Oab, pa):
     """
@@ -383,4 +383,4 @@ def pa_to_pb(Rab, Oab, pa):
         The same 3D point in b coords.
 
     """
-    return _np.array(Rab) @ _np.array(pa) + _np.array(Oab)
+    return np.array(Rab) @ np.array(pa) + np.array(Oab)

@@ -429,7 +429,7 @@ class Joint:
 
     def _set_defaults(self):
         # Set the default dynamics
-        default_dyanamics = {'joint_resistance' : 0.0,
+        default_dyanamics = {'joint_resistance' : 0.005,
                              'max_omega' : 1000.0}
         self.set_dynamics(**default_dyanamics)
 
@@ -489,9 +489,10 @@ class Joint:
             Dynamics information with the following acceptable keys
             joint_resistance : float, optional
                 The resistance (damping) of the joint about the joint axis.
+                The default value is 0.001.
             max_omega : float, optional
                 The maximum allowed angular velocity of the joint about the
-                joint axis.
+                joint axis. The default value is 1000.0
 
         Returns
         -------
@@ -653,8 +654,8 @@ class Link:
                              'spinning_contact_friction' : 0.0,
                              'rolling_contact_friction' : 0.0,
                              'bounciness' : 0.0,
-                             'linear_air_resistance' : 0.0,
-                             'angular_air_resistance' : 0.0,}
+                             'linear_air_resistance' : 0.005,
+                             'angular_air_resistance' : 0.005,}
         self.set_dynamics(**default_dyanamics)
 
     @property
@@ -712,31 +713,33 @@ class Link:
         **kwargs
             Dynamics values with the following acceptable keys
             mass : float, optional
-                The mass of the link.
+                The mass of the link. The default is defined by the .URDF file
             lateral_contact_friction : float, optional
                 The lateral (linear) contact friction of the link. 0.0 for
                 no friction, increasing friction with increasing value.
+                The default is 100.0.
             spinning_contact_friction : float, optional
                 The torsional contact friction of the link about
                 contact normals. 0.0 for no friction, increasing friction
-                with increasing value.
+                with increasing value. The default is 0.0.
             rolling_contact_friction : float, optional
                 The torsional contact friction of the link orthogonal to
                 contact normals. 0.0 for no friction, increasing friction
                 with increasing value. Keep this value either 0.0 or very close
                 to 0.0, otherwise the simulations can become unstable.
+                The default is 0.0.
             bounciness : float, optional
                 How bouncy this link is. 0.0 for inelastic collisions, 0.95 for
                 mostly elastic collisions. Setting above 0.95 can result in
-                unstable simulations.
+                unstable simulations. The default is 0.0.
             linear_air_resistance : float, optional
                 The air resistance opposing linear movement applied to the
                 center of mass of the link. Usually set to either 0.0 or a
-                low value such as 0.04.
+                low value less than 0.1. The default is 0.005.
             angular_air_resistance : float, optional
                 The air resistance opposing rotational movement applied about
                 the center of rotation of the link. Usually set to either 0.0
-                or a low value such as 0.04.
+                or a low value less than 0.1. The default is 0.005.
 
         Returns
         -------

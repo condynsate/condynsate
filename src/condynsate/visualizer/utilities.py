@@ -11,6 +11,7 @@ This module provides utilities functions used by the Visualizer class.
 import os
 import numpy as np
 from warnings import warn
+from condynsate.core.transforms import (Rbw_from_euler, Rbw_from_wxyz)
 
 ###############################################################################
 #ARGUMENT CHECKING FUNCTIONS
@@ -226,109 +227,6 @@ def path_valid(arg, ftype=None, arg_name=None):
 ###############################################################################
 #TRANSFORMATION FUNCTIONS
 ###############################################################################
-def _from_quat(wxyz_quat):
-    """
-    Converts a wxyz quaternion into a 4x4 homogeneous transform matrix
-
-    Parameters
-    ----------
-    wxyz_quat : 4vector of floats
-        The wxyz quaternion being converted.
-
-    Returns
-    -------
-    R : 4X4 matrix
-        The equivalent homogeneous transform matrix.
-
-    """
-    # Ensure the quat's norm is greater than 0
-    s = np.linalg.norm(wxyz_quat)
-    if s == 0.0:
-        return np.eye(4)
-    s = s**-2
-
-    # Extract the values from Q
-    qr = wxyz_quat[0]
-    qi = wxyz_quat[1]
-    qj = wxyz_quat[2]
-    qk = wxyz_quat[3]
-
-    # First row of the rotation matrix
-    r00 = 1. - 2.*s*(qj*qj + qk*qk)
-    r01 = 2.*s*(qi*qj - qk*qr)
-    r02 = 2.*s*(qi*qk + qj*qr)
-
-    # Second row of the rotation matrix
-    r10 = 2.*s*(qi*qj + qk*qr)
-    r11 = 1. - 2.*s*(qi*qi + qk*qk)
-    r12 = 2.*s*(qj*qk - qi*qr)
-
-    # Third row of the rotation matrix
-    r20 = 2.*s*(qi*qk - qj*qr)
-    r21 = 2.*s*(qj*qk + qi*qr)
-    r22 = 1. - 2.*s*(qi*qi + qj*qj)
-
-    # Build the rotation matrix
-    R = np.array([[r00, r01, r02, 0.0],
-                  [r10, r11, r12, 0.0],
-                  [r20, r21, r22, 0.0],
-                  [0.0, 0.0, 0.0, 1.0]])
-    return R
-
-def _from_ypr(yaw, pitch, roll):
-    """
-    Converts intrinsic yaw, pitch, and roll angles in degrees to the
-    equivalient homogeneous rotation matrix.
-
-    Parameters
-    ----------
-    yaw : float
-        The intrinsic yaw angle in degrees. Defined about the object's
-        intrinsic Z axis.
-    pitch : float
-        The intrinsic pitch angle in degrees. Defined about the object's
-        intrinsic Y axis.
-    roll : float
-        The intrinsic roll angle in degrees. Defined about the object's
-        intrinsic X axis.
-
-    Returns
-    -------
-    R : 4X4 matrix
-        The equivalent homogeneous transform matrix.
-
-    """
-    # Build yaw transform
-    y = yaw*np.pi / 180
-    cy = np.cos(y)
-    sy = np.sin(y)
-    Y = np.array([[ cy, -sy,  0.,  0.],
-                  [ sy,  cy,  0.,  0.],
-                  [ 0.,  0.,  1.,  0.],
-                  [ 0.,  0.,  0.,  1.]])
-
-    # Build pitch transform
-    p = pitch*np.pi / 180
-    cp = np.cos(p)
-    sp = np.sin(p)
-    P = np.array([[ cp,  0.,  sp,  0.],
-                  [ 0.,  1.,  0.,  0.],
-                  [-sp,  0.,  cp,  0.],
-                  [ 0.,  0.,  0.,  1.]])
-
-    # Build roll transform
-    r = roll*np.pi / 180
-    cr = np.cos(r)
-    sr = np.sin(r)
-    R = np.array([[ 1.,  0.,  0.,  0.],
-                  [ 0.,  cr, -sr,  0.],
-                  [ 0.,  sr,  cr,  0.],
-                  [ 0.,  0.,  0.,  1.]])
-
-    # Build rotation matrix
-    R = Y @ P @ R
-    return R
-
 def homogeneous_transform(translation, wxyz_quat, yaw, pitch, roll, scale):
     """
     Builds a homogeneous cooridinate transform matrix representing the
@@ -345,11 +243,11 @@ def homogeneous_transform(translation, wxyz_quat, yaw, pitch, roll, scale):
     wxyz_quat : 4vector of floats
         A 4 vector defining the extrinsic rotation to apply.
     yaw : float
-        The intrinsic yaw (degrees) about the objects Z axis to apply.
+        The intrinsic yaw (radian) about the objects Z axis to apply.
     pitch : float
-        The intrinsic pitch (degrees) about the objects Y axis to apply.
+        The intrinsic pitch (radian) about the objects Y axis to apply.
     roll : float
-        The intrinsic roll (degrees) about the objects X axis to apply.
+        The intrinsic roll (radian) about the objects X axis to apply.
     scale : 3vector of floats
         The extrinsic scaling to apply.
 
@@ -365,8 +263,10 @@ def homogeneous_transform(translation, wxyz_quat, yaw, pitch, roll, scale):
         S[i,i] = s
 
     # Build the rotation matrix
-    R_quat = _from_quat(wxyz_quat)
-    R_ypr = _from_ypr(yaw, pitch, roll)
+    R_quat = np.eye(4)
+    R_quat[0:3, 0:3] = Rbw_from_wxyz(wxyz_quat)
+    R_ypr = np.eye(4)
+    R_ypr[0:3, 0:3] = Rbw_from_euler(yaw, pitch, roll)
 
     # Build the translation matrix
     T = np.eye(4)

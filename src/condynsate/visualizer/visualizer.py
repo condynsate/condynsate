@@ -1066,7 +1066,7 @@ class Visualizer():
         transform : dict
             Defines the transform. Has keys 'position', 'wxyz_quat',
             'yaw', 'pitch', 'roll', and 'scale'. yaw, pitch, and roll are in
-            degrees
+            radians
 
         Returns
         -------
@@ -1163,13 +1163,13 @@ class Visualizer():
                 The extrinsic rotation to set as defined by a quaternion.
                 The default value is (1., 0., 0., 0.)
             yaw : float, optional
-                The intrinsic yaw angle to set in degrees. Defined about the
+                The intrinsic yaw angle to set in radians. Defined about the
                 object's Z axis. The default value is 0.0.
             pitch : float, optional
-                The intrinsic pitch angle to set in degrees. Defined about the
+                The intrinsic pitch angle to set in radians. Defined about the
                 object's Y axis. The default value is 0.0.
             roll : float, optional
-                The intrinsic roll angle to set in degrees. Defined about the
+                The intrinsic roll angle to set in radians. Defined about the
                 object's X axis. The default value is 0.0.
             scale : 3vec of floats, optional
                 The intrinsic scale of the object. When not set, defaults to

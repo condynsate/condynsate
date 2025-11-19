@@ -9,6 +9,7 @@ simulations using the PyBullet package.
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
+import time
 import pybullet
 from pybullet_utils import bullet_client as bc
 from condynsate.core.objects import Body
@@ -23,14 +24,17 @@ class Simulator():
         # Start engine and client in direct mode (no visualization)
         self._client = bc.BulletClient(connection_mode=pybullet.GUI)
         self.dt = dt
-        self.set_gravity(gravity)
         client_params = {
-                        'fixedTimeStep' : dt,
+                        'fixedTimeStep' : self.dt,
                         'numSubSteps' : 4,
                         'restitutionVelocityThreshold' : 0.05,
                         'enableFileCaching' : 0,
                          }
         self._client.setPhysicsEngineParameter(**client_params)
+        self.set_gravity(gravity)
+        self._bodies = []
+        self._prev_step = float('-inf')
+        self.time = 0.0
 
     def __del__(self):
         """
@@ -79,7 +83,55 @@ class Simulator():
             user interaction with the body and its joints and links.
 
         """
-        return Body(self._client, path, **kwargs)
+        self._bodies.append(Body(self._client, path, **kwargs))
+        return self._bodies[-1]
+
+    def step(self, real_time=True):
+        """
+        Takes a single simulation step.
+
+        Parameters
+        ----------
+        real_time : bool, optional
+            A boolean flag that indicates whether the step is to be taken in
+            real time (True) or as fast as possible (False). When True, the
+            function will sleep until the duration since the last time step()
+            was called is exactly equal to the time step of the simulation.
+            The default is True.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        sleep_duration = self.dt - (time.monotonic() - self._prev_step)
+        try:
+            time.sleep(sleep_duration)
+        except (OverflowError, ValueError):
+            pass
+        self._client.stepSimulation()
+        self.time += self.dt
+        if real_time:
+            self._prev_step = time.monotonic()
+        return 0
+
+    def reset(self):
+        """
+        Resets the simulation and all bodies loaded in the simulation to the
+        initial state.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        self._prev_step = float('-inf')
+        self.time = 0.0
+        for body in self._bodies:
+            body.reset()
+        return 0
 
     def terminate(self):
         """
