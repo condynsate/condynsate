@@ -11,6 +11,7 @@ used to run physics simulations using the PyBullet package.
 ###############################################################################
 import os
 from warnings import warn
+import contextlib
 import numpy as np
 import condynsate.misc.transforms as t
 from condynsate.simulator.dataclasses import (BodyState, JointState, LinkState)
@@ -40,6 +41,9 @@ class Body():
         joints : dict of condynsate.core.objects.Joint
             A dictionary whose keys are joints names (as defined by the .URDF)
             and whose values are the Joint objects that facilitate interaction.
+        lock : threading.Lock()
+            A mutex lock object. Needed if multiple threads will access Body
+            simultaneously. If not added, Body will not be thread safe.
 
     Parameters
     ----------
@@ -55,6 +59,7 @@ class Body():
 
     """
     def __init__(self, client, path, **kwargs):
+        self._LOCK = kwargs.get('lock', contextlib.nullcontext())
         self._client = client
         self._id = self._load_urdf(path, **kwargs)
         (self.name, self.links,
@@ -100,7 +105,7 @@ class Body():
         base_name, body_name = self._client.getBodyInfo(self._id)
         base_name = base_name.decode('UTF-8')
         body_name = f"{self._id}_{body_name.decode('UTF-8')}"
-        links = {base_name : Link(self, -1)}
+        links = {base_name : Link(self, -1, lock=self._LOCK)}
         link_ids = {-1 : base_name}
         joints = {}
 
@@ -114,13 +119,14 @@ class Body():
             parent_name = link_ids[info[16]]
 
             # Build the child link
-            links[child_name] = Link(self, joint_id)
+            links[child_name] = Link(self, joint_id, lock=self._LOCK)
             link_ids[joint_id] = child_name
 
             # Get the parent and children links and make the joint
             parent = links[parent_name]
             child = links[child_name]
-            joints[joint_name] = Joint(self, joint_id, parent, child)
+            joints[joint_name] = Joint(self, joint_id, parent, child,
+                                       lock=self._LOCK)
         return body_name, links, link_ids, joints
 
     def _get_shape_data(self):
@@ -135,79 +141,85 @@ class Body():
     @property
     def initial_state(self):
         """ The initial state of the body. """
-        return self._init_state
+        with self._LOCK:
+            return self._init_state
 
     @property
     def state(self):
         """ The current state of the body. """
         # Get the base states
-        pos, ornObj = self._client.getBasePositionAndOrientation(self._id)
-        ori = t.wxyz_from_xyzw(ornObj)
-        vel, omg = self._client.getBaseVelocity(self._id)
+        with self._LOCK:
+            pos, ornObj = self._client.getBasePositionAndOrientation(self._id)
+            vel, omg = self._client.getBaseVelocity(self._id)
 
-        # Compile and return
-        state = BodyState(position=pos,
-                          orientation=ori,
-                          velocity=vel,
-                          omega=omg)
-        return state
+            # Compile and return
+            state = BodyState(position=pos,
+                              orientation=t.wxyz_from_xyzw(ornObj),
+                              velocity=vel,
+                              omega=omg)
+            return state
+
+    def _unlocked_com(self):
+        masses = []
+        coms = []
+        for link in self.links.values():
+            masses.append(link._unlocked_mass())
+            coms.append(link._unlocked_com())
+        return tuple(np.average(coms, weights=masses, axis=0).tolist())
 
     @property
     def center_of_mass(self):
         """ The position of the center of mass of the object. """
-        masses = []
-        coms = []
-        for link in self.links.values():
-            masses.append(link.mass)
-            coms.append(link.center_of_mass)
-        return tuple(np.average(coms, weights=masses, axis=0).tolist())
+        with self._LOCK:
+            return self._unlocked_com()
 
     @property
     def visual_data(self):
         """ Data needed to render the body. """
-        # Get the base state
-        base_state = self._client.getBasePositionAndOrientation(self._id)
+        with self._LOCK:
+            # Get the base state
+            base_state = self._client.getBasePositionAndOrientation(self._id)
 
-        # Get all other link states simultaneously
-        link_ids = list(range(len(self.links)-1))
-        link_states = self._client.getLinkStates(self._id,
-                                                 link_ids,
-                                                 computeLinkVelocity=0)
+            # Get all other link states simultaneously
+            link_ids = list(range(len(self.links)-1))
+            link_states = self._client.getLinkStates(self._id,
+                                                     link_ids,
+                                                     computeLinkVelocity=0)
 
-        # Compile all positions and orientations
-        poss = [s[4] for s in link_states]
-        poss.insert(0, base_state[0])
-        oris = [t.wxyz_from_xyzw(s[5]) for s in link_states]
-        oris.insert(0, t.wxyz_from_xyzw(base_state[1]))
+            # Compile all positions and orientations
+            poss = [s[4] for s in link_states]
+            poss.insert(0, base_state[0])
+            oris = [t.wxyz_from_xyzw(s[5]) for s in link_states]
+            oris.insert(0, t.wxyz_from_xyzw(base_state[1]))
 
-        # Each position and orientation is poss and oris is the position and
-        # orientation of the link frame origin (defined by the stl).
-        # We must now convert each link frame to its visual frame.
-        zipped = zip(self._link_data['vis_pos'], self._link_data['vis_ori'])
-        for i, (vis_pos, vis_ori) in enumerate(zipped):
-            poss[i] = t.pa_to_pb(t.Rbw_from_wxyz(oris[i]), poss[i], vis_pos)
-            oris[i] = t.wxyz_mult(vis_ori, oris[i])
+            # Each position and orientation is poss and oris is the position
+            # and orientation of the link frame origin (defined by the stl).
+            # We must now convert each link frame to its visual frame.
+            zipped = zip(self._link_data['vis_pos'],self._link_data['vis_ori'])
+            for i, (vis_pos, vis_ori) in enumerate(zipped):
+                poss[i] = t.pa_to_pb(t.Rbw_from_wxyz(oris[i]),poss[i],vis_pos)
+                oris[i] = t.wxyz_mult(vis_ori, oris[i])
 
-        # Get the name of each link in order
-        link_ids.insert(0, -1)
-        names = [(self.name, self._link_data['id'][i]) for i in link_ids]
+            # Get the name of each link in order
+            link_ids.insert(0, -1)
+            names = [(self.name, self._link_data['id'][i]) for i in link_ids]
 
-        # Assemble all visual data
-        # (name, position, orientation, scale, mesh path, and color)
-        zipped = zip(names, poss, oris,
-                     self._link_data['scale'],
-                     self._link_data['mesh'],
-                     self._link_data['color'])
-        data = []
-        for name, pos, ori, scale, mesh, color in zipped:
-            data.append({'name' : name,
-                         'path' : mesh,
-                         'position' : pos,
-                         'wxyz_quat' : ori,
-                         'scale' : scale,
-                         'color' : color[:-1],
-                         'opacity' : color[-1]})
-        return data
+            # Assemble all visual data
+            # (name, position, orientation, scale, mesh path, and color)
+            zipped = zip(names, poss, oris,
+                         self._link_data['scale'],
+                         self._link_data['mesh'],
+                         self._link_data['color'])
+            data = []
+            for datum in zipped:
+                data.append({'name' : datum[0],
+                             'path' : datum[4],
+                             'position' : datum[1],
+                             'wxyz_quat' : datum[2],
+                             'scale' : datum[3],
+                             'color' : datum[5][:-1],
+                             'opacity' : datum[5][-1]})
+            return data
 
     def _state_kwargs_ok(self, **kwargs):
         try:
@@ -272,50 +284,22 @@ class Body():
         kwargs['orientation'] = t.wxyz_from_euler(yaw, pitch, roll)
 
         # Set the initial base state
-        self._init_state = BodyState(**kwargs)
+        with self._LOCK:
+            self._init_state = BodyState(**kwargs)
         return self.set_state(**kwargs)
 
-    def set_state(self, **kwargs):
-        """
-        Sets the state of the body.
-
-        Parameters
-        ----------
-        **kwargs
-            State information with the following acceptable keys
-            position : 3 tuple of floats, optional
-                The XYZ position in world coordinates.
-                The default is (0., 0., 0.)
-            yaw : float, optional
-                The (z-y'-x' Tait–Bryan) yaw angle of the object in radians.
-            pitch : float, optional
-                The (z-y'-x' Tait–Bryan) pitch angle of the object in radians.
-            roll : float, optional
-                The (z-y'-x' Tait–Bryan) roll angle of the object in radians.
-            velocity : 3 tuple of floats, optional
-                The XYZ velocity in either world or body coordinates. Body
-                coordinates are defined based on object's orientation.
-                The default is (0., 0., 0.)
-            omega : 3 tuple of floats, optional
-                The XYZ angular velocity in either world or body coordinates.
-                Body coordinates are defined based on object's orientation.
-                The default is (0., 0., 0.)
-            body : bool, optional
-                Whether velocity and omega are being set in world or body
-                coordinates. The default is False
-
-        Returns
-        -------
-        ret_code : int
-            0 if successful, -1 if something went wrong.
-
-        """
+    def _unlocked_set_state(self, **kwargs):
         if not self._state_kwargs_ok(**kwargs):
             warn('Unable to set state, erroneous kwargs.')
             return -1
 
         # Get the current state of the body
-        state = self.state
+        pos, ornObj = self._client.getBasePositionAndOrientation(self._id)
+        vel, omg = self._client.getBaseVelocity(self._id)
+        state = BodyState(position=pos,
+                          orientation=t.wxyz_from_xyzw(ornObj),
+                          velocity=vel,
+                          omega=omg)
         ypr0 = state.ypr
 
         # Get the new position, if not defined, default to current position
@@ -361,6 +345,45 @@ class Body():
                                        angularVelocity=angularVelocity)
         return 0
 
+    def set_state(self, **kwargs):
+        """
+        Sets the state of the body.
+
+        Parameters
+        ----------
+        **kwargs
+            State information with the following acceptable keys
+            position : 3 tuple of floats, optional
+                The XYZ position in world coordinates.
+                The default is (0., 0., 0.)
+            yaw : float, optional
+                The (z-y'-x' Tait–Bryan) yaw angle of the object in radians.
+            pitch : float, optional
+                The (z-y'-x' Tait–Bryan) pitch angle of the object in radians.
+            roll : float, optional
+                The (z-y'-x' Tait–Bryan) roll angle of the object in radians.
+            velocity : 3 tuple of floats, optional
+                The XYZ velocity in either world or body coordinates. Body
+                coordinates are defined based on object's orientation.
+                The default is (0., 0., 0.)
+            omega : 3 tuple of floats, optional
+                The XYZ angular velocity in either world or body coordinates.
+                Body coordinates are defined based on object's orientation.
+                The default is (0., 0., 0.)
+            body : bool, optional
+                Whether velocity and omega are being set in world or body
+                coordinates. The default is False
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        # Get the current state of the body
+        with self._LOCK:
+            return self._unlocked_set_state(**kwargs)
+
     def apply_force(self, force, body=False):
         """
         Applies force to the center of mass of the body.
@@ -386,20 +409,22 @@ class Body():
             warn('Cannot apply force, invalid force value.')
             return -1
 
-        if body:
-            Rbw = t.Rbw_from_wxyz(self.state.orientation)
-            force = t.va_to_vb(Rbw, force)
+        with self._LOCK:
+            if body:
+                _,ornObj = self._client.getBasePositionAndOrientation(self._id)
+                Rbw = t.Rbw_from_wxyz(t.wxyz_from_xyzw(ornObj))
+                force = t.va_to_vb(Rbw, force)
 
-        # Get the required counter torque
-        com = self.center_of_mass
-        base = self.links[self._link_data['id'][-1]]
-        r = np.subtract(base.center_of_mass, com)
-        torque = tuple(np.cross(r, force).tolist())
+            # Get the required counter torque
+            com = self._unlocked_com()
+            base = self.links[self._link_data['id'][-1]]
+            r = np.subtract(base._unlocked_com(), com)
+            torque = tuple(np.cross(r, force).tolist())
 
-        # Apply force and counter torque
-        flag = self._client.WORLD_FRAME
-        self._client.applyExternalForce(self._id, -1, force, com, flags=flag)
-        self._client.applyExternalTorque(self._id, -1, torque, flags=flag)
+            # Apply force and counter torque
+            flag = self._client.WORLD_FRAME
+            self._client.applyExternalForce(self._id,-1,force,com,flags=flag)
+            self._client.applyExternalTorque(self._id,-1,torque,flags=flag)
         return 0
 
     def apply_torque(self, torque, body=False):
@@ -427,12 +452,13 @@ class Body():
             warn('Cannot apply torque, invalid torque value.')
             return -1
 
-        if body:
-            Rbw = t.Rbw_from_wxyz(self.state.orientation)
-            torque = t.va_to_vb(Rbw, torque)
-
-        flag = self._client.WORLD_FRAME
-        self._client.applyExternalTorque(self._id, -1, torque, flags=flag)
+        with self._LOCK:
+            if body:
+                _,ornObj = self._client.getBasePositionAndOrientation(self._id)
+                Rbw = t.Rbw_from_wxyz(t.wxyz_from_xyzw(ornObj))
+                torque = t.va_to_vb(Rbw, torque)
+            flag = self._client.WORLD_FRAME
+            self._client.applyExternalTorque(self._id, -1, torque, flags=flag)
         return 0
 
     def reset(self):
@@ -446,18 +472,19 @@ class Body():
 
         """
         kwargs = {}
-        kwargs['position'] = self._init_state.position
-        ypr = self._init_state.ypr
-        kwargs['yaw'] = ypr[0]
-        kwargs['pitch'] = ypr[1]
-        kwargs['roll'] = ypr[2]
-        kwargs['velocity'] = self._init_state.velocity
-        kwargs['omega'] = self._init_state.omega
-        kwargs['body'] = False
-        self.set_state(**kwargs)
+        with self._LOCK:
+            kwargs['position'] = self._init_state.position
+            ypr = self._init_state.ypr
+            kwargs['yaw'] = ypr[0]
+            kwargs['pitch'] = ypr[1]
+            kwargs['roll'] = ypr[2]
+            kwargs['velocity'] = self._init_state.velocity
+            kwargs['omega'] = self._init_state.omega
+            kwargs['body'] = False
+            self._unlocked_set_state(**kwargs)
 
-        for joint in self.joints.values():
-            joint.reset()
+            for joint in self.joints.values():
+                joint._unlocked_reset()
 
         return 0
 
@@ -486,9 +513,14 @@ class Joint:
         The parent link of the joint.
     child : condynsate.core.objects.Link
         The child link of the joint.
+    kwargs :
+        lock : threading.Lock()
+            A mutex lock object. Needed if multiple threads will access Joint
+            simultaneously. If not added, Joint will not be thread safe.
 
     """
-    def __init__(self, sim_obj, idx, parent, child):
+    def __init__(self, sim_obj, idx, parent, child, **kwargs):
+        self._LOCK = kwargs.get('lock', contextlib.nullcontext())
         self._client = sim_obj._client
         self._body_id = sim_obj._id
         self._id = idx
@@ -518,25 +550,30 @@ class Joint:
     @property
     def initial_state(self):
         """ The initial state of the joint. """
-        return self._init_state
+        with self._LOCK:
+            return self._init_state
 
     @property
     def state(self):
         """ The current state of the joint. """
-        angle,omega,_,_ = self._client.getJointState(self._body_id, self._id)
-        joint_state = JointState(angle=angle, omega=omega)
-        return joint_state
+        with self._LOCK:
+            angle,omega,_,_ = self._client.getJointState(self._body_id,
+                                                         self._id)
+            joint_state = JointState(angle=angle, omega=omega)
+            return joint_state
 
     @property
     def axis(self):
         """ The axis about which the joint operates """
-        info = self._client.getJointInfo(self._body_id, self._id)
-        axis_j = info[13]
-        Rjp = t.Rbw_from_wxyz(t.wxyz_from_xyzw(info[15]))
-        axis_p = t.va_to_vb(Rjp, axis_j)
-        Rpw = t.Rbw_from_wxyz(self._parent.state.orientation)
-        axis_w = t.va_to_vb(Rpw, axis_p)
-        return axis_w
+        with self._LOCK:
+            info = self._client.getJointInfo(self._body_id, self._id)
+            axis_j = info[13]
+            Rjp = t.Rbw_from_wxyz(t.wxyz_from_xyzw(info[15]))
+            axis_p = t.va_to_vb(Rjp, axis_j)
+            info = self._client.getJointInfo(self._body_id, self._parent._id)
+            Rpw = t.Rbw_from_wxyz(t.wxyz_from_xyzw(info[15]))
+            axis_w = t.va_to_vb(Rpw, axis_p)
+            return axis_w
 
     def set_dynamics(self, **kwargs):
         """
@@ -569,7 +606,8 @@ class Joint:
         except (TypeError, ValueError):
             warn('Unable to set dynamics, erroneous kwargs.')
             return -1
-        self._client.changeDynamics(self._body_id, self._id, **args)
+        with self._LOCK:
+            self._client.changeDynamics(self._body_id, self._id, **args)
         return 0
 
     def set_initial_state(self, **kwargs):
@@ -599,9 +637,28 @@ class Joint:
         except (TypeError, ValueError):
             warn('Unable to set state, erroneous kwargs.')
             return -1
-        self._init_state = JointState(angle=angle, omega=omega)
-        return self.set_state(angle=self._init_state.angle,
-                              omega=self._init_state.omega)
+        with self._LOCK:
+            self._init_state = JointState(angle=angle, omega=omega)
+            return self._unlocked_set_state(angle=self._init_state.angle,
+                                            omega=self._init_state.omega)
+
+    def _unlocked_set_state(self, **kwargs):
+        angle, omega, _, _ = self._client.getJointState(self._body_id,
+                                                        self._id)
+        targetValue = kwargs.get('angle', angle)
+        targetVelocity = kwargs.get('omega', omega)
+        try:
+            targetValue = float(targetValue)
+            targetVelocity = float(targetVelocity)
+        except (TypeError, ValueError):
+            warn('Unable to set state, erroneous kwargs.')
+            return -1
+
+        self._client.resetJointState(self._body_id,
+                                     self._id,
+                                     targetValue=targetValue,
+                                     targetVelocity=targetVelocity)
+        return 0
 
     def set_state(self, **kwargs):
         """
@@ -618,26 +675,14 @@ class Joint:
                 The angular velocity (angle in radians / second) of the joint
                 about the joint axis.  When not defined, does not change from
                 current value.
-
         Returns
         -------
         ret_code : int
             0 if successful, -1 if something went wrong.
 
         """
-        targetValue = kwargs.get('angle', self.state.angle)
-        targetVelocity = kwargs.get('omega', self.state.omega)
-        try:
-            targetValue = float(targetValue)
-            targetVelocity = float(targetVelocity)
-        except (TypeError, ValueError):
-            warn('Unable to set state, erroneous kwargs.')
-            return -1
-        self._client.resetJointState(self._body_id,
-                                     self._id,
-                                     targetValue=targetValue,
-                                     targetVelocity=targetVelocity)
-        return 0
+        with self._LOCK:
+            return self._unlocked_set_state()
 
     def apply_torque(self, torque):
         """
@@ -660,10 +705,16 @@ class Joint:
             warn('Cannot apply torque, invalid torque value.')
             return -1
         mode = self._client.TORQUE_CONTROL
-        self._client.setJointMotorControlArray(self._body_id,
-                                               [self._id, ],
-                                               mode,
-                                               forces=[torque, ])
+        with self._LOCK:
+            self._client.setJointMotorControlArray(self._body_id,
+                                                   [self._id, ],
+                                                   mode,
+                                                   forces=[torque, ])
+        return 0
+
+    def _unlocked_reset(self):
+        self._unlocked_set_state(angle = self._init_state.angle,
+                                 omega = self._init_state.omega)
         return 0
 
     def reset(self):
@@ -676,11 +727,8 @@ class Joint:
             0 if successful, -1 if something went wrong.
 
         """
-        kwargs = {}
-        kwargs['angle'] = self._init_state.angle
-        kwargs['omega'] = self._init_state.omega
-        self.set_state(**kwargs)
-        return 0
+        with self._LOCK:
+            return self._unlocked_reset()
 
 ###############################################################################
 #LINK CLASS
@@ -700,9 +748,14 @@ class Link:
         The member of the Body class to which the link belongs
     idx : int
         The unique number that identifies the link in the PyBullet client.
+    kwargs :
+        lock : threading.Lock()
+            A mutex lock object. Needed if multiple threads will access Link
+            simultaneously. If not added, Link will not be thread safe.
 
     """
-    def __init__(self, sim_obj, idx):
+    def __init__(self, sim_obj, idx, **kwargs):
+        self._LOCK = kwargs.get('lock', contextlib.nullcontext())
         self._client = sim_obj._client
         self._body_id = sim_obj._id
         self._id = idx
@@ -721,47 +774,68 @@ class Link:
     @property
     def state(self):
         """ The current state of the Link. """
-        # Base link case, return base state
-        if self._id == -1:
-            pos, ori=self._client.getBasePositionAndOrientation(self._body_id)
-            ori = t.wxyz_from_xyzw(ori)
-            vel, omg = self._client.getBaseVelocity(self._body_id)
-            state = LinkState(position=pos,
-                              orientation=ori,
-                              velocity=vel,
-                              omega=omg)
+        with self._LOCK:
+            # Base link case, return base state
+            if self._id == -1:
+                (pos,
+                 ori)=self._client.getBasePositionAndOrientation(self._body_id)
+                ori = t.wxyz_from_xyzw(ori)
+                vel, omg = self._client.getBaseVelocity(self._body_id)
+                state = LinkState(position=pos,
+                                  orientation=ori,
+                                  velocity=vel,
+                                  omega=omg)
+                return state
+
+            # Otherwise return link state
+            state = self._client.getLinkState(self._body_id,
+                                              self._id,
+                                              computeLinkVelocity=1)
+            pos = state[0]
+            ori = t.wxyz_from_xyzw(state[1])
+            vel = state[6]
+            omg = state[7]
+            state = LinkState(position = pos,
+                              orientation = ori,
+                              velocity = vel,
+                              omega = omg,)
             return state
 
-        # Otherwise return link state
-        state = self._client.getLinkState(self._body_id,
-                                          self._id,
-                                          computeLinkVelocity=1)
-        pos = state[0]
-        ori = t.wxyz_from_xyzw(state[1])
-        vel = state[6]
-        omg = state[7]
-        state = LinkState(position = pos,
-                          orientation = ori,
-                          velocity = vel,
-                          omega = omg,)
-        return state
-
-    @property
-    def mass(self):
-        """ The mass of the link. """
+    def _unlocked_mass(self):
         info = self._client.getDynamicsInfo(self._body_id, self._id,)
         return info[0]
 
     @property
-    def center_of_mass(self):
-        """ The center of mass of the link in world coordinates. """
-        info = self._client.getDynamicsInfo(self._body_id, self._id,)
-        com_b = info[3]
-        state = self.state
-        Obw = state.position
-        Rbw = t.Rbw_from_wxyz(state.orientation)
+    def mass(self):
+        """ The mass of the link. """
+        with self._LOCK:
+            self._unlocked_mass()
+
+    def _unlocked_com(self):
+        # Get the center of mass in body coordinates
+        com_b = self._client.getDynamicsInfo(self._body_id, self._id,)[3]
+
+        # Get the position and orientation of the link
+        if self._id == -1:
+            bid = self._body_id
+            Obw, ori = self._client.getBasePositionAndOrientation(bid)
+            Rbw = t.Rbw_from_wxyz(t.wxyz_from_xyzw(ori))
+        else:
+            state = self._client.getLinkState(self._body_id,
+                                              self._id,
+                                              computeLinkVelocity=1)
+            Obw = state[0]
+            Rbw = t.Rbw_from_wxyz(t.wxyz_from_xyzw(state[1]))
+
+        # Convert center of mass in body coordinates to world coords
         com_w = tuple(t.pa_to_pb(Rbw, Obw, com_b).tolist())
         return com_w
+
+    @property
+    def center_of_mass(self):
+        """ The center of mass of the link in world coordinates. """
+        with self._LOCK:
+            return self._unlocked_com()
 
     def set_dynamics(self, **kwargs):
         """
@@ -831,7 +905,8 @@ class Link:
             warn('Unable to set dynamics, erroneous kwargs.')
             return -1
 
-        self._client.changeDynamics(self._body_id, self._id, **args)
+        with self._LOCK:
+            self._client.changeDynamics(self._body_id, self._id, **args)
         return 0
 
     def apply_force(self, force, body=False):
@@ -859,14 +934,24 @@ class Link:
             warn('Cannot apply force, invalid force value.')
             return -1
 
-        if body:
-            Rbw = t.Rbw_from_wxyz(self.state.orientation)
-            force = t.va_to_vb(Rbw, force)
+        with self._LOCK:
+            if body:
+                if self._id == -1:
+                    bid = self._body_id
+                    _, ori = self._client.getBasePositionAndOrientation(bid)
+                    ori = t.wxyz_from_xyzw(ori)
+                else:
+                    ori = self._client.getLinkState(self._body_id,
+                                                      self._id,
+                                                      computeLinkVelocity=1)[1]
+                    ori = t.wxyz_from_xyzw(ori)
+                Rbw = t.Rbw_from_wxyz(self.state.orientation)
+                force = t.va_to_vb(Rbw, force)
 
-        flag = self._client.WORLD_FRAME
-        self._client.applyExternalForce(self._body_id,
-                                        self._id,
-                                        force,
-                                        self.center_of_mass,
-                                        flags=flag)
+            flag = self._client.WORLD_FRAME
+            self._client.applyExternalForce(self._body_id,
+                                            self._id,
+                                            force,
+                                            self.center_of_mass,
+                                            flags=flag)
         return 0

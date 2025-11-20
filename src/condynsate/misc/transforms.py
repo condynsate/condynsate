@@ -223,10 +223,6 @@ def Rbw_from_wxyz(wxyz):
         The equivalent rotation matrix.
 
     """
-    # Trivial case
-    if all(np.isclose(wxyz, [1., 0., 0., 0.])):
-        return np.eye(3)
-
     # Ensure the quat's norm is greater than 0
     s = np.linalg.norm(wxyz)
     if s == 0.0:
@@ -279,10 +275,6 @@ def Rbw_from_euler(yaw, pitch, roll):
         takes vectors in body coordinates to world coordinates .
 
     """
-    # Trivial case
-    if np.allclose((yaw, pitch, roll), 0.0):
-        return np.eye(3)
-
     cr = np.cos(roll)
     sr = np.sin(roll)
     cp = np.cos(pitch)
