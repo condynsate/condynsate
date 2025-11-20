@@ -11,7 +11,7 @@ This module provides utilities functions used by the Visualizer class.
 import os
 import numpy as np
 from warnings import warn
-from condynsate.core.transforms import (Rbw_from_euler, Rbw_from_wxyz)
+from condynsate.misc.transforms import (Rbw_from_euler, Rbw_from_wxyz)
 
 ###############################################################################
 #ARGUMENT CHECKING FUNCTIONS

@@ -75,7 +75,7 @@
 
     <link name="base">
         <visual>
-            <origin rpy="0 0 0" xyz="0 0 -0.05"/>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
                 <mesh filename="cylinder.stl" scale="1 1 0.1"/>
             </geometry>
@@ -91,7 +91,7 @@
     <joint name="base_to_outer" type="continuous">
         <parent link = "base" />
         <child link = "outer" />
-        <origin rpy="0 1.5708 0" xyz = "0 0 -1.6" />
+        <origin rpy="0 -1.5708 1.5708" xyz = "0 0 1.6" />
         <axis xyz = "0 0 1" />
     </joint>
 

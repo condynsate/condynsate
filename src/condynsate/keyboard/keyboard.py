@@ -9,7 +9,6 @@ users which keys are pressed.
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
-import signal
 from copy import copy
 from warnings import warn
 from pynput.keyboard import (Listener, Key)
@@ -63,38 +62,12 @@ class Keyboard:
         self._listener.start()
         self._listening = True
 
-        # Gracefully exit on termination or interrupt signals
-        signal.signal(signal.SIGTERM, self._sig_handler)
-        signal.signal(signal.SIGINT, self._sig_handler)
-
 
     def __del__(self):
         """
         Deconstructor func.
         """
         self.terminate()
-
-
-    def _sig_handler(self, sig, frame):
-        """
-        Handles script termination events so the keyboard listener exits
-        gracefully.
-
-        Parameters
-        ----------
-        sig : int
-            The signal number.
-        frame : signal.frame object
-            The current stack frame.
-
-        Returns
-        -------
-        ret_code : int
-            0 if successful, -1 if something went wrong.
-
-        """
-        warn("Interrupt or termination signal detected. Terminating keyboard.")
-        return self.terminate()
 
 
     def get_pressed(self):

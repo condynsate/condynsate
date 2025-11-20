@@ -102,7 +102,7 @@ class Figure():
             axes_list.append(axes)
 
         # Position the axes vertically
-        EDGE_PAD = 0.075
+        EDGE_PAD = 0.175
         PAD = 0.125
         h = (1. - 2.*EDGE_PAD - (self.shape[1]-1)*PAD) / self.shape[1]
         for i, axes in enumerate(axes_list):
@@ -115,7 +115,7 @@ class Figure():
             axes.set_position(axes_pos)
 
         # Position the axes horizontally
-        EDGE_PAD = 0.075
+        EDGE_PAD = 0.15
         PAD = 0.1
         w = (1. - 2.*EDGE_PAD - (self.shape[2]-1)*PAD) / self.shape[2]
         for i, axes in enumerate(axes_list):

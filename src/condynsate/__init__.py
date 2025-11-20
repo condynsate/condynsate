@@ -1,13 +1,15 @@
 # Submodules always needs to be imported to ensure registration
-from condynsate.animator import Animator # NOQA
-from condynsate.core import Simulator # NOQA
-from condynsate.keyboard import Keyboard # NOQA
+from condynsate.project import Project
+from condynsate.simulator import Simulator # NOQA
 from condynsate.visualizer import Visualizer # NOQA
+from condynsate.animator import Animator # NOQA
+from condynsate.keyboard import Keyboard # NOQA
 
-__all__ = ["Animator",
+__all__ = ["Project",
            "Simulator",
-           "Keyboard",
-           "Visualizer",]
+           "Visualizer",
+           "Animator",
+           "Keyboard",]
 
 
 __version__ = '0.7.0'

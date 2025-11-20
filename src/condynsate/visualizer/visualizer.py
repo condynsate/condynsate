@@ -9,19 +9,19 @@ This module provides the Visualizer class.
 #DEPENDENCIES
 ###############################################################################
 import zlib
+import time
 from warnings import warn
-import signal
 from threading import (Thread, Lock)
 import numpy as np
 import meshcat
 import meshcat.geometry as geo
 import umsgpack
 import cv2
+from condynsate.misc import save_recording
 from condynsate.visualizer.utilities import (is_instance, is_num, is_nvector,
                                              path_valid, name_valid)
 from condynsate.visualizer.utilities import homogeneous_transform
 from condynsate.visualizer.utilities import get_scene_path
-from condynsate.misc.videomaker import save_recording
 
 ###############################################################################
 #VISUALIZER CLASS
@@ -32,22 +32,19 @@ class Visualizer():
 
     Parameters
     ----------
-
     frame_rate : bool, optional
-
+        The frame rate of the visualizer. When None, attempts to run at
+        unlimited. This is not reccomended because it can cause communication
+        bottlenecks that cause slow downs. The default value is 60.
     record : bool, optional
-
+        A boolean flag that indicates if the visualizer will record
 
     """
-    def __init__(self, frame_rate=None, record=False):
+    def __init__(self, frame_rate=60.0, record=False):
         """
         Constructor method.
 
         """
-        # Asynch listen for script exit
-        signal.signal(signal.SIGTERM, self._sig_handler)
-        signal.signal(signal.SIGINT, self._sig_handler)
-
         # Calculate time between frames
         if not frame_rate is None:
             self.frame_delta = 1.0 / frame_rate
@@ -87,28 +84,6 @@ class Visualizer():
         """
         self.terminate()
 
-    def _sig_handler(self, sig, frame):
-        """
-        Handles script termination events so the keyboard listener exits
-        gracefully.
-
-        Parameters
-        ----------
-        sig : int
-            The signal number.
-        frame : signal.frame object
-            The current stack frame.
-
-        Returns
-        -------
-        ret_code : int
-            0 if successful, -1 if something went wrong.
-
-        """
-        m = "Interrupt or termination signal detected. Terminating visualizer."
-        warn(m)
-        return self.terminate()
-
     def _start(self):
         """
         Starts the drawing thread.
@@ -139,6 +114,7 @@ class Visualizer():
             # Time since last frame was rendered
             dt = (cv2.getTickCount()-self._last_refresh)/cv2.getTickFrequency()
             if dt < self.frame_delta:
+                time.sleep(0.0005) # Remove CPU stress
                 continue
 
             # Aquire mutex lock to read flags and shared buffer
@@ -273,7 +249,7 @@ class Visualizer():
         self.set_fill_light(on=True, intensity=0.05, shadow=True)
 
         # Set the default camera properties
-        self.set_cam_position((3, 0.5, 2))
+        self.set_cam_position((3.0, -6.0, 4))
         self.set_cam_target((0.0, 0.0, 0.0))
         self.set_cam_zoom(1.0)
         self.set_cam_frustum(near=0.01, far=1000.0)

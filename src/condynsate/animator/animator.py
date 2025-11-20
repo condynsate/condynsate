@@ -9,14 +9,14 @@ in real time.
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
-import signal
 from warnings import warn
+from copy import copy
 import zlib
 import cv2
 import numpy as np
+from condynsate.misc import save_recording
 from condynsate.animator.figure import Figure
 from condynsate.animator.subplots import (Lineplot, Barchart)
-from condynsate.misc.videomaker import save_recording
 
 ###############################################################################
 #ANIMATOR CLASS
@@ -69,36 +69,24 @@ class Animator():
         self._WINDOW_NAME = 'condynsate Animator'
         self._THREADED = True
 
-        # Asynch listen for script exit
-        signal.signal(signal.SIGTERM, self._sig_handler)
-        signal.signal(signal.SIGINT, self._sig_handler)
-
     def __del__(self):
         """
         Deconstructor func.
         """
         self.terminate()
 
-    def _sig_handler(self, sig, frame):
+    def is_running(self):
         """
-        Handles script termination events so the keyboard listener exits
-        gracefully.
-
-        Parameters
-        ----------
-        sig : int
-            The signal number.
-        frame : signal.frame object
-            The current stack frame.
+        True if the animator GUI is open and the animation loop is running,
+        False else.
 
         Returns
         -------
-        ret_code : int
-            0 if successful, -1 if something went wrong.
+        bool
+            If running.
 
         """
-        warn("Interrupt or termination signal detected. Terminating animator.")
-        return self.terminate()
+        return copy(self._started)
 
     def add_lineplot(self, n_lines, **kwargs):
         """
@@ -173,10 +161,11 @@ class Animator():
 
         Returns
         -------
-        lines_ids : list of hex
+        lines_ids : hex or tuple of hex
             A unique identifier that allows the user to address each line
-            in the lineplot. For example, if n_lines = 3, the list will have
-            length three.
+            in the lineplot. For example, if n_lines = 3, the tuple will have
+            length three; however, if n_lines = 1, the returned value will be
+            the hex id of the only line (not a tuple).
 
         """
         self._assert_not_started()
@@ -195,8 +184,10 @@ class Animator():
         self._plots.append(plot_data)
 
         # Return line artist ids that identify line and subplot
-        lines_ids = [hex(16 * plot_data['subplot_ind'] + a_ind)
-                     for a_ind in plot_data['artist_inds']]
+        lines_ids = tuple(hex(16 * plot_data['subplot_ind'] + a_ind)
+                          for a_ind in plot_data['artist_inds'])
+        if len(lines_ids) == 1:
+            lines_ids = lines_ids[0]
         return lines_ids
 
     def add_barchart(self, n_bars, **kwargs):
@@ -255,10 +246,11 @@ class Animator():
 
         Returns
         -------
-        bar_ids : list of hex
+        bar_ids : tuple of hex
             A unique identifier that allows the user to address each bar
-            in the barchart. For example, if n_bars = 3, the list will have
-            length three.
+            in the barchart. For example, if n_bars = 3, the tuple will have
+            length three; however, if n_bars = 1, the returned value will be
+            the hex id of the only bar (not a tuple).
 
         """
         self._assert_not_started()
@@ -277,8 +269,10 @@ class Animator():
         self._plots.append(plot_data)
 
         # Return line artist ids that identify line and subplot
-        bar_ids = [hex(16 * plot_data['subplot_ind'] + a_ind)
-                   for a_ind in plot_data['artist_inds']]
+        bar_ids = tuple(hex(16 * plot_data['subplot_ind'] + a_ind)
+                        for a_ind in plot_data['artist_inds'])
+        if len(bar_ids) == 1:
+            bar_ids = bar_ids[0]
         return bar_ids
 
     def start(self):
@@ -304,7 +298,7 @@ class Animator():
 
         try:
             # Make the figure
-            self._figure = Figure(self._n_plots, threaded=self._THREADED)
+            self._figure = Figure(max(self._n_plots,1),threaded=self._THREADED)
 
         except Exception as e:
             self.terminate()
