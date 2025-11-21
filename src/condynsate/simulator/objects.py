@@ -152,33 +152,39 @@ class Body():
                           omega=omg)
         return state
 
-    @property
-    def center_of_mass(self):
-        """ The position of the center of mass of the object. """
-        masses = []
-        coms = []
-        for link in self.links.values():
-            masses.append(link.mass)
-            coms.append(link.center_of_mass)
-        return tuple(np.average(coms, weights=masses, axis=0).tolist())
-
-    @property
-    def visual_data(self):
-        """ Data needed to render the body. """
+    def _get_all_link_pos_ori(self):
         # Get the base state
         base_state = self._client.getBasePositionAndOrientation(self._id)
 
         # Get all other link states simultaneously
-        link_ids = list(range(len(self.links)-1))
-        link_states = self._client.getLinkStates(self._id,
-                                                 link_ids,
-                                                 computeLinkVelocity=0)
+        link_ids = sorted(self._link_data['id'].keys())
+        link_states = self._client.getLinkStates(self._id, link_ids[1:])
 
         # Compile all positions and orientations
         poss = [s[4] for s in link_states]
         poss.insert(0, base_state[0])
         oris = [t.wxyz_from_xyzw(s[5]) for s in link_states]
         oris.insert(0, t.wxyz_from_xyzw(base_state[1]))
+        return link_ids, poss, oris
+
+    @property
+    def center_of_mass(self):
+        """ The position of the center of mass of the object. """
+        link_ids, Obws, oris = self._get_all_link_pos_ori()
+        Rbws = [t.Rbw_from_wxyz(ori) for ori in oris]
+        masses = []
+        coms = []
+        for link_id, Obw, Rbw in zip(link_ids, Obws, Rbws):
+            info = self._client.getDynamicsInfo(self._id, link_id,)
+            masses.append(info[0])
+            coms.append(tuple(t.pa_to_pb(Rbw, Obw, info[3]).tolist()))
+        return tuple(np.average(coms, weights=masses, axis=0).tolist())
+
+    @property
+    def visual_data(self):
+        """ Data needed to render the body. """
+        # Get the ordered positions and orientations of all links in body
+        link_ids, poss, oris = self._get_all_link_pos_ori()
 
         # Each position and orientation is poss and oris is the position and
         # orientation of the link frame origin (defined by the stl).
@@ -188,8 +194,7 @@ class Body():
             poss[i] = t.pa_to_pb(t.Rbw_from_wxyz(oris[i]), poss[i], vis_pos)
             oris[i] = t.wxyz_mult(vis_ori, oris[i])
 
-        # Get the name of each link in order
-        link_ids.insert(0, -1)
+        # Get the name of each link
         names = [(self.name, self._link_data['id'][i]) for i in link_ids]
 
         # Assemble all visual data
@@ -316,13 +321,13 @@ class Body():
 
         # Get the current state of the body
         state = self.state
-        ypr0 = state.ypr
 
         # Get the new position, if not defined, default to current position
         posObj = kwargs.get('position', state.position)
 
         # Get the new orientation, if not defined, default to current
         # orientation (Tait-Bryan angle-wise)
+        ypr0 = state.ypr
         yaw = kwargs.get('yaw', ypr0[0])
         pitch = kwargs.get('pitch', ypr0[1])
         roll = kwargs.get('roll', ypr0[2])
@@ -361,6 +366,11 @@ class Body():
                                        angularVelocity=angularVelocity)
         return 0
 
+    def _get_Obw_Rbw(self):
+        Obw, ornObj = self._client.getBasePositionAndOrientation(self._id)
+        Rbw = t.Rbw_from_wxyz(t.wxyz_from_xyzw(ornObj))
+        return Obw, Rbw
+
     def apply_force(self, force, body=False):
         """
         Applies force to the center of mass of the body.
@@ -387,13 +397,28 @@ class Body():
             return -1
 
         if body:
-            Rbw = t.Rbw_from_wxyz(self.state.orientation)
+            _, Rbw = self._get_Obw_Rbw()
             force = t.va_to_vb(Rbw, force)
 
+        # Calculate required centers of mass
+        # Explicit calc like this requires one less center_of_mass call and
+        # also allows use of getLinkStates instead of getLinkState which
+        # reduces overhead
+        link_ids, Obws, oris = self._get_all_link_pos_ori()
+        Rbws = [t.Rbw_from_wxyz(ori) for ori in oris]
+        masses = []
+        coms = []
+        base_com = None
+        for link_id, Obw, Rbw in zip(link_ids, Obws, Rbws):
+            info = self._client.getDynamicsInfo(self._id, link_id,)
+            masses.append(info[0])
+            coms.append(tuple(t.pa_to_pb(Rbw, Obw, info[3]).tolist()))
+            if link_id == -1:
+                base_com = coms[-1]
+        com = tuple(np.average(coms, weights=masses, axis=0).tolist())
+
         # Get the required counter torque
-        com = self.center_of_mass
-        base = self.links[self._link_data['id'][-1]]
-        r = np.subtract(base.center_of_mass, com)
+        r = np.subtract(base_com, com)
         torque = tuple(np.cross(r, force).tolist())
 
         # Apply force and counter torque
@@ -428,7 +453,7 @@ class Body():
             return -1
 
         if body:
-            Rbw = t.Rbw_from_wxyz(self.state.orientation)
+            _, Rbw = self._get_Obw_Rbw()
             torque = t.va_to_vb(Rbw, torque)
 
         flag = self._client.WORLD_FRAME
@@ -625,16 +650,16 @@ class Joint:
             0 if successful, -1 if something went wrong.
 
         """
-        targetValue = kwargs.get('angle', self.state.angle)
-        targetVelocity = kwargs.get('omega', self.state.omega)
+        angle0,omega0,_,_ = self._client.getJointState(self._body_id, self._id)
+        targetValue = kwargs.get('angle', angle0)
+        targetVelocity = kwargs.get('omega', omega0)
         try:
             targetValue = float(targetValue)
             targetVelocity = float(targetVelocity)
         except (TypeError, ValueError):
             warn('Unable to set state, erroneous kwargs.')
             return -1
-        self._client.resetJointState(self._body_id,
-                                     self._id,
+        self._client.resetJointState(self._body_id, self._id,
                                      targetValue=targetValue,
                                      targetVelocity=targetVelocity)
         return 0
@@ -726,42 +751,42 @@ class Link:
             pos, ori=self._client.getBasePositionAndOrientation(self._body_id)
             ori = t.wxyz_from_xyzw(ori)
             vel, omg = self._client.getBaseVelocity(self._body_id)
-            state = LinkState(position=pos,
-                              orientation=ori,
-                              velocity=vel,
-                              omega=omg)
-            return state
+            st = LinkState(position=pos,orientation=ori,velocity=vel,omega=omg)
+            return st
 
         # Otherwise return link state
-        state = self._client.getLinkState(self._body_id,
-                                          self._id,
+        state = self._client.getLinkState(self._body_id, self._id,
                                           computeLinkVelocity=1)
         pos = state[0]
         ori = t.wxyz_from_xyzw(state[1])
         vel = state[6]
         omg = state[7]
-        state = LinkState(position = pos,
-                          orientation = ori,
-                          velocity = vel,
-                          omega = omg,)
-        return state
+        st = LinkState(position=pos,orientation=ori,velocity=vel,omega=omg)
+        return st
 
     @property
     def mass(self):
         """ The mass of the link. """
-        info = self._client.getDynamicsInfo(self._body_id, self._id,)
-        return info[0]
+        return self._client.getDynamicsInfo(self._body_id, self._id,)[0]
 
     @property
     def center_of_mass(self):
         """ The center of mass of the link in world coordinates. """
-        info = self._client.getDynamicsInfo(self._body_id, self._id,)
-        com_b = info[3]
-        state = self.state
-        Obw = state.position
-        Rbw = t.Rbw_from_wxyz(state.orientation)
+        com_b = self._client.getDynamicsInfo(self._body_id, self._id,)[3]
+        Obw, Rbw = self._get_Obw_Rbw()
         com_w = tuple(t.pa_to_pb(Rbw, Obw, com_b).tolist())
         return com_w
+
+    def _get_Obw_Rbw(self):
+        # Get the position and orientation of the link
+        if self._id == -1:
+            Obw,ori = self._client.getBasePositionAndOrientation(self._body_id)
+            Rbw = t.Rbw_from_wxyz(t.wxyz_from_xyzw(ori))
+        else:
+            state = self._client.getLinkState(self._body_id, self._id)
+            Obw = state[0]
+            Rbw = t.Rbw_from_wxyz(t.wxyz_from_xyzw(state[1]))
+        return Obw, Rbw
 
     def set_dynamics(self, **kwargs):
         """
@@ -859,14 +884,17 @@ class Link:
             warn('Cannot apply force, invalid force value.')
             return -1
 
+        # Convert force from body to world coords
+        Obw, Rbw = self._get_Obw_Rbw()
         if body:
-            Rbw = t.Rbw_from_wxyz(self.state.orientation)
             force = t.va_to_vb(Rbw, force)
 
+        # Get the center of mass in world coordinates
+        com_b = self._client.getDynamicsInfo(self._body_id, self._id,)[3]
+        com_w = tuple(t.pa_to_pb(Rbw, Obw, com_b).tolist())
+
+        # Apply force
         flag = self._client.WORLD_FRAME
-        self._client.applyExternalForce(self._body_id,
-                                        self._id,
-                                        force,
-                                        self.center_of_mass,
+        self._client.applyExternalForce(self._body_id, self._id, force, com_w,
                                         flags=flag)
         return 0
