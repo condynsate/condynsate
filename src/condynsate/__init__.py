@@ -1,5 +1,5 @@
 # Submodules always needs to be imported to ensure registration
-from condynsate.project import Project
+from condynsate.project import Project # NOQA
 from condynsate.simulator import Simulator # NOQA
 from condynsate.visualizer import Visualizer # NOQA
 from condynsate.animator import Animator # NOQA
@@ -27,3 +27,8 @@ for v in vals:
     elif v.lower().endswith('.png'):
         keys.append(os.path.split(v)[1][:-4]+'_img')
 __assets__ = dict(zip(keys, vals))
+del(_root)
+del(_dirpath)
+del(vals)
+del(v)
+del(keys)

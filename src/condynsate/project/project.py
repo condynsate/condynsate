@@ -105,12 +105,14 @@ class Project:
         return 0
 
     def refresh_visualizer(self):
-        if not self.visualizer is None:
-            for body in self.bodies:
-                for d in body.visual_data:
-                    self.visualizer.set_transform(**d)
-            return 0
-        return -1
+        if self.visualizer is None:
+            return -1
+
+        for body in self.bodies:
+            for d in body.visual_data:
+                self.visualizer.set_transform(**d)
+                self.visualizer.set_material(**d)
+        return 0
 
     def terminate(self):
         sim_code = self.simulator.terminate()

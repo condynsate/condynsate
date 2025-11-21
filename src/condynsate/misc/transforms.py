@@ -13,9 +13,9 @@ import numpy as np
 ###############################################################################
 #TRANSFORM FUNCTIONS
 ###############################################################################
-def xyzw_from_vecs(vec1, vec2):
+def wxyz_from_vecs(vec1, vec2):
     """
-    Calculates a JPL (xyzw) quaternion representing the transformation of the
+    Calculates a Hamilton (wxyz) quaternion representing the transformation of
     the vec1 vector to the vec2 vector.
 
     Parameters
@@ -27,9 +27,9 @@ def xyzw_from_vecs(vec1, vec2):
 
     Returns
     -------
-    xyzw : array-like, shape(4,)
-        The JPL quaternion (xyzw) the takes the vec1 vector to the
-        vec2 vector (without scaling). dirn(vec2) = dirn(xyzw*vec1)
+    wxyz : array-like, shape(4,)
+        The Hamilton quaternion (wxyz) the takes the vec1 vector to the
+        vec2 vector (without scaling). dirn(vec2) = dirn(wxyz*vec1)
 
     """
     # Convert to numpy array
@@ -42,7 +42,7 @@ def xyzw_from_vecs(vec1, vec2):
 
     # If either magnitude is 0, no rotation can be found.
     if mag1==0. or mag2==0.:
-        return (0., 0., 0., 1.)
+        return (1., 0., 0., 0.)
 
     # If the magnitude is not zero, get the direction of vec
     dirn1 = arr1/mag1
@@ -50,14 +50,14 @@ def xyzw_from_vecs(vec1, vec2):
 
     # If the vec is exactly 180 degrees away, set the 180 deg quaternion
     if (dirn2==-1*dirn1).all():
-        return (0.5*np.sqrt(2), -0.5*np.sqrt(2), 0., 0.)
+        return (0., 0.5*np.sqrt(2), -0.5*np.sqrt(2), 0.)
 
     # If the vec is some other relative orientation, calculate it
     q_xyz = np.cross(dirn1, dirn2)
     q_w = 1.0 + np.dot(dirn1, dirn2)
-    xyzw = np.append(q_xyz, q_w)
-    xyzw = xyzw/np.linalg.norm(xyzw)
-    return xyzw
+    wxyz = np.append(q_w, q_xyz)
+    wxyz = tuple((wxyz/np.linalg.norm(wxyz)).tolist())
+    return wxyz
 
 def wxyz_from_xyzw(xyzw):
     """

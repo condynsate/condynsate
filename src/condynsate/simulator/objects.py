@@ -67,6 +67,9 @@ class Body():
                            'vis_ori' : oris,
                            'color' : colors,}
 
+        self._arrows = {'com_force' : None,
+                        'base_torque' : None}
+
     def _load_urdf(self, urdf_path, **kwargs):
         # Use implicit cylinder for collision and physics calculation
         # Specifies to the engine to use the inertia from the urdf file
@@ -180,6 +183,50 @@ class Body():
             coms.append(tuple(t.pa_to_pb(Rbw, Obw, info[3]).tolist()))
         return tuple(np.average(coms, weights=masses, axis=0).tolist())
 
+    def __get_arr_vis_dat(self, name, vis_file, arrow_dat):
+        name = (self.name, name)
+        condynsate_src = os.path.dirname(os.path.dirname(__file__))
+        assets_dirpath = os.path.join(condynsate_src, "__assets__")
+        path = os.path.join(assets_dirpath, vis_file)
+
+        if arrow_dat is None:
+            return (name, path, (0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0),
+                    (1.0, 1.0, 1.0), (0.0, 0.0, 0.0), 0.0)
+
+        magnitude = float(np.linalg.norm(arrow_dat['value']))
+        if magnitude == 0.0:
+            return (name, path, (0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0),
+                    (1.0, 1.0, 1.0), (0.0, 0.0, 0.0), 0.0)
+        dirn = np.divide(arrow_dat['value'], magnitude)
+
+        position = arrow_dat['position']
+        orientation = t.wxyz_from_vecs((0,0,1), dirn)
+        scale = tuple(magnitude*s for s in arrow_dat['scale'])
+        color = (0.0, 0.0, 0.0)
+        opacity = 1.0
+        return name, path, position, orientation, scale, color, opacity
+
+    def _get_arr_vis_dat(self):
+        # Center of mass force arrow
+        com_force = self.__get_arr_vis_dat('com_force',
+                                           'arrow_lin.stl',
+                                           self._arrows['com_force'])
+        self._arrows['com_force'] = None
+
+        # Base link torque arrow
+        base_torque = self.__get_arr_vis_dat('base_torque',
+                                             'arrow_ccw.stl',
+                                             self._arrows['base_torque'])
+        self._arrows['base_torque'] = None
+
+        # Get each joint's torque arrow
+        # TODO
+
+        # Get each link's force arrow
+        # TODO
+
+        return com_force, base_torque
+
     @property
     def visual_data(self):
         """ Data needed to render the body. """
@@ -212,6 +259,17 @@ class Body():
                          'scale' : scale,
                          'color' : color[:-1],
                          'opacity' : color[-1]})
+
+        # Append the arrow data
+        arrows = self._get_arr_vis_dat()
+        for arrow in arrows:
+            data.append({'name' : arrow[0],
+                         'path' : arrow[1],
+                         'position' : arrow[2],
+                         'wxyz_quat' : arrow[3],
+                         'scale' : arrow[4],
+                         'color' : arrow[5],
+                         'opacity' : arrow[6]})
         return data
 
     def _state_kwargs_ok(self, **kwargs):
@@ -371,7 +429,7 @@ class Body():
         Rbw = t.Rbw_from_wxyz(t.wxyz_from_xyzw(ornObj))
         return Obw, Rbw
 
-    def apply_force(self, force, body=False):
+    def apply_force(self, force, **kwargs):
         """
         Applies force to the center of mass of the body.
 
@@ -379,10 +437,18 @@ class Body():
         ----------
         force : 3 tuple of floats
             The force being applied to the center of mass.
-        body : bool, optional
-            A Boolean flag that indicates if the force argument is in
-            body coordinates (True), or in world coordinates (False).
-            The default is False.
+        **kwargs
+            Extra arguments. Valid keys include
+            body : bool, optional
+                A Boolean flag that indicates if the force argument is in
+                body coordinates (True), or in world coordinates (False).
+                The default is False.
+            draw_arrow : bool, optional
+                A Boolean flag that indicates if an arrow should be drawn
+                to represent the applied force. The default is False.
+            arrow_scale : float, optional
+                The scaling factor, relative to the size of the applied force,
+                that is used to size the force arrow. The default is 0.025.
 
         Returns
         -------
@@ -396,7 +462,7 @@ class Body():
             warn('Cannot apply force, invalid force value.')
             return -1
 
-        if body:
+        if kwargs.get('body', False):
             _, Rbw = self._get_Obw_Rbw()
             force = t.va_to_vb(Rbw, force)
 
@@ -425,9 +491,18 @@ class Body():
         flag = self._client.WORLD_FRAME
         self._client.applyExternalForce(self._id, -1, force, com, flags=flag)
         self._client.applyExternalTorque(self._id, -1, torque, flags=flag)
+
+        # Add arrow information for rendering
+        if kwargs.get('draw_arrow', False):
+            scale = kwargs.get('arrow_scale', 0.025)
+            arrow_dat = {'position' : com,
+                         'value' : force,
+                         'scale' : (scale, scale, scale)}
+            self._arrows['com_force'] = arrow_dat
+
         return 0
 
-    def apply_torque(self, torque, body=False):
+    def apply_torque(self, torque, **kwargs):
         """
         Applies external torque to the body.
 
@@ -435,10 +510,18 @@ class Body():
         ----------
         torque : 3 tuple of floats
             The torque being applied.
-        body : bool, optional
-            A Boolean flag that indicates if the torque argument is in
-            body coordinates (True), or in world coordinates (False).
-            The default is False.
+        **kwargs
+            Extra arguments. Valid keys include
+            body : bool, optional
+                A Boolean flag that indicates if the torque argument is in
+                body coordinates (True), or in world coordinates (False).
+                The default is False.
+            draw_arrow : bool, optional
+                A Boolean flag that indicates if an arrow should be drawn
+                to represent the applied torque. The default is False.
+            arrow_scale : float, optional
+                The scaling factor, relative to the size of the applied torque,
+                that is used to size the torque arrow. The default is 1.0.
 
         Returns
         -------
@@ -452,12 +535,21 @@ class Body():
             warn('Cannot apply torque, invalid torque value.')
             return -1
 
-        if body:
-            _, Rbw = self._get_Obw_Rbw()
+        Obw, Rbw = self._get_Obw_Rbw()
+        if kwargs.get('body', False):
             torque = t.va_to_vb(Rbw, torque)
 
         flag = self._client.WORLD_FRAME
         self._client.applyExternalTorque(self._id, -1, torque, flags=flag)
+
+        # Add arrow information for rendering
+        if kwargs.get('draw_arrow', False):
+            scale = kwargs.get('arrow_scale', 1.0)
+            arrow_dat = {'position' : Obw,
+                         'value' : torque,
+                         'scale' : (scale, scale, 0.01)}
+            self._arrows['base_torque'] = arrow_dat
+
         return 0
 
     def reset(self):
@@ -559,7 +651,7 @@ class Joint:
         axis_j = info[13]
         Rjp = t.Rbw_from_wxyz(t.wxyz_from_xyzw(info[15]))
         axis_p = t.va_to_vb(Rjp, axis_j)
-        Rpw = t.Rbw_from_wxyz(self._parent.state.orientation)
+        _, Rpw = self._parent._get_Obw_Rbw()
         axis_w = t.va_to_vb(Rpw, axis_p)
         return axis_w
 

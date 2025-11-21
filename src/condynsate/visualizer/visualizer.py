@@ -58,8 +58,8 @@ class Visualizer():
         # Delete all instances from the visualizer
         self._scene.delete()
 
-        # Track each object's geometry file in case the user wants to change
-        # their textures.
+        # Track each object's geometry, material, and transform. This way
+        # we can ignore requests that would not change these.
         self._objects = {}
 
         # Recording support
@@ -944,9 +944,15 @@ class Visualizer():
         # Add the .obj to the scene
         scene_path = get_scene_path(name)
         geometry = self._get_geometry(path)
-        self._objects[scene_path] = geometry
+        self._objects[scene_path] = {'geometry':geometry,
+                                     'tex_path':material_kwargs['tex_path'],
+                                     'color':material_kwargs['color'],
+                                     'shininess':material_kwargs['shininess'],
+                                     'opacity':material_kwargs['opacity'],
+                                     'trans_matrix':np.eye(4)}
         material = self._get_material(**material_kwargs)
         self._scene[scene_path].set_object(geometry, material)
+
 
     def add_object(self, name, path, **kwargs):
         """
@@ -1051,6 +1057,10 @@ class Visualizer():
         """
         # Get the scene path
         scene_path = get_scene_path(name)
+        if not scene_path in self._objects:
+            msg = f'{name} is not object in scene, cannot set transform.'
+            warn(msg)
+            return
 
         # Get the transformation matrix
         position = transform['position']
@@ -1062,8 +1072,16 @@ class Visualizer():
         args = (position, wxyz_quat, yaw, pitch, roll, scale, )
         trans_matrix = homogeneous_transform(*args)
 
+        # Check if a transform is needed
+        cur_trans_matrix = self._objects[scene_path]['trans_matrix']
+        if np.allclose(trans_matrix, cur_trans_matrix):
+            return
+
         # Apply the transform
         self._scene[scene_path].set_transform(trans_matrix)
+
+        # Update the store state
+        self._objects[scene_path]['trans_matrix'] = trans_matrix
 
     def _read_transform_kwargs(self, kwargs):
         """
@@ -1240,13 +1258,32 @@ class Visualizer():
 
         """
         scene_path = get_scene_path(name)
-        try:
-            geometry = self._objects[scene_path]
-        except KeyError:
+        if not scene_path in self._objects:
             msg = f'{name} is not object in scene, cannot set material.'
             warn(msg)
+            return
+
+        # Check if a change is needed
+        cur_tex_path = self._objects[scene_path]['tex_path']
+        cur_color = self._objects[scene_path]['color']
+        cur_shininess = self._objects[scene_path]['shininess']
+        cur_opacity = self._objects[scene_path]['opacity']
+        if (cur_tex_path == material_kwargs['tex_path'] and
+            cur_color == material_kwargs['color'] and
+            cur_shininess == material_kwargs['shininess'] and
+            cur_opacity == material_kwargs['opacity']):
+            return
+
+        # Apply the new materi
+        geometry = self._objects[scene_path]['geometry']
         material = self._get_material(**material_kwargs)
         self._scene[scene_path].set_object(geometry, material)
+
+        # Update the store material
+        self._objects[scene_path]['tex_path'] = material_kwargs['tex_path']
+        self._objects[scene_path]['color'] = material_kwargs['color']
+        self._objects[scene_path]['shininess'] = material_kwargs['shininess']
+        self._objects[scene_path]['opacity'] = material_kwargs['opacity']
 
     def set_material(self, name, **kwargs):
         """
