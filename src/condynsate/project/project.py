@@ -107,21 +107,19 @@ class Project:
             else:
                 self.animator.reset_all()
 
-
     def step(self, real_time=True):
         if self.simulator.step(real_time=real_time) != 0:
             return -1
-        if not self.visualizer is None:
-            for body in self.bodies:
-                for d in body.visual_data:
-                    self.visualizer.set_transform(**d)
+        self.refresh_visualizer()
         return 0
 
-    def refresh(self):
+    def refresh_visualizer(self):
         if not self.visualizer is None:
             for body in self.bodies:
                 for d in body.visual_data:
                     self.visualizer.set_transform(**d)
+            return 0
+        return -1
 
     def terminate(self):
         with self._LOCK:
@@ -133,8 +131,11 @@ class Project:
         key_code = 0
         if not self.visualizer is None:
             vis_code = self.visualizer.terminate()
+            self.visualizer = None
         if not self.animator is None:
             ani_code = self.animator.terminate()
+            self.animator = None
         if not self.keyboard is None:
             key_code = self.keyboard.terminate()
+            self.keyboard = None
         return max(sim_code, vis_code, ani_code, key_code)
