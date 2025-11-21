@@ -10,7 +10,6 @@ which users interact when using condynsate.
 #DEPENDENCIES
 ###############################################################################
 import signal
-import threading
 from warnings import warn
 from condynsate.simulator import Simulator
 from condynsate.visualizer import Visualizer
@@ -49,10 +48,6 @@ class Project:
         # Track all bodies loaded in project
         self.bodies = []
 
-        # Mutex lock
-        self._LOCK = threading.Lock()
-        self._done = False
-
     def __del__(self):
         """
         Deconstructor method.
@@ -83,7 +78,6 @@ class Project:
         self.terminate()
 
     def load_urdf(self, path, **kwargs):
-        kwargs['lock'] = self._LOCK
         self.bodies.append(self.simulator.load_urdf(path, **kwargs))
         if not self.visualizer is None:
             for d in self.bodies[-1].visual_data:
@@ -95,10 +89,7 @@ class Project:
         self.simulator.reset()
 
         # Redraw all bodies to the visualizer
-        if not self.visualizer is None:
-            for body in self.bodies:
-                for d in body.visual_data:
-                    self.visualizer.set_transform(**d)
+        self.refresh_visualizer()
 
         # Either start (if not started) or reset the animator
         if not self.animator is None:
@@ -122,9 +113,6 @@ class Project:
         return -1
 
     def terminate(self):
-        with self._LOCK:
-            self._done = True
-
         sim_code = self.simulator.terminate()
         vis_code = 0
         ani_code = 0
