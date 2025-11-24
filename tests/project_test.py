@@ -75,7 +75,7 @@ if __name__ == "__main__":
         for joint_name in wheel_joint_names:
             cart.joints[joint_name].apply_torque(torque,
                                                  draw_arrow=True,
-                                                 arrow_scale=10.0)
+                                                 arrow_scale=1.0)
 
         # Take a simulation step
         proj.step()

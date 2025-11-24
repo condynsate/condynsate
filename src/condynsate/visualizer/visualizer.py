@@ -35,12 +35,12 @@ class Visualizer():
     frame_rate : bool, optional
         The frame rate of the visualizer. When None, attempts to run at
         unlimited. This is not reccomended because it can cause communication
-        bottlenecks that cause slow downs. The default value is 60.
+        bottlenecks that cause slow downs. The default value is 45.
     record : bool, optional
         A boolean flag that indicates if the visualizer will record
 
     """
-    def __init__(self, frame_rate=60.0, record=False):
+    def __init__(self, frame_rate=45.0, record=False):
         """
         Constructor method.
 

@@ -1,14 +1,16 @@
 import os
 import time
 import condynsate
+from condynsate import __assets__ as assets
 import numpy as np
 
 if __name__ == "__main__":
-    PATH = r'C:\Users\Grayson\Docs\Repos\condynsate\src\condynsate\__assets__'
+    PATH = os.path.dirname(assets['plane_medium'])
     vis = condynsate.Visualizer(record=True)
     vis.set_axes(False)
-    vis.add_object('Ground', os.path.join(PATH, 'plane_med.obj'),
+    vis.add_object('Ground', os.path.join(PATH, 'plane.obj'),
                    tex_path=os.path.join(PATH, 'concrete.png'))
+    vis.set_transform('Ground', scale=(10., 10., 1.))
     vis.add_object('Cube', os.path.join(PATH, 'cube.stl'),
                    color=(0.121, 0.403, 0.749),
                    scale=(0.5, 0.5, 0.5),
@@ -35,5 +37,5 @@ if __name__ == "__main__":
 
         vis.set_cam_target(p)
         time.sleep(0.005)
-        
+
     vis.terminate()
