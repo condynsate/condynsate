@@ -23,10 +23,10 @@ class Body():
     The class stores information about and allows interaction with a body
     in the simulation. This body is defined from a URDF file and is comprised
     of a set of links and joints. Each Body member has the following attributes
-        initial_state : condynsate.core.dataclasses.BodyState
+        initial_state : condynsate.simulator.dataclasses.BodyState
             The initial state of the body. Can be upated with the
             set_initial_state function.
-        state : condynsate.core.dataclasses.BodyState
+        state : condynsate.simulator.dataclasses.BodyState
             The current state of the body in simulation. Can be upated either
             by the simulation or with the set_state function.
         center_of_mass : 3 tuple of floats
@@ -34,10 +34,10 @@ class Body():
         visual_data : list of dicts
             All data needed to render the body assuming each link is rendered
             individually.
-        links : dict of condynsate.core.objects.Link
+        links : dict of condynsate.simulator.objects.Link
             A dictionary whose keys are link names (as defined by the .URDF)
             and whose values are the Link objects that facilitate interaction.
-        joints : dict of condynsate.core.objects.Joint
+        joints : dict of condynsate.simulator.objects.Joint
             A dictionary whose keys are joints names (as defined by the .URDF)
             and whose values are the Joint objects that facilitate interaction.
 
@@ -57,16 +57,7 @@ class Body():
     def __init__(self, client, path, **kwargs):
         self._client = client
         self._id = self._load_urdf(path, **kwargs)
-        (self.name, self.links,
-         link_ids, self.joints) = self._make_links_joints()
-        scales, meshes, poss, oris, colors = self._get_shape_data()
-        self._link_data = {'id' : link_ids,
-                           'scale' : scales,
-                           'mesh' : meshes,
-                           'vis_pos' : poss,
-                           'vis_ori' : oris,
-                           'color' : colors,}
-
+        (self.name, self.links, self.joints) = self._make_links_joints()
         self._arrows = {'com_force' : [],
                         'base_torque' : []}
 
@@ -104,36 +95,24 @@ class Body():
         base_name = base_name.decode('UTF-8')
         body_name = f"{self._id}_{body_name.decode('UTF-8')}"
         links = {base_name : Link(self, -1)}
-        link_ids = {-1 : base_name}
         joints = {}
 
         # Make each joint and non-base link
         for joint_id in range(self._client.getNumJoints(self._id)):
 
-            # Get the joint's name along with its parent and child links' names
+            # Get the joint's name along with its parent and child's names
             info = self._client.getJointInfo(self._id, joint_id)
             joint_name = info[1].decode('UTF-8')
             child_name = info[12].decode('UTF-8')
-            parent_name = link_ids[info[16]]
-
-            # Build the child link
-            links[child_name] = Link(self, joint_id)
-            link_ids[joint_id] = child_name
+            for link in links.values():
+                if link.visual_data['id'] == joint_id - 1:
+                    parent_link = link
+                    break
 
             # Get the parent and children links and make the joint
-            parent = links[parent_name]
-            child = links[child_name]
-            joints[joint_name] = Joint(self, joint_id, parent, child)
-        return body_name, links, link_ids, joints
-
-    def _get_shape_data(self):
-        data = self._client.getVisualShapeData(self._id)
-        scales = [d[3] for d in data]
-        meshes = [os.path.realpath(d[4].decode('UTF-8')) for d in data]
-        vis_pos = [d[5] for d in data]
-        vis_ori = [t.wxyz_from_xyzw(d[6]) for d in data]
-        colors = [d[7] for d in data]
-        return scales, meshes, vis_pos, vis_ori, colors
+            links[child_name] = Link(self, joint_id)
+            joints[joint_name] = Joint(self, joint_id, parent_link)
+        return body_name, links, joints
 
     @property
     def initial_state(self):
@@ -155,21 +134,6 @@ class Body():
                           omega=omg)
         return state
 
-    def _get_all_link_pos_ori(self):
-        # Get the base state
-        base_state = self._client.getBasePositionAndOrientation(self._id)
-
-        # Get all other link states simultaneously
-        link_ids = sorted(self._link_data['id'].keys())
-        link_states = self._client.getLinkStates(self._id, link_ids[1:])
-
-        # Compile all positions and orientations
-        poss = [s[4] for s in link_states]
-        poss.insert(0, base_state[0])
-        oris = [t.wxyz_from_xyzw(s[5]) for s in link_states]
-        oris.insert(0, t.wxyz_from_xyzw(base_state[1]))
-        return link_ids, poss, oris
-
     @property
     def center_of_mass(self):
         """ The position of the center of mass of the object. """
@@ -183,27 +147,78 @@ class Body():
             coms.append(tuple(t.pa_to_pb(Rbw, Obw, info[3]).tolist()))
         return tuple(np.average(coms, weights=masses, axis=0).tolist())
 
+    @property
+    def visual_data(self):
+        """ Data needed to render the body. """
+        # Get the ordered positions and orientations of all links in body
+        link_ids, poss, oris = self._get_all_link_pos_ori()
+
+        # Extract visual data from each link
+        names = [None for p in poss]
+        paths = [None for p in poss]
+        scales = [None for p in poss]
+        colors = [None for p in poss]
+        opacities = [None for p in poss]
+        for link_name, link in self.links.items():
+            i = link_ids.index(link.visual_data['id'])
+
+            # Each position and orientation is poss and oris is the position and
+            # orientation of the link frame origin (defined by the stl).
+            # We must now convert each link frame to its visual frame.
+            poss[i] = t.pa_to_pb(t.Rbw_from_wxyz(oris[i]), poss[i],
+                                 link.visual_data['vis_pos'])
+            oris[i] = t.wxyz_mult(link.visual_data['vis_ori'], oris[i])
+
+            # Get the name, mesh, scale, color, and opacity
+            names[i] = (self.name, link_name)
+            paths[i] = link.visual_data['mesh']
+            scales[i] = link.visual_data['scale']
+            colors[i] = link.visual_data['color'][:-1]
+            opacities[i] = link.visual_data['color'][-1]
+
+        # Assemble visual data
+        keys = ('name','path','position','wxyz_quat','scale','color','opacity')
+        data = [dict(zip(keys, vals)) for vals in
+                     zip(names, paths, poss, oris, scales, colors, opacities)]
+
+        # Append the arrow data
+        for arrow in self._get_arr_vis_dat():
+            data.append(dict(zip(keys, arrow)))
+        return data
+
+    def _get_all_link_pos_ori(self):
+        # Get the base state
+        base_state = self._client.getBasePositionAndOrientation(self._id)
+
+        # Get all other link states simultaneously
+        link_ids = sorted(link.visual_data['id']
+                          for link in self.links.values())
+        link_states = self._client.getLinkStates(self._id, link_ids[1:])
+
+        # Compile all positions and orientations
+        poss = [s[4] for s in link_states]
+        poss.insert(0, base_state[0])
+        oris = [t.wxyz_from_xyzw(s[5]) for s in link_states]
+        oris.insert(0, t.wxyz_from_xyzw(base_state[1]))
+        return link_ids, poss, oris
+
     def __get_arr_vis_dat(self, name, vis_file, arrow_dat):
         name = (self.name, name)
         condynsate_src = os.path.dirname(os.path.dirname(__file__))
         assets_dirpath = os.path.join(condynsate_src, "__assets__")
         path = os.path.join(assets_dirpath, vis_file)
-
+        default = (name, path, (0.,)*3, (1.,)+(0.,)*3, (0.01,)*3, (0.,)*3, 0.)
         if arrow_dat is None:
-            return (name, path, (0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0),
-                    (1.0, 1.0, 1.0), (0.0, 0.0, 0.0), 0.0)
-
+            return default
         magnitude = float(np.linalg.norm(arrow_dat['value']))
         if magnitude == 0.0:
-            return (name, path, (0.0, 0.0, 0.0), (1.0, 0.0, 0.0, 0.0),
-                    (1.0, 1.0, 1.0), (0.0, 0.0, 0.0), 0.0)
+            return default
         dirn = np.divide(arrow_dat['value'], magnitude)
-
         position = arrow_dat['position']
-        orientation = t.wxyz_from_vecs((0,0,1), dirn)
+        orientation = t.wxyz_from_vecs((0., 0., 1.), dirn)
         scale = tuple(magnitude*s for s in arrow_dat['scale'])
-        color = (0.0, 0.0, 0.0)
-        opacity = 1.0
+        color = (0.,)*3
+        opacity = 1.
         return name, path, position, orientation, scale, color, opacity
 
     def _get_arr_vis_dat(self):
@@ -234,51 +249,6 @@ class Body():
                 arrows += (self.__get_arr_vis_dat(*args), )
                 link.arrows['force'][i] = None
         return arrows
-
-    @property
-    def visual_data(self):
-        """ Data needed to render the body. """
-        # Get the ordered positions and orientations of all links in body
-        link_ids, poss, oris = self._get_all_link_pos_ori()
-
-        # Each position and orientation is poss and oris is the position and
-        # orientation of the link frame origin (defined by the stl).
-        # We must now convert each link frame to its visual frame.
-        zipped = zip(self._link_data['vis_pos'], self._link_data['vis_ori'])
-        for i, (vis_pos, vis_ori) in enumerate(zipped):
-            poss[i] = t.pa_to_pb(t.Rbw_from_wxyz(oris[i]), poss[i], vis_pos)
-            oris[i] = t.wxyz_mult(vis_ori, oris[i])
-
-        # Get the name of each link
-        names = [(self.name, self._link_data['id'][i]) for i in link_ids]
-
-        # Assemble all visual data
-        # (name, position, orientation, scale, mesh path, and color)
-        zipped = zip(names, poss, oris,
-                     self._link_data['scale'],
-                     self._link_data['mesh'],
-                     self._link_data['color'])
-        data = []
-        for name, pos, ori, scale, mesh, color in zipped:
-            data.append({'name' : name,
-                         'path' : mesh,
-                         'position' : pos,
-                         'wxyz_quat' : ori,
-                         'scale' : scale,
-                         'color' : color[:-1],
-                         'opacity' : color[-1]})
-
-        # Append the arrow data
-        arrows = self._get_arr_vis_dat()
-        for arrow in arrows:
-            data.append({'name' : arrow[0],
-                         'path' : arrow[1],
-                         'position' : arrow[2],
-                         'wxyz_quat' : arrow[3],
-                         'scale' : arrow[4],
-                         'color' : arrow[5],
-                         'opacity' : arrow[6]})
-        return data
 
     def _state_kwargs_ok(self, **kwargs):
         try:
@@ -399,19 +369,14 @@ class Body():
         roll = kwargs.get('roll', ypr0[2])
         ornObj = t.xyzw_from_wxyz(t.wxyz_from_euler(yaw, pitch, roll))
 
-        # Velocities in body coords
+        # Convert velocities in body coords to world coords
         if kwargs.get('body', False):
-            # Body to world rotation matrix
             Rbw = t.Rbw_from_euler(yaw, pitch, roll)
-
-            # Linear velocity
             vel = kwargs.get('velocity', None)
             if vel is None:
                 linearVelocity = state.velocity
             else:
                 linearVelocity = tuple(t.va_to_vb(Rbw, vel).tolist())
-
-            # Angular velocity
             omg = kwargs.get('omega', None)
             if omg is None:
                 angularVelocity = state.omega
@@ -436,6 +401,26 @@ class Body():
         Obw, ornObj = self._client.getBasePositionAndOrientation(self._id)
         Rbw = t.Rbw_from_wxyz(t.wxyz_from_xyzw(ornObj))
         return Obw, Rbw
+
+    def _add_arrow(self, position, value, name, sf, **kwargs):
+        if kwargs.get('draw_arrow', False):
+            scale = kwargs.get('arrow_scale', 1.0)
+            scale = tuple(scale if s is None else s for s in sf)
+            arrow_dat = {'position' : position,
+                         'value' : value,
+                         'scale' : scale}
+            if len(self._arrows[name]) == 0:
+                self._arrows[name].append(arrow_dat)
+            else:
+                for i, val in enumerate(self._arrows[name]):
+                    if val is None:
+                        self._arrows[name][i] = arrow_dat
+                        break
+                    if i == len(self._arrows[name]) - 1:
+                        self._arrows[name].append(arrow_dat)
+                        break
+        return 0
+
 
     def apply_force(self, force, **kwargs):
         """
@@ -471,8 +456,7 @@ class Body():
             return -1
 
         if kwargs.get('body', False):
-            _, Rbw = self._get_Obw_Rbw()
-            force = t.va_to_vb(Rbw, force)
+            force = t.va_to_vb(self._get_Obw_Rbw()[1], force)
 
         # Calculate required centers of mass
         # Explicit calc like this requires one less center_of_mass call and
@@ -480,42 +464,28 @@ class Body():
         # reduces overhead
         link_ids, Obws, oris = self._get_all_link_pos_ori()
         Rbws = [t.Rbw_from_wxyz(ori) for ori in oris]
-        masses = []
-        coms = []
+        mass = []
+        com = []
         base_com = None
         for link_id, Obw, Rbw in zip(link_ids, Obws, Rbws):
             info = self._client.getDynamicsInfo(self._id, link_id,)
-            masses.append(info[0])
-            coms.append(tuple(t.pa_to_pb(Rbw, Obw, info[3]).tolist()))
+            mass.append(info[0])
+            com.append(tuple(t.pa_to_pb(Rbw, Obw, info[3]).tolist()))
             if link_id == -1:
-                base_com = coms[-1]
-        com = tuple(np.average(coms, weights=masses, axis=0).tolist())
+                base_com = com[-1]
+        com = tuple(np.average(com, weights=mass, axis=0).tolist())
 
         # Get the required counter torque
-        r = np.subtract(base_com, com)
-        torque = tuple(np.cross(r, force).tolist())
+        torque = tuple(np.cross(np.subtract(base_com, com), force).tolist())
 
         # Apply force and counter torque
-        flag = self._client.WORLD_FRAME
-        self._client.applyExternalForce(self._id, -1, force, com, flags=flag)
-        self._client.applyExternalTorque(self._id, -1, torque, flags=flag)
+        self._client.applyExternalForce(self._id, -1, force, com,
+                                        flags=self._client.WORLD_FRAME)
+        self._client.applyExternalTorque(self._id, -1, torque,
+                                         flags=self._client.WORLD_FRAME)
 
         # Add arrow information for rendering
-        if kwargs.get('draw_arrow', False):
-            scale = kwargs.get('arrow_scale', 1.0)
-            arrow_dat = {'position' : com,
-                         'value' : force,
-                         'scale' : (scale, scale, scale)}
-            if len(self._arrows['com_force']) == 0:
-                self._arrows['com_force'].append(arrow_dat)
-            else:
-                for i, val in enumerate(self._arrows['com_force']):
-                    if val is None:
-                        self._arrows['com_force'][i] = arrow_dat
-                        break
-                    if i == len(self._arrows['com_force']) - 1:
-                        self._arrows['com_force'].append(arrow_dat)
-                        break
+        self._add_arrow(com, force, 'com_force', (None, None, None), **kwargs)
         return 0
 
     def apply_torque(self, torque, **kwargs):
@@ -559,21 +529,7 @@ class Body():
         self._client.applyExternalTorque(self._id, -1, torque, flags=flag)
 
         # Add arrow information for rendering
-        if kwargs.get('draw_arrow', False):
-            scale = kwargs.get('arrow_scale', 1.0)
-            arrow_dat = {'position' : Obw,
-                         'value' : torque,
-                         'scale' : (scale, scale, 0.01)}
-            if len(self._arrows['base_torque']) == 0:
-                self._arrows['base_torque'].append(arrow_dat)
-            else:
-                for i, val in enumerate(self._arrows['base_torque']):
-                    if val is None:
-                        self._arrows['base_torque'][i] = arrow_dat
-                        break
-                    if i == len(self._arrows['base_torque']) - 1:
-                        self._arrows['base_torque'].append(arrow_dat)
-                        break
+        self._add_arrow(Obw,torque,'base_torque',(None, None, 0.01),**kwargs)
         return 0
 
     def reset(self):
@@ -609,10 +565,10 @@ class Joint:
     """
     The class stores information about and allows interaction with a joint
     on a body in the simulation. Each Joint member has the following attributes
-        initial_state : condynsate.core.objects.JointState
+        initial_state : condynsate.simulator.dataclasses.JointState
             The initial state of the joint. Can be upated with the
             set_initial_state function.
-        state : condynsate.core.objects.JointState
+        state : condynsate.simulator.dataclasses.JointState
             The current state of the joint in simulation. Read only.
         axis : 3 tuple of floats
             The axis, in world coordinates, about which the joint operates.
@@ -625,16 +581,13 @@ class Joint:
         The unique number that identifies the joint in the PyBullet client.
     parent : condynsate.core.objects.Link
         The parent link of the joint.
-    child : condynsate.core.objects.Link
-        The child link of the joint.
 
     """
-    def __init__(self, sim_obj, idx, parent, child):
+    def __init__(self, sim_obj, idx, parent):
         self._client = sim_obj._client
         self._body_id = sim_obj._id
         self._id = idx
         self._parent = parent
-        self._child = child
         self._init_state = JointState()
         self._set_defaults()
         self._type = self._client.getJointInfo(self._body_id, self._id)[2]
@@ -681,7 +634,7 @@ class Joint:
         axis_j = info[13]
         Rjp = t.Rbw_from_wxyz(t.wxyz_from_xyzw(info[15]))
         axis_p = t.va_to_vb(Rjp, axis_j)
-        _, Rpw = self._parent._get_Obw_Rbw()
+        _, Rpw = self._parent.Obw_Rbw
         axis_w = t.va_to_vb(Rpw, axis_p)
         return axis_w
 
@@ -810,30 +763,26 @@ class Joint:
 
         """
         if self._type == self._client.JOINT_FIXED:
-            msg = "Cannot apply torque to a fixed joint."
-            warn(msg)
+            warn("Cannot apply torque to a fixed joint.")
             return -1
         try:
             torque = float(torque)
         except (TypeError, ValueError):
             warn('Cannot apply torque, invalid torque value.')
             return -1
-        mode = self._client.TORQUE_CONTROL
         self._client.setJointMotorControlArray(self._body_id,
                                                [self._id, ],
-                                               mode,
+                                               self._client.TORQUE_CONTROL,
                                                forces=[torque, ])
 
         # Add arrow information for rendering
         if kwargs.get('draw_arrow', False):
             info = self._client.getJointInfo(self._body_id, self._id)
-            axisj = info[13]
-            Ojp = info[14]
-            Rjp = t.Rbw_from_wxyz(t.wxyz_from_xyzw(info[15]))
-            axisp = t.va_to_vb(Rjp, axisj)
-            Opw, Rpw = self._parent._get_Obw_Rbw()
+            axisp = t.va_to_vb(t.Rbw_from_wxyz(t.wxyz_from_xyzw(info[15])),
+                               info[13])
+            Opw, Rpw = self._parent.Obw_Rbw
             axisw = t.va_to_vb(Rpw, axisp)
-            Ojw = t.pa_to_pb(Rpw, Opw, Ojp)
+            Ojw = t.pa_to_pb(Rpw, Opw, info[14])
             scale = kwargs.get('arrow_scale', 1.0)
             arrow_dat = {'position' : Ojw,
                          'value' : tuple(float(torque*x) for x in axisw),
@@ -873,10 +822,18 @@ class Link:
     """
     The class stores information about and allows interaction with a link
     on a body in the simulation. Each Link member has the following attributes
+        state : condynsate.simulator.dataclasses.LinkState
+            The current state of the link (position, orientation, velocity,
+                                           and angular velocity)
         mass : float
             The mass of the link. Can be set with the set_dynamics function.
         center_of_mass : 3 tuple of floats
             The current center of mass of the link in world coordinates.
+        visual_data : dict
+            A dictionary containing all required data to render the link.
+        Obw_Rbw : 2tuple of 3tuple and 3x3 array-like
+            The position of the link in world coordinates and the rotation
+            matrix of the link relative to the world.
 
     Parameters
     ----------
@@ -892,6 +849,8 @@ class Link:
         self._id = idx
         self._set_defaults()
         self.arrows = {'force' : [],}
+        keys = ('id', 'scale', 'mesh', 'vis_pos', 'vis_ori', 'color')
+        self._visual_data = dict(zip(keys, self._get_shape_data()))
 
     def _set_defaults(self):
         # Set the default dynamics
@@ -902,6 +861,16 @@ class Link:
                              'linear_air_resistance' : 0.005,
                              'angular_air_resistance' : 0.005,}
         self.set_dynamics(**default_dyanamics)
+
+    def _get_shape_data(self):
+        data = self._client.getVisualShapeData(self._body_id)
+        data = [d for d in data if d[1]==self._id][0]
+        scale = data[3]
+        mesh = os.path.realpath(data[4].decode('UTF-8'))
+        vis_pos = data[5]
+        vis_ori = t.wxyz_from_xyzw(data[6])
+        color = data[7]
+        return self._id, scale, mesh, vis_pos, vis_ori, color
 
     @property
     def state(self):
@@ -933,11 +902,18 @@ class Link:
     def center_of_mass(self):
         """ The center of mass of the link in world coordinates. """
         com_b = self._client.getDynamicsInfo(self._body_id, self._id,)[3]
-        Obw, Rbw = self._get_Obw_Rbw()
+        Obw, Rbw = self.Obw_Rbw
         com_w = tuple(t.pa_to_pb(Rbw, Obw, com_b).tolist())
         return com_w
 
-    def _get_Obw_Rbw(self):
+    @property
+    def visual_data(self):
+        """ All visual data required to render the link. """
+        return self._visual_data
+
+    @property
+    def Obw_Rbw(self):
+        """ The position and rotation of the link in the world """
         # Get the position and orientation of the link
         if self._id == -1:
             Obw,ori = self._client.getBasePositionAndOrientation(self._body_id)
@@ -1053,7 +1029,7 @@ class Link:
             return -1
 
         # Convert force from body to world coords
-        Obw, Rbw = self._get_Obw_Rbw()
+        Obw, Rbw = self.Obw_Rbw
         if kwargs.get('body', False):
             force = t.va_to_vb(Rbw, force)
 
