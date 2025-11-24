@@ -67,8 +67,8 @@ class Body():
                            'vis_ori' : oris,
                            'color' : colors,}
 
-        self._arrows = {'com_force' : list(),
-                        'base_torque' : list()}
+        self._arrows = {'com_force' : [],
+                        'base_torque' : []}
 
     def _load_urdf(self, urdf_path, **kwargs):
         # Use implicit cylinder for collision and physics calculation
@@ -513,7 +513,7 @@ class Body():
                     if val is None:
                         self._arrows['com_force'][i] = arrow_dat
                         break
-                    elif i == len(self._arrows['com_force']) - 1:
+                    if i == len(self._arrows['com_force']) - 1:
                         self._arrows['com_force'].append(arrow_dat)
                         break
         return 0
@@ -571,7 +571,7 @@ class Body():
                     if val is None:
                         self._arrows['base_torque'][i] = arrow_dat
                         break
-                    elif i == len(self._arrows['base_torque']) - 1:
+                    if i == len(self._arrows['base_torque']) - 1:
                         self._arrows['base_torque'].append(arrow_dat)
                         break
         return 0
@@ -642,7 +642,7 @@ class Joint:
                           self._client.JOINT_PLANAR):
             msg = "Prismatic and Planar joints are not currently supported"
             raise TypeError(msg)
-        self.arrows = {'torque' : list(),}
+        self.arrows = {'torque' : [],}
 
     def _set_defaults(self):
         # Set the default dynamics
@@ -845,7 +845,7 @@ class Joint:
                     if val is None:
                         self.arrows['torque'][i] = arrow_dat
                         break
-                    elif i == len(self.arrows['torque']) - 1:
+                    if i == len(self.arrows['torque']) - 1:
                         self.arrows['torque'].append(arrow_dat)
                         break
         return 0
@@ -891,7 +891,7 @@ class Link:
         self._body_id = sim_obj._id
         self._id = idx
         self._set_defaults()
-        self.arrows = {'force' : list(),}
+        self.arrows = {'force' : [],}
 
     def _set_defaults(self):
         # Set the default dynamics
@@ -1079,7 +1079,7 @@ class Link:
                     if val is None:
                         self.arrows['force'][i] = arrow_dat
                         break
-                    elif i == len(self.arrows['force']) - 1:
+                    if i == len(self.arrows['force']) - 1:
                         self.arrows['force'].append(arrow_dat)
                         break
         return 0
