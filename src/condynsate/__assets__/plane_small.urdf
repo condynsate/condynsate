@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot name="plane">
+<robot name="plane_small">
 
   <material name="steel">
     <color rgba="0.75 0.75 0.75 1"/>
@@ -10,7 +10,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="plane.obj" scale="100 100 1"/>
+        <mesh filename="plane.obj" scale="1 1 1"/>
       </geometry>
       <material name = "steel"/>
     </visual>
@@ -18,7 +18,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 -2.5"/>
       <geometry>
-        <box size="100 100 5"/>
+        <box size="1 1 5"/>
       </geometry>
     </collision>
   

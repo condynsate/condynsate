@@ -86,7 +86,6 @@ class Body():
         self._client.resetBaseVelocity(objectUniqueId=urdf_id,
                                        linearVelocity=linearVelocity,
                                        angularVelocity=angularVelocity)
-
         return urdf_id
 
     def _make_links_joints(self):
@@ -159,6 +158,7 @@ class Body():
         scales = [None for p in poss]
         colors = [None for p in poss]
         opacities = [None for p in poss]
+        tex_paths = [None for p in poss]
         for link_name, link in self.links.items():
             i = link_ids.index(link.visual_data['id'])
 
@@ -173,13 +173,16 @@ class Body():
             names[i] = (self.name, link_name)
             paths[i] = link.visual_data['mesh']
             scales[i] = link.visual_data['scale']
-            colors[i] = link.visual_data['color'][:-1]
-            opacities[i] = link.visual_data['color'][-1]
+            colors[i] = link.visual_data['color']
+            opacities[i] = link.visual_data['opacity']
+            tex_paths[i] = link.visual_data['tex_path']
 
         # Assemble visual data
-        keys = ('name','path','position','wxyz_quat','scale','color','opacity')
+        keys = ('name','path','position','wxyz_quat','scale',
+                'color','opacity','tex_path')
         data = [dict(zip(keys, vals)) for vals in
-                     zip(names, paths, poss, oris, scales, colors, opacities)]
+                     zip(names, paths, poss, oris, scales, 
+                         colors, opacities, tex_paths)]
 
         # Append the arrow data
         for arrow in self._get_arr_vis_dat():
@@ -219,7 +222,8 @@ class Body():
         scale = tuple(magnitude*s for s in arrow_dat['scale'])
         color = (0.,)*3
         opacity = 1.
-        return name, path, position, orientation, scale, color, opacity
+        tex_path = None
+        return name,path,position,orientation,scale,color,opacity,tex_path
 
     def _get_arr_vis_dat(self):
         # Center of mass force arrow
@@ -848,9 +852,8 @@ class Link:
         self._body_id = sim_obj._id
         self._id = idx
         self._set_defaults()
+        self._visual_data = self._get_visual_data()
         self.arrows = {'force' : [],}
-        keys = ('id', 'scale', 'mesh', 'vis_pos', 'vis_ori', 'color')
-        self._visual_data = dict(zip(keys, self._get_shape_data()))
 
     def _set_defaults(self):
         # Set the default dynamics
@@ -862,15 +865,16 @@ class Link:
                              'angular_air_resistance' : 0.005,}
         self.set_dynamics(**default_dyanamics)
 
-    def _get_shape_data(self):
+    def _get_visual_data(self):
         data = self._client.getVisualShapeData(self._body_id)
         data = [d for d in data if d[1]==self._id][0]
-        scale = data[3]
         mesh = os.path.realpath(data[4].decode('UTF-8'))
-        vis_pos = data[5]
         vis_ori = t.wxyz_from_xyzw(data[6])
-        color = data[7]
-        return self._id, scale, mesh, vis_pos, vis_ori, color
+        keys = ('id', 'scale', 'mesh', 'vis_pos', 'vis_ori', 
+                'color', 'opacity', 'tex_path')
+        dat = (self._id, data[3], mesh, data[5], vis_ori, 
+               data[7][:-1], data[7][-1], None)
+        return dict(zip(keys, dat))
 
     @property
     def state(self):
@@ -1019,8 +1023,11 @@ class Link:
         except (TypeError, ValueError, IndexError):
             warn('Cannot set color, invalid color value.')
             return -1
-        self._visual_data['color'] = color + (1.0, )
+        self._visual_data['color'] = color
         return 0
+    
+    def set_texture(self, texture):
+        self._visual_data['tex_path'] = texture
 
     def apply_force(self, force, **kwargs):
         """

@@ -78,6 +78,10 @@ class Project:
     def bodies(self):
         return self.simulator.bodies
 
+    @property
+    def time(self):
+        return self.simulator.time
+
     def load_urdf(self, path, **kwargs):
         body = self.simulator.load_urdf(path, **kwargs)
         self.refresh_visualizer()
