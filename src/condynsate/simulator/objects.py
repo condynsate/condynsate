@@ -995,6 +995,33 @@ class Link:
         self._client.changeDynamics(self._body_id, self._id, **args)
         return 0
 
+    def set_color(self, color):
+        """
+        Changes the color of the link.
+
+        Parameters
+        ----------
+        color : 3 tuple of floats
+            The color to set the link. In the form (R, G, B) where R is the
+            red channel, G is the green channel, and B is the blue channel.
+            Each channel has value between 0.0 and 1.0.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        try:
+            color = (float(min(max(color[0], 0.0), 1.0)),
+                     float(min(max(color[1], 0.0), 1.0)),
+                     float(min(max(color[2], 0.0), 1.0)))
+        except (TypeError, ValueError, IndexError):
+            warn('Cannot set color, invalid color value.')
+            return -1
+        self._visual_data['color'] = color + (1.0, )
+        return 0
+
     def apply_force(self, force, **kwargs):
         """
         Applies force to the center of mass of a link.
