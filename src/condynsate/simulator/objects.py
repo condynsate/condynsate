@@ -67,8 +67,8 @@ class Body():
                            'vis_ori' : oris,
                            'color' : colors,}
 
-        self._arrows = {'com_force' : None,
-                        'base_torque' : None}
+        self._arrows = {'com_force' : list(),
+                        'base_torque' : list()}
 
     def _load_urdf(self, urdf_path, **kwargs):
         # Use implicit cylinder for collision and physics calculation
@@ -208,24 +208,32 @@ class Body():
 
     def _get_arr_vis_dat(self):
         # Center of mass force arrow
-        com_force = self.__get_arr_vis_dat('com_force',
-                                           'arrow_lin.stl',
-                                           self._arrows['com_force'])
-        self._arrows['com_force'] = None
+        arrows = tuple()
+        for i, force in enumerate(self._arrows['com_force']):
+            args = (f'com_force_{i+1}', 'arrow_lin.stl', force)
+            arrows += (self.__get_arr_vis_dat(*args), )
+            self._arrows['com_force'][i] = None
 
         # Base link torque arrow
-        base_torque = self.__get_arr_vis_dat('base_torque',
-                                             'arrow_ccw.stl',
-                                             self._arrows['base_torque'])
-        self._arrows['base_torque'] = None
+        for i, torque in enumerate(self._arrows['base_torque']):
+            args = (f'base_torque_{i+1}', 'arrow_ccw.stl', torque)
+            arrows += (self.__get_arr_vis_dat(*args), )
+            self._arrows['base_torque'][i] = None
 
         # Get each joint's torque arrow
-        # TODO
+        for joint_name, joint in self.joints.items():
+            for i, torque in enumerate(joint.arrows['torque']):
+                args = (f'{joint_name}_torque_{i+1}', 'arrow_ccw.stl', torque)
+                arrows += (self.__get_arr_vis_dat(*args), )
+                joint.arrows['torque'][i] = None
 
         # Get each link's force arrow
-        # TODO
-
-        return com_force, base_torque
+        for link_name, link in self.links.items():
+            for i, force in enumerate(link.arrows['force']):
+                args = (f'{link_name}_force_{i+1}', 'arrow_lin.stl', force)
+                arrows += (self.__get_arr_vis_dat(*args), )
+                link.arrows['force'][i] = None
+        return arrows
 
     @property
     def visual_data(self):
@@ -448,7 +456,7 @@ class Body():
                 to represent the applied force. The default is False.
             arrow_scale : float, optional
                 The scaling factor, relative to the size of the applied force,
-                that is used to size the force arrow. The default is 0.025.
+                that is used to size the force arrow. The default is 1.0.
 
         Returns
         -------
@@ -494,12 +502,20 @@ class Body():
 
         # Add arrow information for rendering
         if kwargs.get('draw_arrow', False):
-            scale = kwargs.get('arrow_scale', 0.025)
+            scale = kwargs.get('arrow_scale', 1.0)
             arrow_dat = {'position' : com,
                          'value' : force,
                          'scale' : (scale, scale, scale)}
-            self._arrows['com_force'] = arrow_dat
-
+            if len(self._arrows['com_force']) == 0:
+                self._arrows['com_force'].append(arrow_dat)
+            else:
+                for i, val in enumerate(self._arrows['com_force']):
+                    if val is None:
+                        self._arrows['com_force'][i] = arrow_dat
+                        break
+                    elif i == len(self._arrows['com_force']) - 1:
+                        self._arrows['com_force'].append(arrow_dat)
+                        break
         return 0
 
     def apply_torque(self, torque, **kwargs):
@@ -548,8 +564,16 @@ class Body():
             arrow_dat = {'position' : Obw,
                          'value' : torque,
                          'scale' : (scale, scale, 0.01)}
-            self._arrows['base_torque'] = arrow_dat
-
+            if len(self._arrows['base_torque']) == 0:
+                self._arrows['base_torque'].append(arrow_dat)
+            else:
+                for i, val in enumerate(self._arrows['base_torque']):
+                    if val is None:
+                        self._arrows['base_torque'][i] = arrow_dat
+                        break
+                    elif i == len(self._arrows['base_torque']) - 1:
+                        self._arrows['base_torque'].append(arrow_dat)
+                        break
         return 0
 
     def reset(self):
@@ -613,6 +637,12 @@ class Joint:
         self._child = child
         self._init_state = JointState()
         self._set_defaults()
+        self._type = self._client.getJointInfo(self._body_id, self._id)[2]
+        if self._type in (self._client.JOINT_PRISMATIC,
+                          self._client.JOINT_PLANAR):
+            msg = "Prismatic and Planar joints are not currently supported"
+            raise TypeError(msg)
+        self.arrows = {'torque' : list(),}
 
     def _set_defaults(self):
         # Set the default dynamics
@@ -756,7 +786,7 @@ class Joint:
                                      targetVelocity=targetVelocity)
         return 0
 
-    def apply_torque(self, torque):
+    def apply_torque(self, torque, **kwargs):
         """
         Applies torque to a joint for a single simulation step.
 
@@ -764,6 +794,14 @@ class Joint:
         ----------
         torque : float
             The torque being applied about the joint's axis..
+        **kwargs
+            Extra arguments. Valid keys include
+            draw_arrow : bool, optional
+                A Boolean flag that indicates if an arrow should be drawn
+                to represent the applied torque. The default is False.
+            arrow_scale : float, optional
+                The scaling factor, relative to the size of the applied torque,
+                that is used to size the torque arrow. The default is 1.0.
 
         Returns
         -------
@@ -771,6 +809,10 @@ class Joint:
             0 if successful, -1 if something went wrong.
 
         """
+        if self._type == self._client.JOINT_FIXED:
+            msg = "Cannot apply torque to a fixed joint."
+            warn(msg)
+            return -1
         try:
             torque = float(torque)
         except (TypeError, ValueError):
@@ -781,6 +823,31 @@ class Joint:
                                                [self._id, ],
                                                mode,
                                                forces=[torque, ])
+
+        # Add arrow information for rendering
+        if kwargs.get('draw_arrow', False):
+            info = self._client.getJointInfo(self._body_id, self._id)
+            axisj = info[13]
+            Ojp = info[14]
+            Rjp = t.Rbw_from_wxyz(t.wxyz_from_xyzw(info[15]))
+            axisp = t.va_to_vb(Rjp, axisj)
+            Opw, Rpw = self._parent._get_Obw_Rbw()
+            axisw = t.va_to_vb(Rpw, axisp)
+            Ojw = t.pa_to_pb(Rpw, Opw, Ojp)
+            scale = kwargs.get('arrow_scale', 1.0)
+            arrow_dat = {'position' : Ojw,
+                         'value' : tuple(float(torque*x) for x in axisw),
+                         'scale' : (scale, scale, 0.01)}
+            if len(self.arrows['torque']) == 0:
+                self.arrows['torque'].append(arrow_dat)
+            else:
+                for i, val in enumerate(self.arrows['torque']):
+                    if val is None:
+                        self.arrows['torque'][i] = arrow_dat
+                        break
+                    elif i == len(self.arrows['torque']) - 1:
+                        self.arrows['torque'].append(arrow_dat)
+                        break
         return 0
 
     def reset(self):
@@ -824,6 +891,7 @@ class Link:
         self._body_id = sim_obj._id
         self._id = idx
         self._set_defaults()
+        self.arrows = {'force' : list(),}
 
     def _set_defaults(self):
         # Set the default dynamics
@@ -951,7 +1019,7 @@ class Link:
         self._client.changeDynamics(self._body_id, self._id, **args)
         return 0
 
-    def apply_force(self, force, body=False):
+    def apply_force(self, force, **kwargs):
         """
         Applies force to the center of mass of a link.
 
@@ -959,10 +1027,18 @@ class Link:
         ----------
         force : 3 tuple of floats
             The force being applied to the center of mass.
-        body : bool, optional
-            A Boolean flag that indicates if the force argument is in
-            the body coordinates of the link (True), or in world coordinates
-            (False). The default is False.
+        **kwargs
+            Extra arguments. Valid keys include
+            body : bool, optional
+                A Boolean flag that indicates if the force argument is in
+                body coordinates (True), or in world coordinates (False).
+                The default is False.
+            draw_arrow : bool, optional
+                A Boolean flag that indicates if an arrow should be drawn
+                to represent the applied force. The default is False.
+            arrow_scale : float, optional
+                The scaling factor, relative to the size of the applied force,
+                that is used to size the force arrow. The default is 1.0.
 
         Returns
         -------
@@ -978,7 +1054,7 @@ class Link:
 
         # Convert force from body to world coords
         Obw, Rbw = self._get_Obw_Rbw()
-        if body:
+        if kwargs.get('body', False):
             force = t.va_to_vb(Rbw, force)
 
         # Get the center of mass in world coordinates
@@ -989,4 +1065,21 @@ class Link:
         flag = self._client.WORLD_FRAME
         self._client.applyExternalForce(self._body_id, self._id, force, com_w,
                                         flags=flag)
+
+        # Add arrow information for rendering
+        if kwargs.get('draw_arrow', False):
+            scale = kwargs.get('arrow_scale', 1.0)
+            arrow_dat = {'position' : com_w,
+                         'value' : force,
+                         'scale' : (scale, scale, scale)}
+            if len(self.arrows['force']) == 0:
+                self.arrows['force'].append(arrow_dat)
+            else:
+                for i, val in enumerate(self.arrows['force']):
+                    if val is None:
+                        self.arrows['force'][i] = arrow_dat
+                        break
+                    elif i == len(self.arrows['force']) - 1:
+                        self.arrows['force'].append(arrow_dat)
+                        break
         return 0

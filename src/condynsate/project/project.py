@@ -45,9 +45,6 @@ class Project:
         if kwargs.get('keyboard', False):
             self.keyboard = Keyboard()
 
-        # Track all bodies loaded in project
-        self.bodies = []
-
     def __del__(self):
         """
         Deconstructor method.
@@ -77,26 +74,24 @@ class Project:
         warn(m)
         self.terminate()
 
+    @property
+    def bodies(self):
+        return self.simulator.bodies
+
     def load_urdf(self, path, **kwargs):
-        self.bodies.append(self.simulator.load_urdf(path, **kwargs))
-        if not self.visualizer is None:
-            for d in self.bodies[-1].visual_data:
-                self.visualizer.add_object(**d)
-        return self.bodies[-1]
+        body = self.simulator.load_urdf(path, **kwargs)
+        self.refresh_visualizer()
+        return body
 
     def reset(self):
-        # Reset the simulator
-        self.simulator.reset()
-
-        # Redraw all bodies to the visualizer
-        self.refresh_visualizer()
-
-        # Either start (if not started) or reset the animator
+        ret_code = self.simulator.reset()
+        ret_code += self.refresh_visualizer()
         if not self.animator is None:
             if not self.animator.is_running():
-                self.animator.start()
+                ret_code += self.animator.start()
             else:
-                self.animator.reset_all()
+                ret_code += self.animator.reset_all()
+        return max(-1, ret_code)
 
     def step(self, real_time=True):
         if self.simulator.step(real_time=real_time) != 0:
@@ -107,25 +102,22 @@ class Project:
     def refresh_visualizer(self):
         if self.visualizer is None:
             return -1
-
         for body in self.bodies:
             for d in body.visual_data:
+                self.visualizer.add_object(**d)
                 self.visualizer.set_transform(**d)
                 self.visualizer.set_material(**d)
         return 0
 
     def terminate(self):
-        sim_code = self.simulator.terminate()
-        vis_code = 0
-        ani_code = 0
-        key_code = 0
+        ret_code = self.simulator.terminate()
         if not self.visualizer is None:
-            vis_code = self.visualizer.terminate()
+            ret_code += self.visualizer.terminate()
             self.visualizer = None
         if not self.animator is None:
-            ani_code = self.animator.terminate()
+            ret_code += self.animator.terminate()
             self.animator = None
         if not self.keyboard is None:
-            key_code = self.keyboard.terminate()
+            ret_code += self.keyboard.terminate()
             self.keyboard = None
-        return max(sim_code, vis_code, ani_code, key_code)
+        return max(-1, ret_code)

@@ -1018,12 +1018,16 @@ class Visualizer():
         if not path_valid(path, ftype=('.obj', '.dae', '.stl'), arg_name=path):
             return -1
 
+        # If the object is already there, do not add it again
+        scene_path = get_scene_path(name)
+        if scene_path in self._objects:
+            return 0
+
         # Sanitize the kwargs
         material_kwargs = self._read_material_kwargs(kwargs)
         transform_kwargs = self._read_transform_kwargs(kwargs)
 
         # Queue loading the object into the scene
-        scene_path = get_scene_path(name)
         args = (name, path, material_kwargs, )
         ret_code = self._queue_action(self._add_object, scene_path, args)
         if ret_code < 0:
