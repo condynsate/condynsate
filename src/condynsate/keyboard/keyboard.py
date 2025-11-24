@@ -9,6 +9,7 @@ users which keys are pressed.
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
+import time
 from copy import copy
 from warnings import warn
 from pynput.keyboard import (Listener, Key)
@@ -129,6 +130,50 @@ class Keyboard:
         """
         keys_pressed = self._read_bufs()
         return key_str in keys_pressed
+
+
+    def await_press(self, key_str, timeout=None):
+        """
+        Waits until the user presses a specified key or until the timeout
+        condition is met
+
+        Parameters
+        ----------
+        key_str : string
+            The key to await. May be a lowercase letter, a digit, a
+            special character, or a punctuation mark that does not use shift on
+            a QWERTY keyboard.
+            The special keys are as follows:
+            "esc", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10",
+            "f11", "f12", "print_screen", "scroll_lock", "pause", "backspace",
+            "insert", "home", "page_up", "num_lock", "tab", "delete", "end",
+            "page_down", "caps_lock", "enter", "up", "left", "down", "right"
+            The punctuation marks that do not use shift on a QWERTY keyboard
+            are as follows:
+            "`", "-", "=", "[", "]", "\", ";", "'", ",", ".", "/"
+            The following modifiers can also be used:
+            "shift", "alt", "ctrl", "cmd".
+            Modifiers are added with the following format:
+            "shift+a", "ctrl+a", "alt+a", "shift+ctrl+alt+a", etc.
+        timeout : float > 0.0, optional
+            The timeout value in seconds. The default is None.
+
+        Returns
+        -------
+        ret_code: int
+            0 is the key is pressed, -1 is the timeout value is reached before
+            the key is pressed.
+
+        """
+        print(f"Awaiting '{key_str}' to be pressed...", flush=True, end='')
+        start_time = time.time()
+        while not self.is_pressed(key_str):
+            if not timeout is None and time.time() - start_time >= timeout:
+                print(f' Timed out after {timeout} seconds.', flush=True)
+                return -1
+            time.sleep(0.01)
+        print(f" '{key_str}' pressed. Continuing", flush=True)
+        return 0
 
 
     def _read_bufs(self):

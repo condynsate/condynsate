@@ -1,3 +1,3 @@
-from condynsate.simulator.simulator_v2 import Simulator
+from condynsate.simulator.simulator import Simulator
 
 __all__ = ["Simulator"]

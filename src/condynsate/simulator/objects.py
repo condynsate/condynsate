@@ -104,7 +104,7 @@ class Body():
             joint_name = info[1].decode('UTF-8')
             child_name = info[12].decode('UTF-8')
             for link in links.values():
-                if link.visual_data['id'] == joint_id - 1:
+                if link.visual_data['id'] == info[16]:
                     parent_link = link
                     break
 
@@ -181,7 +181,7 @@ class Body():
         keys = ('name','path','position','wxyz_quat','scale',
                 'color','opacity','tex_path')
         data = [dict(zip(keys, vals)) for vals in
-                     zip(names, paths, poss, oris, scales, 
+                     zip(names, paths, poss, oris, scales,
                          colors, opacities, tex_paths)]
 
         # Append the arrow data
@@ -759,6 +759,9 @@ class Joint:
             arrow_scale : float, optional
                 The scaling factor, relative to the size of the applied torque,
                 that is used to size the torque arrow. The default is 1.0.
+            arrow_offset : float, optional
+                The amount by which the drawn is offset from the center of the
+                joint's child link along the joint axis. The default is 0.0.
 
         Returns
         -------
@@ -787,8 +790,10 @@ class Joint:
             Opw, Rpw = self._parent.Obw_Rbw
             axisw = t.va_to_vb(Rpw, axisp)
             Ojw = t.pa_to_pb(Rpw, Opw, info[14])
+            offset = kwargs.get('arrow_offset', 0.0)
+            position = tuple(o+offset*a for o, a in zip(Ojw, axisw))
             scale = kwargs.get('arrow_scale', 1.0)
-            arrow_dat = {'position' : Ojw,
+            arrow_dat = {'position' : position,
                          'value' : tuple(float(torque*x) for x in axisw),
                          'scale' : (scale, scale, 0.01)}
             if len(self.arrows['torque']) == 0:
@@ -870,9 +875,9 @@ class Link:
         data = [d for d in data if d[1]==self._id][0]
         mesh = os.path.realpath(data[4].decode('UTF-8'))
         vis_ori = t.wxyz_from_xyzw(data[6])
-        keys = ('id', 'scale', 'mesh', 'vis_pos', 'vis_ori', 
+        keys = ('id', 'scale', 'mesh', 'vis_pos', 'vis_ori',
                 'color', 'opacity', 'tex_path')
-        dat = (self._id, data[3], mesh, data[5], vis_ori, 
+        dat = (self._id, data[3], mesh, data[5], vis_ori,
                data[7][:-1], data[7][-1], None)
         return dict(zip(keys, dat))
 
@@ -1025,7 +1030,7 @@ class Link:
             return -1
         self._visual_data['color'] = color
         return 0
-    
+
     def set_texture(self, texture):
         self._visual_data['tex_path'] = texture
 
