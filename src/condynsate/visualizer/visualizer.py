@@ -906,7 +906,7 @@ class Visualizer():
         """
         if not tex_path is None:
             texture = geo.PngImage.from_file(tex_path)
-            texture = geo.ImageTexture(texture, wrap=[1, 1], repeat=[2, 2])
+            texture = geo.ImageTexture(texture, wrap=[1, 1], repeat=[1, 1])
         else:
             texture = None
         color = tuple(int(255*c) for c in color)

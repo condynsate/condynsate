@@ -17,24 +17,31 @@ if __name__ == "__main__":
     proj.visualizer.set_axes(False)
     proj.visualizer.set_grid(False)
 
+    # Adjust the lighting
+    proj.visualizer.set_spotlight(on=False)
+    proj.visualizer.set_fill_light(on=False)
+    proj.visualizer.set_negx_light(on=False)
+    proj.visualizer.set_posx_light(intensity=0.5, shadow=True)
+    proj.visualizer.set_ambient_light(intensity=0.8, shadow=True)
+
     # Load the ground
     ground = proj.load_urdf(assets['plane_medium'], fixed=True)
-    ground.links['plane'].set_texture(assets['concrete_img'])
+    ground.links['plane'].set_texture(assets['carpet_img'])
 
     # Load the left wall
-    left_wall = proj.load_urdf(assets['plane_medium'], fixed=True)
-    left_wall.links['plane'].set_texture(assets['bricks_img'])
-    left_wall.set_initial_state(roll=1.5708, yaw=1.5708, position=(-5,0,5))
+    left_wall = proj.load_urdf(assets['half_plane_medium'], fixed=True)
+    left_wall.links['plane'].set_texture(assets['window_wall_img'])
+    left_wall.set_initial_state(roll=1.5708, yaw=1.5708, position=(-5,0,2.5))
 
     # Load the right wall
-    right_wall = proj.load_urdf(assets['plane_medium'], fixed=True)
-    right_wall.links['plane'].set_texture(assets['bricks_img'])
-    right_wall.set_initial_state(roll=1.5708, yaw=-1.5708, position=(5,0,5))
+    right_wall = proj.load_urdf(assets['half_plane_medium'], fixed=True)
+    right_wall.links['plane'].set_texture(assets['door_wall_img'])
+    right_wall.set_initial_state(roll=1.5708, yaw=-1.5708, position=(5,0,2.5))
 
     # Load the back wall
-    back_wall = proj.load_urdf(assets['plane_medium'], fixed=True)
-    back_wall.links['plane'].set_texture(assets['bricks_img'])
-    back_wall.set_initial_state(roll=1.5708, position=(0,5,5))
+    back_wall = proj.load_urdf(assets['half_plane_medium'], fixed=True)
+    back_wall.links['plane'].set_texture(assets['classroom_wall_img'])
+    back_wall.set_initial_state(roll=1.5708, position=(0,5,2.5))
 
     # Load the cart
     cart = proj.load_urdf(assets['cart'])
@@ -45,9 +52,6 @@ if __name__ == "__main__":
     proj.visualizer.set_cam_position((0, -4, 2))
     proj.visualizer.set_cam_target(cart.center_of_mass)
 
-    # Reset the project to its initial state
-    proj.reset()
-
     # Store the name of each wheel joint for easy iteration
     wheel_joint_names = ('chassis_to_wheel_1', 'chassis_to_wheel_2',
                          'chassis_to_wheel_3', 'chassis_to_wheel_4',)
@@ -57,44 +61,65 @@ if __name__ == "__main__":
     m_e = np.zeros(4)
     n_e = np.zeros(1)
 
-    # Ask the user to continue. Upon timeout, terminate and return
-    if proj.keyboard.await_press('enter', timeout=5.0) < 0:
-        proj.terminate()
-        sys.exit(0)
+    # Run simulations until user requests stop
+    DONE = False
+    while not DONE:
 
-    # Run a 15 second simulation
-    start = time.time()
-    while proj.time <= 15.0:
-        # Read the states of the pendulum and each wheel
-        pendulum_state = cart.joints['chassis_to_arm'].state
-        wheel_states = tuple(cart.joints[n].state for n in wheel_joint_names)
+        # Reset the project to its initial state
+        proj.reset()
 
-        # If the pendulum angle exceeds 90 degrees, a failure condition is
-        # met. Terminate the simulation.
-        if abs(pendulum_state.angle) > 1.5708:
-            print('The pendulum fell.')
-            break
+        # Ask the user to continue. Upon timeout, terminate and return
+        if proj.keyboard.await_press('enter') < 0:
+            proj.terminate()
+            sys.exit(0)
 
-        # Calculate the torque required to keep pendulum upright
-        m = np.array([pendulum_state.omega,
-                      np.mean([s.omega for s in wheel_states]),
-                      pendulum_state.angle,
-                      np.mean([s.angle for s in wheel_states])])
-        torque = float(np.clip((-k@(m - m_e) + n_e)[0], -0.75, 0.75))
+        # Run a 15 second simulation
+        start = time.time()
+        while proj.time <= 15.0:
+            # Read the states of the pendulum and each wheel
+            pendulum_state = cart.joints['chassis_to_arm'].state
+            wheel_states = tuple(cart.joints[n].state for n in wheel_joint_names)
 
-        # Apply the torque we calculated
-        for joint_name in wheel_joint_names:
-            offset = ('3' in joint_name or '4' in joint_name)*0.05-0.025
-            cart.joints[joint_name].apply_torque(torque,
-                                                 draw_arrow=True,
-                                                 arrow_scale=0.3,
-                                                 arrow_offset=offset)
+            # If the pendulum angle exceeds 90 degrees, a failure condition is
+            # met. Terminate the simulation.
+            if abs(pendulum_state.angle) > 1.5708:
+                print('The pendulum fell.')
+                break
 
-        # Take a simulation step
-        proj.step()
+            # Calculate the torque required to keep pendulum upright
+            m = np.array([pendulum_state.omega,
+                          np.mean([s.omega for s in wheel_states]),
+                          pendulum_state.angle,
+                          np.mean([s.angle for s in wheel_states])])
+            torque = float(np.clip((-k@(m - m_e) + n_e)[0], -0.75, 0.75))
 
-    # Note how long the simulation took
-    print(f"Simuation ran for {time.time()-start:.2f} seconds.")
+            # Apply the torque we calculated
+            for joint_name in wheel_joint_names:
+                offset = ('3' in joint_name or '4' in joint_name)*0.05-0.025
+                cart.joints[joint_name].apply_torque(torque,
+                                                     draw_arrow=True,
+                                                     arrow_scale=0.3,
+                                                     arrow_offset=offset)
+
+            # Take a simulation step
+            proj.step()
+
+        # Note how long the simulation took
+        print(f"Simuation ran for {time.time()-start:.2f} seconds.",
+              flush=True)
+
+        # Ask the user to continue. Upon timeout, terminate and return
+        print("Press 'backspace' to repeat. Press 'esc' to quit.",
+              flush=True, end='')
+        while True:
+            if proj.keyboard.is_pressed('backspace'):
+                print(' Repeating.', flush=True)
+                break
+            if proj.keyboard.is_pressed('esc'):
+                DONE = True
+                print(' Quiting.', flush=True)
+                break
+            time.sleep(0.01)
 
     # Terminate the project
     proj.terminate()
