@@ -18,11 +18,14 @@ if __name__ == "__main__":
     proj.visualizer.set_grid(False)
 
     # Adjust the lighting
-    proj.visualizer.set_spotlight(on=False)
-    proj.visualizer.set_fill_light(on=False)
-    proj.visualizer.set_negx_light(on=False)
-    proj.visualizer.set_posx_light(intensity=0.5, shadow=True)
-    proj.visualizer.set_ambient_light(intensity=0.8, shadow=True)
+    proj.visualizer.set_spotlight(on=True, angle=np.pi/2.4, shadow=False,
+                                  position=(-4.9,0.5,4.0), intensity=0.1,)
+    proj.visualizer.set_ptlight_1(on=True, intensity=0.5, position=(-3,0.5,2.5),
+                                  shadow=True, distance=0)
+    proj.visualizer.set_ptlight_2(on=True, intensity=0.4, position=(0,0,6.0),
+                                  shadow=True, distance=0)
+    proj.visualizer.set_amblight(on=True, intensity=0.55, shadow=False)
+    proj.visualizer.set_dirnlight(on=False)
 
     # Load the ground
     ground = proj.load_urdf(assets['plane_medium'], fixed=True)
@@ -49,8 +52,11 @@ if __name__ == "__main__":
     cart.joints['chassis_to_arm'].set_initial_state(angle=0.349)
 
     # Position the camera and focus on the cart
-    proj.visualizer.set_cam_position((0, -4, 2))
+    proj.visualizer.set_cam_position((0, -5.5, 2.75))
     proj.visualizer.set_cam_target(cart.center_of_mass)
+
+    # When we are done setting up the visualizer, refresh it
+    proj.refresh_visualizer()
 
     # Store the name of each wheel joint for easy iteration
     wheel_joint_names = ('chassis_to_wheel_1', 'chassis_to_wheel_2',
@@ -98,7 +104,7 @@ if __name__ == "__main__":
                 offset = ('3' in joint_name or '4' in joint_name)*0.05-0.025
                 cart.joints[joint_name].apply_torque(torque,
                                                      draw_arrow=True,
-                                                     arrow_scale=0.3,
+                                                     arrow_scale=0.33,
                                                      arrow_offset=offset)
 
             # Take a simulation step

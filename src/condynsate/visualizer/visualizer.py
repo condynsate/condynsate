@@ -132,8 +132,8 @@ class Visualizer():
 
                 # Extract all of the actions from the shared actions buffer
                 for fnc in list(self._actions_buf.keys()):
-                    for args in self._actions_buf.pop(fnc).values():
-                        actions.append((fnc, args))
+                    for args, kwargs in self._actions_buf.pop(fnc).values():
+                        actions.append((fnc, args, kwargs))
                         priorities.append(self._fnc_priority(fnc))
 
                 # Sort the actions based on their priorities
@@ -143,13 +143,13 @@ class Visualizer():
                 # If done, do all the last actions under lock and then end
                 # the thread loop
                 if self._done:
-                    for (fnc, args) in actions:
-                        fnc(*args)
+                    for (fnc, args, kwargs) in actions:
+                        fnc(*args, **kwargs)
                     return 0
 
             # Do all the actions
-            for (fnc, args) in actions:
-                fnc(*args)
+            for (fnc, args, kwargs) in actions:
+                fnc(*args, **kwargs)
             self._last_refresh = cv2.getTickCount()
 
             # If recording, save the current image
@@ -188,7 +188,7 @@ class Visualizer():
             return 4
         return 5
 
-    def _queue_action(self, fnc, scene_path, args):
+    def _queue_action(self, fnc, scene_path, args, kwargs={}):
         """
         Queues a function argument pair to the scene object at position
         scene_path for execution on the next frame time.
@@ -201,6 +201,9 @@ class Visualizer():
             The scene path to the object on which the function is operated.
         args : tuple
             The star args applied to function fnc.
+        kwargs : dict, optional
+            The star star kwargs applied to function fnc. The default is {}.
+            When {}, no kwargs are sent to the function.
 
         Returns
         -------
@@ -217,12 +220,12 @@ class Visualizer():
 
             # If the function is not in the actions buffer, add it.
             if not fnc in self._actions_buf:
-                self._actions_buf[fnc] = {scene_path : args}
+                self._actions_buf[fnc] = {scene_path : (args, kwargs)}
                 return 0
 
             # If the function is in the buffer, overwrite the args applied
             # to the object at scene_path
-            self._actions_buf[fnc][scene_path] = args
+            self._actions_buf[fnc][scene_path] = (args, kwargs)
             return 0
 
     def _set_defaults(self):
@@ -243,16 +246,19 @@ class Visualizer():
 
         # Set the default lights
         self.set_spotlight(on=True, intensity=0.02, distance=0, shadow=True)
-        self.set_posx_light(on=True, intensity=0.15, distance=0, shadow=True)
-        self.set_negx_light(on=True, intensity=0.45, distance=0, shadow=True)
-        self.set_ambient_light(on=True, intensity=0.55, shadow=True)
-        self.set_fill_light(on=True, intensity=0.05, shadow=True)
+        self.set_ptlight_1(on=True, intensity=0.15, distance=0, shadow=True)
+        self.set_ptlight_2(on=True, intensity=0.45, distance=0, shadow=True)
+        self.set_amblight(on=True, intensity=0.55, shadow=True)
+        self.set_dirnlight(on=True, intensity=0.05, shadow=True)
 
         # Set the default camera properties
         self.set_cam_position((3.0, -6.0, 4))
         self.set_cam_target((0.0, 0.0, 0.0))
         self.set_cam_zoom(1.0)
         self.set_cam_frustum(near=0.01, far=1000.0)
+
+        # Wait just long enough to ensure all default commands go through
+        time.sleep(0.25)
 
     def _set_grid(self, visible):
         """
@@ -386,7 +392,7 @@ class Visualizer():
         args = (top, bottom,)
         return self._queue_action(self._set_background, scene_path, args)
 
-    def _set_light(self, light, on, intensity, distance, shadow):
+    def _set_light(self, light, **kwargs):
         """
         Sets the properties of a light. Pass None to any argument to not
         set that property of the light.
@@ -397,14 +403,22 @@ class Visualizer():
             The case sensitive name of the light in the scene tree. Choose
             from "SpotLight", "PointLightNegativeX", "PointLightPositiveX",
             "AmbientLight", or "FillLight".
-        on : bool
-            Boolean flag that indicates if the light is on.
-        intensity : float
-            Numeric value of the light's strength/intensity.
-        distance : float
-            Maximum range of the light. Default is 0 (no limit).
-        shadow : bool
-            Boolean flag that indicates if the light casts a shadow.
+        **kwargs :
+            on : bool
+                Boolean flag that indicates if the light is on.
+            position : 3tuple of floats
+                The position of the light source in (x,y,z) world coordinates.
+            intensity : float
+                Numeric value of the light's strength/intensity.
+            distance : float
+                Maximum range of the light. Default is 0 (no limit).
+            decay : float
+                The amount a ptlight or spotlight type light dims along the
+                distance of the light.
+            angle : float between 0.0 and 1.5707
+                The beam angle of a spotlight type light in radians.
+            shadow : bool
+                Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -414,32 +428,46 @@ class Visualizer():
         """
         # Get the scene tree paths
         scene_path_1 = '/Lights/'+light
-        scene_path_2 = '/Lights/'+light+'/<object>'
+        scene_path_2 = scene_path_1+'/<object>'
 
         # Set the properties
-        if not on is None:
-            self._scene[scene_path_1].set_property('visible', on)
-            self._scene[scene_path_2].set_property('visible', on)
-        if not intensity is None:
-            intensity = np.clip(intensity, 0.0, 20.0)
+        if 'on' in kwargs:
+            self._scene[scene_path_1].set_property('visible', kwargs['on'])
+            self._scene[scene_path_2].set_property('visible', kwargs['on'])
+
+        if 'position' in kwargs:
+            position = tuple(float(p) for p in kwargs['position'])
+            self._scene[scene_path_2].set_property('position', position)
+
+        if 'intensity' in kwargs:
+            intensity = np.clip(kwargs['intensity'], 0.0, 10.0)
             self._scene[scene_path_2].set_property('intensity', intensity)
-        if not distance is None:
-            distance = np.clip(distance, 0.0, 100.0)
+
+        if 'distance' in kwargs:
+            distance = np.clip(kwargs['distance'], 0.0, 100.0)
             self._scene[scene_path_2].set_property('distance', distance)
+
+        if 'decay' in kwargs:
+            decay = np.clip(kwargs['decay'], 0.0, 10.0)
+            self._scene[scene_path_2].set_property('decay', decay)
+
+        if 'angle' in kwargs:
+            angle = np.clip(kwargs['angle'], 0.0, 1.5707)
+            self._scene[scene_path_2].set_property('angle', angle)
 
         # Because of a typo in the meshcat repo, setting castShadow is a little
         # harder and requires us to directly send the ZQM message
-        if not shadow is None:
+        if 'shadow' in kwargs:
             cmd_data = {'type': 'set_property',
                         'path': scene_path_2,
                         'property': 'castShadow',
-                        'value': shadow}
+                        'value': kwargs['shadow']}
             self._socket.send_multipart([cmd_data["type"].encode("utf-8"),
                                          cmd_data["path"].encode("utf-8"),
                                          umsgpack.packb(cmd_data)])
             self._socket.recv()
 
-    def _light_args_ok(self, light, on, intensity, distance, shadow):
+    def _light_args_ok(self, light, **kwargs):
         """
         Ensures that a set of arguments to be passed to _set_light are all
         valid. Returns True if all valid, returns False if at least one
@@ -452,14 +480,23 @@ class Visualizer():
             The case sensitive name of the light in the scene tree. Choose
             from "SpotLight", "PointLightNegativeX", "PointLightPositiveX",
             "AmbientLight", or "FillLight".
-        on : bool
-            Boolean flag that indicates if the light is on.
-        intensity : float
-            Numeric value of the light's strength/intensity.
-        distance : float
-            Maximum range of the light. Default is 0 (no limit).
-        shadow : bool
-            Boolean flag that indicates if the light casts a shadow.
+        **kwargs :
+            on : bool
+                Boolean flag that indicates if the light is on.
+            position : 3tuple of floats
+                The position of the light source in (x,y,z) world coordinates.
+                Does not apply to amblight type sources.
+            intensity : float
+                Numeric value of the light's strength/intensity.
+            distance : float
+                Maximum range of the light. Default is 0 (no limit).
+            decay : float
+                The amount a ptlight or spotlight type light dims along the
+                distance of the light.
+            angle : float between 0.0 and 1.5707
+                The beam angle of a spotlight type light in radians.
+            shadow : bool
+                Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -467,36 +504,47 @@ class Visualizer():
             All inputs are valid.
 
         """
-        is_okay = True
-        is_okay = is_okay and is_instance(light, str, arg_name='light')
-        if not on is None:
-            is_okay = is_okay and is_instance(on, bool, arg_name='on')
-        if not intensity is None:
-            is_okay = is_okay and is_num(intensity, arg_name='intensity')
-        if not distance is None:
-            is_okay = is_okay and is_num(distance, arg_name='distance')
-        if not shadow is None:
-            is_okay = is_okay and is_instance(shadow, bool, arg_name='shadow')
-        return is_okay
+        ok = is_instance(light, str, arg_name='light')
+        if 'on' in kwargs:
+            ok = ok and is_instance(kwargs['on'], bool, arg_name='on')
+        if 'position' in kwargs:
+            ok = ok and is_nvector(kwargs['position'], 3, arg_name='position')
+        if 'intensity' in kwargs:
+            ok = ok and is_num(kwargs['intensity'], arg_name='intensity')
+        if 'distance' in kwargs:
+            ok = ok and is_num(kwargs['distance'], arg_name='distance')
+        if 'decay' in kwargs:
+            ok = ok and is_num(kwargs['decay'], arg_name='decay')
+        if 'angle' in kwargs:
+            ok = ok and is_num(kwargs['angle'], arg_name='angle')
+        if 'shadow' in kwargs:
+            ok = ok and is_instance(kwargs['shadow'], bool, arg_name='shadow')
+        return ok
 
-    def set_spotlight(self,on=None,intensity=None,distance=None,shadow=None):
+
+    def set_spotlight(self, **kwargs):
         """
         Sets the properties of the spotlight in the scene.
 
         Parameters
         ----------
-        on : bool, optional
-            Boolean flag that indicates if the light is on. When None,
-            is not changed from current value. The default is None.
-        intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. When None,
-            is not changed from current value. The default is None.
-        distance : float [0. to 100.], optional
-            Maximum range of the light. When 0, the range in infinite.
-            When None, is not changed from current value. The default is None.
-        shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. When None,
-            is not changed from current value. The default is None.
+        **kwargs :
+            on : bool
+                Boolean flag that indicates if the light is on.
+            position : 3tuple of floats
+                The position of the light source in (x,y,z) world coordinates.
+                Does not apply to amblight type sources.
+            intensity : float
+                Numeric value of the light's strength/intensity.
+            distance : float
+                Maximum range of the light. Default is 0 (no limit).
+            decay : float
+                The amount a ptlight or spotlight type light dims along the
+                distance of the light.
+            angle : float between 0.0 and 1.5707
+                The beam angle of a spotlight type light in radians.
+            shadow : bool
+                Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -506,33 +554,33 @@ class Visualizer():
         """
         # Make sure inputs are valid
         name = 'SpotLight'
-        if not self._light_args_ok(name, on, intensity, distance, shadow):
+        if not self._light_args_ok(name, **kwargs):
             return -1
 
         # Queue the action in thread safe manner
         scene_path = '/Lights/SpotLight'
-        args = (name, on, intensity, distance, shadow, )
-        return self._queue_action(self._set_light, scene_path, args)
+        args = (name,)
+        return self._queue_action(self._set_light, scene_path, args, kwargs)
 
-    def set_posx_light(self,on=None,intensity=None,distance=None,shadow=None):
+    def set_ptlight_1(self, **kwargs):
         """
         Sets the properties of the point light along the positive x axis
         in the scene.
 
         Parameters
         ----------
-        on : bool, optional
-            Boolean flag that indicates if the light is on. When None,
-            is not changed from current value. The default is None.
-        intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. When None,
-            is not changed from current value. The default is None.
-        distance : float [0. to 100.], optional
-            Maximum range of the light. When 0, the range in infinite.
-            When None, is not changed from current value. The default is None.
-        shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. When None,
-            is not changed from current value. The default is None.
+        **kwargs :
+            on : bool
+                Boolean flag that indicates if the light is on.
+            position : 3tuple of floats
+                The position of the light source in (x,y,z) world coordinates.
+                Does not apply to amblight type sources.
+            intensity : float
+                Numeric value of the light's strength/intensity.
+            distance : float
+                Maximum range of the light. Default is 0 (no limit).
+            shadow : bool
+                Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -542,33 +590,33 @@ class Visualizer():
         """
         # Make sure inputs are valid
         name = 'PointLightPositiveX'
-        if not self._light_args_ok(name, on, intensity, distance, shadow):
+        if not self._light_args_ok(name, **kwargs):
             return -1
 
         # Queue the action in thread safe manner
         scene_path = '/Lights/PointLightPositiveX'
-        args = (name, on, intensity, distance, shadow, )
-        return self._queue_action(self._set_light, scene_path, args)
+        args = (name,)
+        return self._queue_action(self._set_light, scene_path, args, kwargs)
 
-    def set_negx_light(self,on=None,intensity=None,distance=None,shadow=None):
+    def set_ptlight_2(self, **kwargs):
         """
         Sets the properties of the point light along the negative x axis
         in the scene.
 
         Parameters
         ----------
-        on : bool, optional
-            Boolean flag that indicates if the light is on. When None,
-            is not changed from current value. The default is None.
-        intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. When None,
-            is not changed from current value. The default is None.
-        distance : float [0. to 100.], optional
-            Maximum range of the light. When 0, the range in infinite.
-            When None, is not changed from current value. The default is None.
-        shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. When None,
-            is not changed from current value. The default is None.
+        **kwargs :
+            on : bool
+                Boolean flag that indicates if the light is on.
+            position : 3tuple of floats
+                The position of the light source in (x,y,z) world coordinates.
+                Does not apply to amblight type sources.
+            intensity : float
+                Numeric value of the light's strength/intensity.
+            distance : float
+                Maximum range of the light. Default is 0 (no limit).
+            shadow : bool
+                Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -578,29 +626,27 @@ class Visualizer():
         """
         # Make sure inputs are valid
         name = 'PointLightNegativeX'
-        if not self._light_args_ok(name, on, intensity, distance, shadow):
+        if not self._light_args_ok(name, **kwargs):
             return -1
 
         # Queue the action in thread safe manner
         scene_path = '/Lights/PointLightNegativeX'
-        args = (name, on, intensity, distance, shadow, )
-        return self._queue_action(self._set_light, scene_path, args)
+        args = (name,)
+        return self._queue_action(self._set_light, scene_path, args, kwargs)
 
-    def set_ambient_light(self, on=None, intensity=None, shadow=None):
+    def set_amblight(self, **kwargs):
         """
         Sets the properties ambient light of the scene.
 
         Parameters
         ----------
-        on : bool, optional
-            Boolean flag that indicates if the light is on. When None,
-            is not changed from current value. The default is None.
-        intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. When None,
-            is not changed from current value. The default is None.
-        shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. When None,
-            is not changed from current value. The default is None.
+        **kwargs :
+            on : bool
+                Boolean flag that indicates if the light is on.
+            intensity : float
+                Numeric value of the light's strength/intensity.
+            shadow : bool
+                Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -610,29 +656,30 @@ class Visualizer():
         """
         # Make sure inputs are valid
         name = 'AmbientLight'
-        if not self._light_args_ok(name, on, intensity, None, shadow):
+        if not self._light_args_ok(name, **kwargs):
             return -1
 
         # Queue the action in thread safe manner
         scene_path = '/Lights/AmbientLight'
-        args = (name, on, intensity, None, shadow, )
-        return self._queue_action(self._set_light, scene_path, args)
+        args = (name, )
+        return self._queue_action(self._set_light, scene_path, args, kwargs)
 
-    def set_fill_light(self, on=None, intensity=None, shadow=None):
+    def set_dirnlight(self, **kwargs):
         """
         Sets the properties fill light of the scene.
 
         Parameters
         ----------
-        on : bool, optional
-            Boolean flag that indicates if the light is on. When None, is not
-            changed from current value. The default is None.
-        intensity : float [0. to 20.], optional
-            Numeric value of the light's strength/intensity. When None, is not
-            changed from current value. The default is None.
-        shadow : bool, optional
-            Boolean flag that indicates if the light casts a shadow. When None,
-            is not changed from current value. The default is None.
+        **kwargs :
+            on : bool
+                Boolean flag that indicates if the light is on.
+            position : 3tuple of floats
+                The position of the light source in (x,y,z) world coordinates.
+                Does not apply to amblight type sources.
+            intensity : float
+                Numeric value of the light's strength/intensity.
+            shadow : bool
+                Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -642,13 +689,13 @@ class Visualizer():
         """
         # Make sure inputs are valid
         name = 'FillLight'
-        if not self._light_args_ok(name, on, intensity, None, shadow):
+        if not self._light_args_ok(name, **kwargs):
             return -1
 
         # Queue the action in thread safe manner
         scene_path = '/Lights/FillLight'
-        args = (name, on, intensity, None, shadow, )
-        return self._queue_action(self._set_light, scene_path, args)
+        args = (name, )
+        return self._queue_action(self._set_light, scene_path, args, kwargs)
 
     def _set_cam_position(self, p):
         """
