@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This module gives example useage of the keyboard.
+This module gives example usage of the keyboard.
 
 @author: G. Schaer
 """

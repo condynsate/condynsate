@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This moduel gives example usage of the Visualizer class. In this, we load a
+This module gives example usage of the Visualizer class. In this, we load a
 cube into the visualizer and update its position and color while tracking it
 with the camera.
 
@@ -24,10 +24,8 @@ if __name__ == "__main__":
 
     # Add a plane as the ground from an obj file and apply a texture
     vis.add_object('Ground', assets['plane.obj'],
-                   tex_path=assets['concrete.png'])
-
-    # Scale the plane up to 10x10
-    vis.set_transform('Ground', scale=(10., 10., 1.))
+                   tex_path=assets['concrete.png'],
+                   scale=(10., 10., 1.))
 
     # Add a cube from an stl file.
     vis.add_object('Cube', assets['cube.stl'],
