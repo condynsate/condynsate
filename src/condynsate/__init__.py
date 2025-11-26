@@ -18,14 +18,12 @@ __version__ = '0.7.0'
 import os
 _root = os.path.split(__file__)[0]
 _dirpath = os.path.join(_root, "__assets__")
-vals = [os.path.join(_dirpath, f) for f in os.listdir(_dirpath)
-        if (f.lower().endswith('.urdf') or f.lower().endswith('.png'))]
+vals = [os.path.join(_dirpath, f) for f in os.listdir(_dirpath)]
 keys = []
+accepted = ('.urdf', '.png', '.obj', '.stl', '.dae')
 for v in vals:
-    if v.lower().endswith('.urdf'):
-        keys.append(os.path.split(v)[1][:-5])
-    elif v.lower().endswith('.png'):
-        keys.append(os.path.split(v)[1][:-4]+'_img')
+    if v.lower().endswith(accepted):
+        keys.append(os.path.basename(v.lower()))
 __assets__ = dict(zip(keys, vals))
 del(_root)
 del(_dirpath)

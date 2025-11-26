@@ -365,7 +365,8 @@ class Keyboard:
         """
         # Add the key string to the key buffer
         if not self._add_to_buffer(key) == 0:
-            warn('Pressed key is not recognized. Ignoring.')
+            m = 'Pressed key is not recognized. Ignoring.'
+            warn(m, UserWarning)
 
 
     def _remove_from_buffer(self, key):

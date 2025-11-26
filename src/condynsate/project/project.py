@@ -73,7 +73,7 @@ class Project:
 
         """
         m = "Interrupt or termination signal detected."
-        warn(m)
+        warn(m, UserWarning)
         self.terminate()
 
     @property

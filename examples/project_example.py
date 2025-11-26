@@ -1,6 +1,10 @@
+# -*- coding: utf-8 -*-
 """
-Simulates an autonomously controlled inverted pendulum on a 4 wheeled cart.
-Used to test the operation of condynsate.
+This module gives an example use case for the Project class. In this example,
+we create a project that uses the visualizer, the animator, and the keyboard
+simultaneously to render a cart keeping an inverted pendulum atop it upright.
+
+@author: G. Schaer
 """
 import time
 from condynsate import Project
@@ -9,34 +13,36 @@ import numpy as np
 
 if __name__ == "__main__":
     # Create the project
-    proj = Project(visualizer=True, animator=True, keyboard=True)
+    proj = Project(visualizer=True, animator=True, keyboard=True,
+                   visualizer_record=False, animator_record=False)
 
-    # Turn off the axes and grid visualization
+    # Turn off the axes and grid visualization. Turn on the spotlight
     proj.visualizer.set_axes(False)
     proj.visualizer.set_grid(False)
+    proj.visualizer.set_spotlight(on=True)
 
     # Load a plane with a carpet texture for the ground
-    ground = proj.load_urdf(assets['plane_medium'], fixed=True)
-    ground.links['plane'].set_texture(assets['carpet_img'])
+    ground = proj.load_urdf(assets['plane_medium.urdf'], fixed=True)
+    ground.links['plane'].set_texture(assets['carpet.png'])
 
     # Load and orient a plane with a windowed wall texture for the left wall
-    left_wall = proj.load_urdf(assets['half_plane_medium'], fixed=True)
-    left_wall.links['plane'].set_texture(assets['window_wall_img'])
+    left_wall = proj.load_urdf(assets['half_plane_medium.urdf'], fixed=True)
+    left_wall.links['plane'].set_texture(assets['window_wall.png'])
     left_wall.set_initial_state(roll=1.5708, yaw=1.5708, position=(-5,0,2.5))
 
     # Load and orient a plane with a doored wall texture for the right wall
-    right_wall = proj.load_urdf(assets['half_plane_medium'], fixed=True)
-    right_wall.links['plane'].set_texture(assets['door_wall_img'])
+    right_wall = proj.load_urdf(assets['half_plane_medium.urdf'], fixed=True)
+    right_wall.links['plane'].set_texture(assets['door_wall.png'])
     right_wall.set_initial_state(roll=1.5708, yaw=-1.5708, position=(5,0,2.5))
 
     # Load and orient a plane with a classroom wall texture for the back wall
-    back_wall = proj.load_urdf(assets['half_plane_medium'], fixed=True)
-    back_wall.links['plane'].set_texture(assets['classroom_wall_img'])
+    back_wall = proj.load_urdf(assets['half_plane_medium.urdf'], fixed=True)
+    back_wall.links['plane'].set_texture(assets['classroom_wall.png'])
     back_wall.set_initial_state(roll=1.5708, position=(0,5,2.5))
 
     # Load and orient a cart carrying an inverted pendulum. Set the initial
     # angle of the pendulum to a non-zero angle.
-    cart = proj.load_urdf(assets['cart'])
+    cart = proj.load_urdf(assets['cart.urdf'])
     cart.set_initial_state(position=(0,0,0.251))
     cart.joints['chassis_to_arm'].set_initial_state(angle=0.355)
 
@@ -146,7 +152,7 @@ if __name__ == "__main__":
             # else if the user presse esc, end the program
             if 'backspace' in keys:
                 break
-            elif 'esc' in keys:
+            if 'esc' in keys:
                 DONE = True
                 break
 

@@ -297,7 +297,8 @@ class Animator():
 
         """
         if self._started:
-            warn("Start failed because the animator is already started.")
+            m = "Start failed because the animator is already started."
+            warn(m, UserWarning)
             return -1
 
         try:
@@ -393,13 +394,16 @@ class Animator():
         """
         # Sanitization
         if not self._started:
-            warn("barchart_set_value failed because animator not started.")
+            m="barchart_set_value failed because animator not started."
+            warn(m, UserWarning)
             return -1
         if not self._sanitize_barchart(bar_id):
-            warn("barchart_set_value failed because bar_id is invalid.")
+            m="barchart_set_value failed because bar_id is invalid."
+            warn(m, UserWarning)
             return -1
         if not self._is_number(value):
-            warn("barchart_set_value failed because value is invalid.")
+            m="barchart_set_value failed because value is invalid."
+            warn(m, UserWarning)
             return -1
 
         # Extract the subplot_ind and bar_ind from the bar_id
@@ -434,16 +438,20 @@ class Animator():
         """
         # Sanitization
         if not self._started:
-            warn("lineplot_append_point failed because animator not started.")
+            m="lineplot_append_point failed because animator not started."
+            warn(m, UserWarning)
             return -1
         if not self._sanitize_lineplot(line_id):
-            warn("lineplot_append_point failed because line_id is invalid.")
+            m="lineplot_append_point failed because line_id is invalid."
+            warn(m, UserWarning)
             return -1
         if not self._is_number(x_val):
-            warn("lineplot_append_point failed because x_val is invalid.")
+            m="lineplot_append_point failed because x_val is invalid."
+            warn(m, UserWarning)
             return -1
         if not self._is_number(y_val):
-            warn("lineplot_append_point failed because y_val is invalid.")
+            m="lineplot_append_point failed because y_val is invalid."
+            warn(m, UserWarning)
             return -1
 
         # Extract the subplot_ind and line_ind from the line_id
@@ -478,16 +486,20 @@ class Animator():
         """
         # Sanitization
         if not self._started:
-            warn("lineplot_set_data failed because animator not started.")
+            m="lineplot_set_data failed because animator not started."
+            warn(m, UserWarning)
             return -1
         if not self._sanitize_lineplot(line_id):
-            warn("lineplot_set_data failed because line_id is invalid.")
+            m="lineplot_set_data failed because line_id is invalid."
+            warn(m, UserWarning)
             return -1
         if not self._is_number_list(x_vals):
-            warn("lineplot_set_data failed because x_vals is invalid.")
+            m="lineplot_set_data failed because x_vals is invalid."
+            warn(m, UserWarning)
             return -1
         if not self._is_number_list(y_vals):
-            warn("lineplot_set_data failed because y_vals is invalid.")
+            m="lineplot_set_data failed because y_vals is invalid."
+            warn(m, UserWarning)
             return -1
 
         # Extract the subplot_ind and line_ind from the line_id
@@ -513,7 +525,8 @@ class Animator():
         """
         # Ensure the animator is already started
         if not self._started:
-            warn("reset_all failed because animator not started.")
+            m="reset_all failed because animator not started."
+            warn(m, UserWarning)
             return -1
 
         # Reset all subplot data

@@ -126,7 +126,7 @@ class Visualizer():
                 if self._socket.closed:
                     msg = ("Cannot flush actions because visualizer closed"
                            " unexpectedly")
-                    warn(msg)
+                    warn(msg, UserWarning)
                     self._done = True
                     return -1
 
@@ -215,7 +215,7 @@ class Visualizer():
         with self._LOCK:
             if self._socket.closed or self._done:
                 msg = "Cannot complete action because visualizer is stopped."
-                warn(msg)
+                warn(msg, UserWarning)
                 return -1
 
             # If the function is not in the actions buffer, add it.
@@ -245,7 +245,7 @@ class Visualizer():
         self.set_background(top=(0.44, 0.62, 0.82), bottom=(0.82, 0.62, 0.44))
 
         # Set the default lights
-        self.set_spotlight(on=True, intensity=0.1, distance=0, shadow=False,
+        self.set_spotlight(on=False, intensity=0.1, distance=0, shadow=False,
                            position=(-4.9,0.5,4.0), angle=np.pi/2.4)
         self.set_ptlight_1(on=True, intensity=0.5, distance=0, shadow=True,
                            position=(-3,0.5,2.5))
@@ -1113,7 +1113,7 @@ class Visualizer():
         scene_path = get_scene_path(name)
         if not scene_path in self._objects:
             msg = f'{name} is not object in scene, cannot set transform.'
-            warn(msg)
+            warn(msg, UserWarning)
             return
 
         # Get the transformation matrix
@@ -1314,7 +1314,7 @@ class Visualizer():
         scene_path = get_scene_path(name)
         if not scene_path in self._objects:
             msg = f'{name} is not object in scene, cannot set material.'
-            warn(msg)
+            warn(msg, UserWarning)
             return
 
         # Check if a change is needed

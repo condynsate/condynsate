@@ -40,14 +40,14 @@ def is_instance(arg, typ, arg_name=None):
     if arg is None:
         if not arg_name is None:
             msg = f"{arg_name} cannot be None."
-            warn(msg)
+            warn(msg, UserWarning)
         return False
 
     # Check arg is correct type
     if not isinstance(arg, typ):
         if not arg_name is None:
             msg = f"{arg_name} must be type {typ}."
-            warn(msg)
+            warn(msg, UserWarning)
         return False
 
     # All tests passed
@@ -77,14 +77,14 @@ def is_num(arg, arg_name=None):
     except (TypeError, ValueError):
         if not arg_name is None:
             msg = f"{arg_name} must be castable to <class 'float'>."
-            warn(msg)
+            warn(msg, UserWarning)
         return False
 
     # Check if not inf and not nan
     is_inf_or_nan = np.isinf(float(arg)) or np.isnan(float(arg))
     if is_inf_or_nan and not arg_name is None:
         msg = f"{arg_name} cannot be inf or nan."
-        warn(msg)
+        warn(msg, UserWarning)
     return not is_inf_or_nan
 
 def is_nvector(arg, n, arg_name=None):
@@ -114,14 +114,14 @@ def is_nvector(arg, n, arg_name=None):
     except TypeError:
         if not arg_name is None:
             msg = f"{arg_name} must be iterable."
-            warn(msg)
+            warn(msg, UserWarning)
         return False
 
     # Ensure of length 3
     if len(arg) != n:
         if not arg_name is None:
             msg = f"{arg_name} must be length {n}."
-            warn(msg)
+            warn(msg, UserWarning)
         return False
 
     # Ensure each arg is number
@@ -129,7 +129,7 @@ def is_nvector(arg, n, arg_name=None):
     if not all_num and not arg_name is None:
         msg = (f"Elements of {arg_name} must be non-inf, "
                "non-nan, float castables.")
-        warn(msg)
+        warn(msg, UserWarning)
     return all_num
 
 def name_valid(arg, arg_name=None):
@@ -155,14 +155,14 @@ def name_valid(arg, arg_name=None):
         if not all(isinstance(name, str) for name in arg):
             if not arg_name is None:
                 msg = f"When {arg_name} is tuple, must be tuple of strings."
-                warn(msg)
+                warn(msg, UserWarning)
             return False
 
     # String only case
     elif not isinstance(arg, str):
         if not arg_name is None:
             msg = f"{arg_name} must be tuple of strings or string."
-            warn(msg)
+            warn(msg, UserWarning)
         return False
 
     # All tests passed
@@ -193,7 +193,7 @@ def path_valid(arg, ftype=None, arg_name=None):
     if not isinstance(arg, str):
         if not arg_name is None:
             msg = f"{arg_name} must be a string."
-            warn(msg)
+            warn(msg, UserWarning)
         return False
 
     # Check if file is in dirpath
@@ -204,21 +204,21 @@ def path_valid(arg, ftype=None, arg_name=None):
         if not split[1] in os.listdir(split[0]):
             if not arg_name is None:
                 msg = f"The file pointed to by {arg_name} does not exist."
-                warn(msg)
+                warn(msg, UserWarning)
             return False
 
     # Check if file exists
     except FileNotFoundError:
         if not arg_name is None:
             msg = f"The parent file pointed to by {arg_name} does not exist."
-            warn(msg)
+            warn(msg, UserWarning)
         return False
 
     # Check file extension
     if not ftype is None and not arg.endswith(ftype):
         if not arg_name is None:
             msg = f"The file pointed to by {arg_name} must be type {ftype}."
-            warn(msg)
+            warn(msg, UserWarning)
         return False
 
     # All cases true

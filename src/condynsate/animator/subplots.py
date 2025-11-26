@@ -12,7 +12,7 @@ module.
 ###############################################################################
 import sys
 import time
-import warnings
+from warnings import warn
 from copy import copy
 from threading import (Thread, Lock)
 import numpy as np
@@ -160,7 +160,7 @@ class _Subplot():
             in_arts = kwarg in self.options['artists']
             if not in_opts and not in_labs and not in_arts:
                 msg = f"{kwarg} is not a recognized kwarg."
-                warnings.warn(msg)
+                warn(msg, UserWarning)
                 sys.stderr.flush()
                 continue
 

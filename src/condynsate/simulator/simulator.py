@@ -164,7 +164,8 @@ class Simulator():
         try:
             self._client.stepSimulation()
         except pybullet.error:
-            warn('Cannot complete action because simulator is stopped.')
+            m='Cannot complete action because simulator is stopped.'
+            warn(m, UserWarning)
             return -1
 
         self.time += self.dt

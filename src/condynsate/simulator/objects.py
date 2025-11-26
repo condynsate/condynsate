@@ -331,7 +331,8 @@ class Body():
 
         """
         if not self._state_kwargs_ok(**kwargs):
-            warn('Unable to set state, erroneous kwargs.')
+            m='Unable to set state, erroneous kwargs.'
+            warn(m, UserWarning)
             return -1
 
         # ypr to orientation
