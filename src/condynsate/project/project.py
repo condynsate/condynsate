@@ -36,11 +36,12 @@ class Project:
         self.animator = None
         self.keyboard = None
         if kwargs.get('visualizer', False):
-            frame_rate = kwargs.get('visualizer_frame_rate', 45.0)
             record = kwargs.get('visualizer_record', False)
+            def_fr = 30.0 if record else 60.0
+            frame_rate = kwargs.get('visualizer_frame_rate', def_fr)
             self.visualizer = Visualizer(frame_rate=frame_rate, record=record)
         if kwargs.get('animator', False):
-            frame_rate = kwargs.get('animator_frame_rate', 20.0)
+            frame_rate = kwargs.get('animator_frame_rate', 15.0)
             record = kwargs.get('animator_record', False)
             self.animator = Animator(frame_rate=frame_rate, record=record)
         if kwargs.get('keyboard', False):
@@ -80,7 +81,7 @@ class Project:
         return self.simulator.bodies
 
     @property
-    def time(self):
+    def simtime(self):
         return self.simulator.time
 
     def load_urdf(self, path, **kwargs):
@@ -129,17 +130,31 @@ class Project:
 
     def await_keypress(self, key_str, timeout=None):
         if self.keyboard is None:
-            warn('Cannot await_keypress, no keyboard.')
-            return -1
-        print(f"Press {key_str} to continue... ", flush=True, end='')
+            raise(AttributeError('Cannot await_keypress, no keyboard.'))
+        print(f"Press {key_str} to continue.")
         start = time.time()
         while True:
             if not timeout is None and time.time()-start > timeout:
                 print("Timed out.")
                 return -1
             if self.keyboard.is_pressed(key_str):
-                print("Continuing.", flush=True)
+                print("Continuing.")
                 return 0
+            self.refresh_visualizer()
+            self.refresh_animator()
+            time.sleep(0.01)
+
+    def await_anykeys(self, timeout=None):
+        if self.keyboard is None:
+            raise(AttributeError('Cannot await_anykey, no keyboard.'))
+        start = time.time()
+        while True:
+            if not timeout is None and time.time()-start > timeout:
+                print("Timed out.")
+                return []
+            pressed = self.keyboard.get_pressed()
+            if len(pressed) > 0:
+                return pressed
             self.refresh_visualizer()
             self.refresh_animator()
             time.sleep(0.01)

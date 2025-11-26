@@ -114,7 +114,7 @@ class Visualizer():
             # Time since last frame was rendered
             dt = (cv2.getTickCount()-self._last_refresh)/cv2.getTickFrequency()
             if dt < self.frame_delta:
-                time.sleep(0.0005) # Remove CPU stress
+                time.sleep(0.0083) # Remove CPU stress (120 FPS)
                 continue
 
             # Aquire mutex lock to read flags and shared buffer

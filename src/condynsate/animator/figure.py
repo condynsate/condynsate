@@ -13,6 +13,8 @@ import time
 from copy import deepcopy as copy
 from threading import (Thread, Lock)
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 MAX_N_ROWS = 2
 
@@ -102,8 +104,8 @@ class Figure():
             axes_list.append(axes)
 
         # Position the axes vertically
-        EDGE_PAD = 0.175
-        PAD = 0.125
+        EDGE_PAD = 0.15
+        PAD = 0.175
         h = (1. - 2.*EDGE_PAD - (self.shape[1]-1)*PAD) / self.shape[1]
         for i, axes in enumerate(axes_list):
             axes_pos = axes.get_position()
@@ -116,7 +118,7 @@ class Figure():
 
         # Position the axes horizontally
         EDGE_PAD = 0.15
-        PAD = 0.1
+        PAD = 0.175
         w = (1. - 2.*EDGE_PAD - (self.shape[2]-1)*PAD) / self.shape[2]
         for i, axes in enumerate(axes_list):
             axes_pos = axes.get_position()
@@ -167,8 +169,8 @@ class Figure():
                 if self._done:
                     break
 
-            # Remove CPU strain by sleeping for a little bit
-            time.sleep(0.01)
+            # Remove CPU strain by sleeping for a little bit (40 fps)
+            time.sleep(0.025)
 
     def get_axes(self):
         """

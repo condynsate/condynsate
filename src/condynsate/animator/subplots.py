@@ -410,8 +410,8 @@ class _Subplot():
                 if self._done:
                     break
 
-            # Remove CPU strain by sleeping for a little bit
-            time.sleep(0.01)
+            # Remove CPU strain by sleeping for a little bit (80 fps)
+            time.sleep(0.0125)
 
     def _start(self):
         """

@@ -50,7 +50,8 @@ class Simulator():
         self._client.setPhysicsEngineParameter(**client_params)
         self.set_gravity(kwargs.get('gravity', (0.0, 0.0, -9.81)))
         self.bodies = []
-        self._prev_time = float('-inf')
+        self._prev_end_t = float('-inf')
+        self._prev_dt_act = float('inf')
         self._epoch = float('-inf')
         self.time = 0.0
         self.step_num = 0
@@ -105,7 +106,7 @@ class Simulator():
         self.bodies.append(Body(self._client, path, **kwargs))
         return self.bodies[-1]
 
-    def step(self, real_time=True, stable_step=True):
+    def step(self, real_time=True, stable_step=False):
         """
         Takes a single simulation step.
 
@@ -117,7 +118,7 @@ class Simulator():
             The default is True.
         stable_step : bool, optional
             Boolean flag that indicates the type of real time stepping that
-            should be used. The default is True.
+            should be used. The default is False.
 
             When real_time is False, this flag is ignored.
 
@@ -142,15 +143,18 @@ class Simulator():
             0 if successful, -1 if something went wrong.
 
         """
+        start_t = time.monotonic()
         if real_time:
             if self._epoch==float('-inf'):
-                self._epoch = time.monotonic()
+                self._epoch = start_t
             if stable_step:
-                duration = self.dt-0.0007+self._prev_time-time.monotonic()
-                # The magic number is attempting to correct for the amount of
-                # time the self._client.stepSimulation() call takes
+                # Attempting to correct for the amount of time stepping and
+                # rendering take by recording the actual dts and correcting
+                # from mean
+                error = self._prev_dt_act - self.dt
+                duration = self.dt - error + self._prev_end_t - start_t
             else:
-                duration = self.step_num*self.dt+self._epoch-time.monotonic()
+                duration = self.step_num*self.dt + self._epoch - start_t
             try:
                 time.sleep(duration)
             except (OverflowError, ValueError):
@@ -165,7 +169,9 @@ class Simulator():
 
         self.time += self.dt
         self.step_num += 1
-        self._prev_time = time.monotonic()
+        end_t = time.monotonic()
+        self._prev_dt_act = end_t - self._prev_end_t
+        self._prev_end_t = end_t
         return 0
 
     def reset(self):
@@ -179,7 +185,8 @@ class Simulator():
             0 if successful, -1 if something went wrong.
 
         """
-        self._prev_time = float('-inf')
+        self._prev_end_t = float('-inf')
+        self._prev_dt_act = float('inf')
         self._epoch = float('-inf')
         self.time = 0.0
         self.step_num = 0
