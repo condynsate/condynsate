@@ -1,170 +1,156 @@
-======================
+######################
 The condynsate Package
-======================
-Classes
--------
+######################
+
+**********************
+The project Subpackage
+**********************
+
+The project Module
+==================
+.. automodule:: condynsate.project.project
+   :no-members:
+
+The Project Class
+-----------------
+.. autoclass:: condynsate.Project
+   :no-members:
+.. automethod:: condynsate.Project.load_urdf
+.. automethod:: condynsate.Project.step
+.. automethod:: condynsate.Project.reset
+.. automethod:: condynsate.Project.refresh_visualizer
+.. automethod:: condynsate.Project.refresh_animator
+.. automethod:: condynsate.Project.await_keypress
+.. automethod:: condynsate.Project.await_anykeys
+.. automethod:: condynsate.Project.terminate
+
+************************
+The simulator Subpackage
+************************
+
+The simulator Module
+====================
+.. automodule:: condynsate.simulator.simulator
+   :no-members:
+
 The Simulator Class
-~~~~~~~~~~~~~~~~~~~
+-------------------
 .. autoclass:: condynsate.Simulator
    :no-members:
-
-Adjusting the Physics Engine
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automethod:: condynsate.Simulator.set_gravity
-
-Loading URDF Objects in Phyics Engine
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. automethod:: condynsate.Simulator.load_urdf
-
-Running a Simulation
-^^^^^^^^^^^^^^^^^^^^
 .. automethod:: condynsate.Simulator.step
 .. automethod:: condynsate.Simulator.reset
+.. automethod:: condynsate.Simulator.terminate
 
-Interacting with URDF Objects in the Physics Engine
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Adjusting a URDF's Joint's Parameters
-*************************************
-.. automethod:: condynsate.Simulator.set_joint_force_sensor
-.. automethod:: condynsate.Simulator.set_joint_lin_ang_damp
-.. automethod:: condynsate.Simulator.set_joint_damping
-.. automethod:: condynsate.Simulator.set_joint_friction_params
-.. automethod:: condynsate.Simulator.set_joint_contact_params
-
-Setting and Reading a URDF's Joint's State
-******************************************
-.. automethod:: condynsate.Simulator.set_joint_position
-.. automethod:: condynsate.Simulator.set_joint_velocity
-.. automethod:: condynsate.Simulator.get_joint_state
-.. automethod:: condynsate.Simulator.get_joint_axis
-
-Adjusting and Reading a URDF's Links's Parameters
-*************************************************
-.. automethod:: condynsate.Simulator.set_link_mass
-.. automethod:: condynsate.Simulator.get_link_mass
-
-Setting and Reading a URDF's Links's State
-******************************************
-.. automethod:: condynsate.Simulator.set_base_state
-.. automethod:: condynsate.Simulator.get_link_state
-.. automethod:: condynsate.Simulator.get_base_state
-
-Applying Forces and Torques to a URDF
-*************************************
-.. automethod:: condynsate.Simulator.set_joint_torque
-.. automethod:: condynsate.Simulator.apply_force_to_link
-.. automethod:: condynsate.Simulator.apply_force_to_com
-.. automethod:: condynsate.Simulator.apply_external_torque
-
-Getting the Center of Mass of a URDF
-************************************
-.. automethod:: condynsate.Simulator.get_center_of_mass
-
-Using the Visualizer
-^^^^^^^^^^^^^^^^^^^^
-Loading URDF Objects in the Visualizer
-**************************************
-.. automethod:: condynsate.Simulator.add_urdf_to_visualizer
-
-Adjusting Appearance of URDF Objects
-************************************
-.. automethod:: condynsate.Simulator.set_link_color
-.. automethod:: condynsate.Simulator.set_color_from_pos
-.. automethod:: condynsate.Simulator.set_color_from_vel
-.. automethod:: condynsate.Simulator.set_color_from_torque
-.. automethod:: condynsate.Simulator.set_color_from_mass
-
-Manipulating the Visualizer
-***************************
-.. automethod:: condynsate.Simulator.transform_camera
-.. automethod:: condynsate.Simulator.set_background
-.. automethod:: condynsate.Simulator.set_spotlight
-.. automethod:: condynsate.Simulator.set_posx_pt_light
-.. automethod:: condynsate.Simulator.set_negx_pt_light
-.. automethod:: condynsate.Simulator.set_ambient_light
-.. automethod:: condynsate.Simulator.set_fill_light
-
-Using the Animator
-^^^^^^^^^^^^^^^^^^
-.. automethod:: condynsate.Simulator.add_plot
-.. automethod:: condynsate.Simulator.start_animator
-.. automethod:: condynsate.Simulator.add_line_datum
-.. automethod:: condynsate.Simulator.set_bar_value
-.. automethod:: condynsate.Simulator.reset_animator
-.. automethod:: condynsate.Simulator.terminate_animator
-
-Using the Keyboard
-^^^^^^^^^^^^^^^^^^
-.. automethod:: condynsate.Simulator.is_pressed
-.. automethod:: condynsate.Simulator.await_keypress
-.. automethod:: condynsate.Simulator.iterate_val
-
-
-
-
-
-The Animator Class
-~~~~~~~~~~~~~~~~~~
-.. autoclass:: condynsate.Animator
-   :no-members:
-
-The Animation Sequence
-^^^^^^^^^^^^^^^^^^^^^^
-.. automethod:: condynsate.Animator.add_plot
-.. automethod:: condynsate.Animator.start_animator
-.. automethod:: condynsate.Animator.add_line_datum
-.. automethod:: condynsate.Animator.set_bar_value
-.. automethod:: condynsate.Animator.reset_animator
-.. automethod:: condynsate.Animator.terminate_animator
-
-
-
-
-The Keys Class
-~~~~~~~~~~~~~~
-.. autoclass:: condynsate.Keys
+The dataclasses Module
+======================
+.. automodule:: condynsate.simulator.dataclasses
    :members:
 
-
-
-
-
-The Visualizer Class
-~~~~~~~~~~~~~~~~~~~~
-.. autoclass:: condynsate.Visualizer
+The objects Module
+==================
+.. automodule:: condynsate.simulator.objects
    :no-members:
 
-Adjusting the Appearance of the Viewer
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The Body Class
+--------------
+.. autoclass:: condynsate.simulator.objects.Body
+   :no-members:
+.. automethod:: condynsate.simulator.objects.Body.set_initial_state
+.. automethod:: condynsate.simulator.objects.Body.set_state
+.. automethod:: condynsate.simulator.objects.Body.apply_force
+.. automethod:: condynsate.simulator.objects.Body.apply_torque
+.. automethod:: condynsate.simulator.objects.Body.reset
+.. automethod:: condynsate.simulator.objects.Body.clear_visual_buffer
+
+The Joint Class
+---------------
+.. autoclass:: condynsate.simulator.objects.Joint
+   :no-members:
+.. automethod:: condynsate.simulator.objects.Joint.set_dynamics
+.. automethod:: condynsate.simulator.objects.Joint.set_initial_state
+.. automethod:: condynsate.simulator.objects.Joint.set_state
+.. automethod:: condynsate.simulator.objects.Joint.apply_torque
+.. automethod:: condynsate.simulator.objects.Joint.reset
+
+The Link Class
+--------------
+.. autoclass:: condynsate.simulator.objects.Link
+   :no-members:
+.. automethod:: condynsate.simulator.objects.Link.set_color
+.. automethod:: condynsate.simulator.objects.Link.set_texture
+.. automethod:: condynsate.simulator.objects.Link.set_dynamics
+.. automethod:: condynsate.simulator.objects.Link.apply_force
+
+*************************
+The visualizer Subpackage
+*************************
+
+The visualizer Module
+=====================
+.. automodule:: condynsate.visualizer.visualizer
+   :no-members:
+
+The Visualizer Class
+--------------------
+.. autoclass:: condynsate.Visualizer
+   :no-members:
 .. automethod:: condynsate.Visualizer.set_grid
 .. automethod:: condynsate.Visualizer.set_axes
 .. automethod:: condynsate.Visualizer.set_background
 .. automethod:: condynsate.Visualizer.set_spotlight
-.. automethod:: condynsate.Visualizer.set_posx_pt_light
-.. automethod:: condynsate.Visualizer.set_negx_pt_light
-.. automethod:: condynsate.Visualizer.set_ambient_light
-.. automethod:: condynsate.Visualizer.set_fill_light
-.. automethod:: condynsate.Visualizer.transform_camera
+.. automethod:: condynsate.Visualizer.set_ptlight_1
+.. automethod:: condynsate.Visualizer.set_ptlight_2
+.. automethod:: condynsate.Visualizer.set_amblight
+.. automethod:: condynsate.Visualizer.set_dirnlight
+.. automethod:: condynsate.Visualizer.set_cam_position
+.. automethod:: condynsate.Visualizer.set_cam_target
+.. automethod:: condynsate.Visualizer.set_cam_zoom
+.. automethod:: condynsate.Visualizer.set_cam_frustum
+.. automethod:: condynsate.Visualizer.add_object
+.. automethod:: condynsate.Visualizer.set_transform
+.. automethod:: condynsate.Visualizer.set_material
+.. automethod:: condynsate.Visualizer.reset
+.. automethod:: condynsate.Visualizer.terminate
 
-Adding Elements to the Viewer
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. automethod:: condynsate.Visualizer.add_obj
-.. automethod:: condynsate.Visualizer.add_stl
+***********************
+The animator Subpackage
+***********************
 
-Adjusting Elements in the Viewer
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. automethod:: condynsate.Visualizer.set_link_color
-.. automethod:: condynsate.Visualizer.apply_transform
+The animator Module
+===================
+.. automodule:: condynsate.animator.animator
+   :no-members:
 
+The Animator Class
+------------------
+.. autoclass:: condynsate.Animator
+   :no-members:
+.. automethod:: condynsate.Animator.add_lineplot
+.. automethod:: condynsate.Animator.add_barchart
+.. automethod:: condynsate.Animator.start
+.. automethod:: condynsate.Animator.refresh
+.. automethod:: condynsate.Animator.barchart_set_value
+.. automethod:: condynsate.Animator.lineplot_append_point
+.. automethod:: condynsate.Animator.lineplot_set_data
+.. automethod:: condynsate.Animator.reset
+.. automethod:: condynsate.Animator.terminate
 
+***********************
+The keyboard Subpackage
+***********************
 
+The keyboard Module
+===================
+.. automodule:: condynsate.keyboard.keyboard
+   :no-members:
 
-
-Examples
---------
-.. toctree::
-   _collections/examples/pendulum
-   _collections/examples/gyro
-   _collections/examples/cart
-   _collections/examples/wheel
-
+The Keyboard Class
+------------------
+.. autoclass:: condynsate.Keyboard
+   :no-members:
+.. automethod:: condynsate.Keyboard.get_pressed
+.. automethod:: condynsate.Keyboard.is_pressed
+.. automethod:: condynsate.Keyboard.await_press
+.. automethod:: condynsate.Keyboard.terminate

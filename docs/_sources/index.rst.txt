@@ -8,11 +8,11 @@ condynsate
 2. serving as a platform for introductory Python programming, and
 3. equipping instructors with a streamlined method of implementing custom in-class demonstrations and lab demos without the need for physical equipment.
 
-Built on `PyBullet`_, `MeshCat`_, and `OpenCV`_, it implements nonlinear simulation of `stl`_ or `obj`_ rigid bodies and\or `urdf`_ articulated bodies. A browser-based 3D viewer visualizes the simulation and the evolution of individual states are plotted, all in real-time. By simultaneously enabling keyboard interactivity, condynsate projects are designed to feel more like video games, familiar and fun, rather than conventional lab demos all while providing similar educational benefits. 
+Built on `PyBullet`_, `MeshCat`_, and `Tk`_, it implements nonlinear simulation of `stl`_ or `obj`_ rigid bodies and\or `urdf`_ articulated bodies. A browser-based 3D viewer visualizes the simulation and the evolution of individual states are plotted, all in real-time. By simultaneously enabling keyboard interactivity, condynsate projects are designed to feel more like video games, familiar and fun, rather than conventional lab demos all while providing similar educational benefits. 
 
 .. _PyBullet: https://pybullet.org/wordpress/
 .. _Meshcat: https://github.com/meshcat-dev/meshcat-python/
-.. _OpenCV: https://opencv.org/
+.. _Tk: https://www.tcl-lang.org/
 .. _urdf: http://wiki.ros.org/urd/
 .. _stl: https://en.wikipedia.org/wiki/STL_(file_format)/
 .. _obj: https://en.wikipedia.org/wiki/Wavefront_.obj_file/
@@ -30,4 +30,4 @@ Contents
 
    package
 
-   tutorials
+   examples
