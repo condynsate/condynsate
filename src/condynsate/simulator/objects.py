@@ -189,6 +189,30 @@ class Body():
             data.append(dict(zip(keys, arrow)))
         return data
 
+    def clear_visual_buffer(self):
+        """
+        Clears the body's visual buffer. If visual_data is not collected each
+        time step, then clear_visual_buffer must be called to prevent the
+        visual_data buffer from growing indeterminately.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        for i in range(len(self._arrows['com_force'])):
+            self._arrows['com_force'][i] = None
+        for i in range(len(self._arrows['base_torque'])):
+            self._arrows['base_torque'][i] = None
+        for joint_name, joint in self.joints.items():
+            for i in range(len(joint.arrows['torque'])):
+                joint.arrows['torque'][i] = None
+        for link_name, link in self.links.items():
+            for i in range(len(link.arrows['force'])):
+                link.arrows['force'][i] = None
+        return 0
+
     def _get_all_link_pos_ori(self):
         # Get the base state
         base_state = self._client.getBasePositionAndOrientation(self._id)

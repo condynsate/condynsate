@@ -12,8 +12,10 @@ in real time.
 from warnings import warn
 from copy import copy
 import zlib
+import tkinter as tk
 import cv2
 import numpy as np
+from PIL import Image, ImageTk
 from condynsate.misc import save_recording
 from condynsate.animator.figure import Figure
 from condynsate.animator.subplots import (Lineplot, Barchart)
@@ -60,14 +62,16 @@ class Animator():
         self._n_plots = 0
 
         # Track the figure and the subplots
+        self._THREADED = True
         self._figure = None
         self._plots = []
         self._started = False
         self._last_refresh = cv2.getTickCount()
 
-        # Constants
-        self._WINDOW_NAME = 'condynsate Animator'
-        self._THREADED = True
+        # GUI support
+        self._root = tk.Tk()
+        self._root.title("condynsate Animator")
+        self._panel = None
 
     def __del__(self):
         """
@@ -327,8 +331,8 @@ class Animator():
         self._started = True
 
         # Open the viewing window
-        cv2.namedWindow(self._WINDOW_NAME, cv2.WINDOW_AUTOSIZE)
-        cv2.waitKey(1)
+        self._panel = tk.Label(self._root)
+        self._panel.pack(side="bottom", fill="both", expand="yes")
         self.refresh()
         return 0
 
@@ -349,36 +353,37 @@ class Animator():
 
         # If not enough time has passed, only refresh the responsiveness.
         if dt < self.frame_delta:
-            cv2.waitKey(1)
+            self._root.update_idletasks()
+            self._root.update()
             return 0
 
-        # If enough time has passed, update the GUI
-        try:
-            # Get the current image, draw it to screen, update last frame time
-            image = cv2.cvtColor(self._figure.get_image(), cv2.COLOR_BGR2RGB)
-            cv2.imshow(self._WINDOW_NAME, image)
-            cv2.waitKey(1)
-            self._last_refresh = cv2.getTickCount()
+        # Get the current image, draw it to screen, update last frame time
+        image = self._figure.get_image()
+        if not self._panel is None:
+            imagetk = ImageTk.PhotoImage(Image.fromarray(image))
+            self._panel.configure(image=imagetk)
+            self._panel.image = imagetk
+        self._root.update_idletasks()
+        self._root.update()
+        self._last_refresh = cv2.getTickCount()
 
-            # If recording, save the current image
-            if self.record:
-                self._frames.append((zlib.compress(image), image.shape))
-                self._frame_ticks.append(self._last_refresh)
+        # If recording, save the current image
+        if self.record:
+            self._frames.append((zlib.compress(image), image.shape))
+            self._frame_ticks.append(self._last_refresh)
 
-            return 0
-        except Exception:
-            return -1
+        return 0
 
-    def barchart_set_value(self, value, bar_id):
+    def barchart_set_value(self, bar_id, value):
         """
         Set's a bar's value.
 
         Parameters
         ----------
-        value : float
-            The value to which the bar is set.
         bar_id : hex string
             The id of the bar whose value is being set.
+        value : float
+            The value to which the bar is set.
 
         Returns
         -------
@@ -408,18 +413,18 @@ class Animator():
         self.refresh()
         return 0
 
-    def lineplot_append_point(self, x_val, y_val, line_id):
+    def lineplot_append_point(self, line_id, x_val, y_val):
         """
         Appends a single y versus x data point to the end of a line.
 
         Parameters
         ----------
+        line_id : hex string
+            The id of the line to which a point is appended.
         x_val : float
             The x coordinate of the data point being appended.
         y_val : float
             The y coordinate of the data point being appended.
-        line_id : hex string
-            The id of the line to which a point is appended.
 
         Returns
         -------
@@ -452,18 +457,18 @@ class Animator():
         self.refresh()
         return 0
 
-    def lineplot_set_data(self, x_vals, y_vals, line_id):
+    def lineplot_set_data(self, line_id, x_vals, y_vals):
         """
         Plots y_vals versus x_vals.
 
         Parameters
         ----------
+        line_id : hex string
+            The id of the line on which that data are plotted.
         x_vals : list of floats
             A list of x coordinates of the points being plotted.
         y_vals : list of floats
             A list of y coordinates of the points being plotted.
-        line_id : hex string
-            The id of the line on which that data are plotted.
 
         Returns
         -------
@@ -496,9 +501,9 @@ class Animator():
         self.refresh()
         return 0
 
-    def reset_all(self):
+    def reset(self):
         """
-        Resets all data on all subplots.
+        Resets all data on all subplots and the recording, if applicable.
 
         Returns
         -------
@@ -514,6 +519,10 @@ class Animator():
         # Reset all subplot data
         for subplot in self._plots:
             subplot['Subplot'].reset_data()
+
+        # Reset the recording data
+        self._frames = []
+        self._frame_ticks = []
 
         # Refresh the viewer
         self.refresh()
@@ -544,11 +553,14 @@ class Animator():
             pass
 
         # Destroy all open windows
-        cv2.destroyAllWindows()
-        cv2.waitKey(1)
+        if not self._root is None:
+            self._root.destroy()
+            self._root = None
+        self._panel = None
 
         # Save recording
         if self.record and len(self._frames) > 1:
+            print('Saving animator recording...')
             # Convert frame ticks to frame times
             frame_times = np.array(self._frame_ticks, dtype=float)
             frame_times /= cv2.getTickFrequency()

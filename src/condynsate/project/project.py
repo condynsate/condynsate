@@ -9,6 +9,7 @@ which users interact when using condynsate.
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
+import time
 import signal
 from warnings import warn
 from condynsate.simulator import Simulator
@@ -39,7 +40,7 @@ class Project:
             record = kwargs.get('visualizer_record', False)
             self.visualizer = Visualizer(frame_rate=frame_rate, record=record)
         if kwargs.get('animator', False):
-            frame_rate = kwargs.get('animator_frame_rate', 5.0)
+            frame_rate = kwargs.get('animator_frame_rate', 20.0)
             record = kwargs.get('animator_record', False)
             self.animator = Animator(frame_rate=frame_rate, record=record)
         if kwargs.get('keyboard', False):
@@ -50,7 +51,7 @@ class Project:
         Deconstructor method.
 
         """
-        pass
+        self.terminate()
 
     def _sig_handler(self, sig, frame):
         """
@@ -89,22 +90,30 @@ class Project:
 
     def reset(self):
         ret_code = self.simulator.reset()
+        if not self.visualizer is None:
+            self.visualizer.reset()
         ret_code += self.refresh_visualizer()
         if not self.animator is None:
             if not self.animator.is_running():
                 ret_code += self.animator.start()
             else:
-                ret_code += self.animator.reset_all()
+                ret_code += self.animator.reset()
         return max(-1, ret_code)
 
-    def step(self, real_time=True):
-        if self.simulator.step(real_time=real_time) != 0:
+    def step(self, real_time=True, stable_step=True):
+        if self.simulator.step(real_time=real_time,
+                               stable_step=stable_step) != 0:
             return -1
         self.refresh_visualizer()
         return 0
 
     def refresh_visualizer(self):
         if self.visualizer is None:
+            # Even if there is no visualizer, we need to make sure
+            # to clear the visual_data buffer, otherwise it will
+            # grow indefinitely
+            for body in self.bodies:
+                body.clear_visual_buffer()
             return -1
         for body in self.bodies:
             for d in body.visual_data:
@@ -112,6 +121,28 @@ class Project:
                 self.visualizer.set_transform(**d)
                 self.visualizer.set_material(**d)
         return 0
+
+    def refresh_animator(self):
+        if self.animator is None:
+            return -1
+        return self.animator.refresh()
+
+    def await_keypress(self, key_str, timeout=None):
+        if self.keyboard is None:
+            warn('Cannot await_keypress, no keyboard.')
+            return -1
+        print(f"Press {key_str} to continue... ", flush=True, end='')
+        start = time.time()
+        while True:
+            if not timeout is None and time.time()-start > timeout:
+                print("Timed out.")
+                return -1
+            if self.keyboard.is_pressed(key_str):
+                print("Continuing.", flush=True)
+                return 0
+            self.refresh_visualizer()
+            self.refresh_animator()
+            time.sleep(0.01)
 
     def terminate(self):
         ret_code = self.simulator.terminate()

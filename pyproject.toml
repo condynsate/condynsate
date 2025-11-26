@@ -41,6 +41,7 @@ dependencies = [
    "notebook",
    "numpy",
    "opencv-python",
+   "pillow",
    "pybullet",
    "pynput",
    "scipy",

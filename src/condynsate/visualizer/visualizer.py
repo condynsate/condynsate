@@ -245,14 +245,17 @@ class Visualizer():
         self.set_background(top=(0.44, 0.62, 0.82), bottom=(0.82, 0.62, 0.44))
 
         # Set the default lights
-        self.set_spotlight(on=True, intensity=0.02, distance=0, shadow=True)
-        self.set_ptlight_1(on=True, intensity=0.15, distance=0, shadow=True)
-        self.set_ptlight_2(on=True, intensity=0.45, distance=0, shadow=True)
-        self.set_amblight(on=True, intensity=0.55, shadow=True)
-        self.set_dirnlight(on=True, intensity=0.05, shadow=True)
+        self.set_spotlight(on=True, intensity=0.1, distance=0, shadow=False,
+                           position=(-4.9,0.5,4.0), angle=np.pi/2.4)
+        self.set_ptlight_1(on=True, intensity=0.5, distance=0, shadow=True,
+                           position=(-3,0.5,2.5))
+        self.set_ptlight_2(on=True, intensity=0.4, distance=0, shadow=True,
+                           position=(0,0,6.0))
+        self.set_amblight(on=True, intensity=0.55, shadow=False)
+        self.set_dirnlight(on=False, intensity=0.0, shadow=False)
 
         # Set the default camera properties
-        self.set_cam_position((3.0, -6.0, 4))
+        self.set_cam_position((0, -4.5, 2.25))
         self.set_cam_target((0.0, 0.0, 0.0))
         self.set_cam_zoom(1.0)
         self.set_cam_frustum(near=0.01, far=1000.0)
@@ -1383,6 +1386,20 @@ class Visualizer():
         args = (name, material_kwargs, )
         return self._queue_action(self._set_material, scene_path, args)
 
+    def reset(self):
+        """
+        Resets the recording data.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
+        self._frames = []
+        self._frame_ticks = []
+        return 0
+
     def terminate(self):
         """
         Terminates the visualizer's communication with the web browser.
@@ -1402,6 +1419,7 @@ class Visualizer():
 
         if self.record and len(self._frames) > 1:
             # Convert frame ticks to frame times
+            print('Saving visualizer recording...')
             frame_times = np.array(self._frame_ticks, dtype=float)
             frame_times /= cv2.getTickFrequency()
             frame_times -= frame_times[0]

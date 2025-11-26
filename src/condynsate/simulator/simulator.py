@@ -50,8 +50,10 @@ class Simulator():
         self._client.setPhysicsEngineParameter(**client_params)
         self.set_gravity(kwargs.get('gravity', (0.0, 0.0, -9.81)))
         self.bodies = []
-        self._prev_step = float('-inf')
+        self._prev_time = float('-inf')
+        self._epoch = float('-inf')
         self.time = 0.0
+        self.step_num = 0
 
     def __del__(self):
         """
@@ -103,7 +105,7 @@ class Simulator():
         self.bodies.append(Body(self._client, path, **kwargs))
         return self.bodies[-1]
 
-    def step(self, real_time=True):
+    def step(self, real_time=True, stable_step=True):
         """
         Takes a single simulation step.
 
@@ -111,10 +113,28 @@ class Simulator():
         ----------
         real_time : bool, optional
             A boolean flag that indicates whether the step is to be taken in
-            real time (True) or as fast as possible (False). When True, the
-            function will sleep until the duration since the last time step()
-            was called is exactly equal to the time step of the simulation.
+            real time (True) or as fast as possible (False).
             The default is True.
+        stable_step : bool, optional
+            Boolean flag that indicates the type of real time stepping that
+            should be used. The default is True.
+
+            When real_time is False, this flag is ignored.
+
+            When real_time is True and stable_step is False, the time of the
+            first step() call since instantiation or reset is noted. Then, at
+            every subsequent step() call, the function will sleep until it has
+            been exactly dt*(n-1) seconds since the noted epoch. dt is the
+            simulator time step and n is the number of times step() has been
+            called since instantiation or reset. This guarantees a more
+            accurate total run time, but less stable frame rates, especially
+            if, at any point while running a simulation, there is a long pause
+            between step() calls.
+
+            When real_time and stable_step are True, the function will sleep
+            until the duration since the last time step() was called is equal
+            to the time step of the simulation. This guarantees a more stable
+            frame rate, but less accurate total run time.
 
         Returns
         -------
@@ -122,16 +142,21 @@ class Simulator():
             0 if successful, -1 if something went wrong.
 
         """
-        sleep_duration = 0.95*self.dt - (time.monotonic() - self._prev_step)
-        # The 0.95 fudge factor on self.dt is used to make the simulation
-        # attempt to run just faster than real time. This is meant to account
-        # for rendering overheads.
-        try:
-            time.sleep(sleep_duration)
-        except (OverflowError, ValueError):
-            pass
+        if real_time:
+            if self._epoch==float('-inf'):
+                self._epoch = time.monotonic()
+            if stable_step:
+                duration = self.dt-0.0007+self._prev_time-time.monotonic()
+                # The magic number is attempting to correct for the amount of
+                # time the self._client.stepSimulation() call takes
+            else:
+                duration = self.step_num*self.dt+self._epoch-time.monotonic()
+            try:
+                time.sleep(duration)
+            except (OverflowError, ValueError):
+                pass
 
-        # Attemp a step (might fail if the server is disconnected)
+        # Attempt a step (might fail if the server is disconnected)
         try:
             self._client.stepSimulation()
         except pybullet.error:
@@ -139,8 +164,8 @@ class Simulator():
             return -1
 
         self.time += self.dt
-        if real_time:
-            self._prev_step = time.monotonic()
+        self.step_num += 1
+        self._prev_time = time.monotonic()
         return 0
 
     def reset(self):
@@ -154,8 +179,10 @@ class Simulator():
             0 if successful, -1 if something went wrong.
 
         """
-        self._prev_step = float('-inf')
+        self._prev_time = float('-inf')
+        self._epoch = float('-inf')
         self.time = 0.0
+        self.step_num = 0
         for body in self.bodies:
             body.reset()
         return 0
