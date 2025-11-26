@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Example of a Complete condynsate Project &mdash; condynsate 0.7.0 documentation</title>
+  <title>Project Example Usage &mdash; condynsate 0.7.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/autoclasstoc.css?v=08871587" />
@@ -24,6 +24,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Simulator Example" href="simulator_example.html" />
     <link rel="prev" title="Examples" href="../../examples.html" /> 
 </head>
 
@@ -50,13 +51,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../package.html">The condynsate Package</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../examples.html">Examples</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Example of a Complete condynsate Project</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#Setting-up-the-Project">Setting up the Project</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Setting-up-the-Visualizer">Setting up the Visualizer</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Setting-up-the-Animator">Setting up the Animator</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Running-the-Simulation">Running the Simulation</a></li>
-</ul>
-</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Project Example Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simulator_example.html">Simulator Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualizer_example.html">Visualizer Example Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="animator_example.html">Animator Example Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="keyboard_example.html">Keyboard Example</a></li>
 </ul>
 </li>
 </ul>
@@ -76,7 +75,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../examples.html">Examples</a></li>
-      <li class="breadcrumb-item active">Example of a Complete condynsate Project</li>
+      <li class="breadcrumb-item active">Project Example Usage</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/_collections/examples/project_example.ipynb.txt" rel="nofollow"> View page source</a>
       </li>
@@ -86,10 +85,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="Example-of-a-Complete-condynsate-Project">
-<h1>Example of a Complete condynsate Project<a class="headerlink" href="#Example-of-a-Complete-condynsate-Project" title="Link to this heading"></a></h1>
-<section id="Setting-up-the-Project">
-<h2>Setting up the Project<a class="headerlink" href="#Setting-up-the-Project" title="Link to this heading"></a></h2>
+  <section id="Project-Example-Usage">
+<h1>Project Example Usage<a class="headerlink" href="#Project-Example-Usage" title="Link to this heading"></a></h1>
 <p>Import necessary <code class="docutils literal notranslate"><span class="pre">condynsate</span></code> modules. Also import <code class="docutils literal notranslate"><span class="pre">numpy</span></code> for array management.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -249,9 +246,6 @@ http://127.0.0.1:7001/static/
 </pre></div>
 </div>
 </div>
-</section>
-<section id="Setting-up-the-Visualizer">
-<h2>Setting up the Visualizer<a class="headerlink" href="#Setting-up-the-Visualizer" title="Link to this heading"></a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
@@ -275,9 +269,6 @@ http://127.0.0.1:7001/static/
 0
 </pre></div></div>
 </div>
-</section>
-<section id="Setting-up-the-Animator">
-<h2>Setting up the Animator<a class="headerlink" href="#Setting-up-the-Animator" title="Link to this heading"></a></h2>
 <p>We will add two lines plots to the animator. Each line plot will have exactly one line one it. These will not appear yet, only after starting the animator GUI will they appear. There are two ways to start the GUI:</p>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">proj.reset</span></code></p></li>
@@ -319,9 +310,6 @@ http://127.0.0.1:7001/static/
 </pre></div>
 </div>
 </div>
-</section>
-<section id="Running-the-Simulation">
-<h2>Running the Simulation<a class="headerlink" href="#Running-the-Simulation" title="Link to this heading"></a></h2>
 <p>Before running the simulation, we reset the project. This ensure that everything is started, updated, and in the desired initial state. <code class="docutils literal notranslate"><span class="pre">proj.reset</span></code> should be called before a simulation every time you run one.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
@@ -433,13 +421,13 @@ Simuation took 10.02 seconds.
 </pre></div></div>
 </div>
 </section>
-</section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../../examples.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="simulator_example.html" class="btn btn-neutral float-right" title="Simulator Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

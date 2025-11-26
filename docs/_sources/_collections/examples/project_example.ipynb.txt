@@ -5,15 +5,7 @@
    "id": "f75d8d6c-b2e4-4235-8fd9-70c5ff4bfdf5",
    "metadata": {},
    "source": [
-    "# Example of a Complete condynsate Project"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "d8157195-cd68-4472-b896-0ce9d87c8ee2",
-   "metadata": {},
-   "source": [
-    "## Setting up the Project"
+    "# Project Example Usage"
    ]
   },
   {
@@ -246,14 +238,6 @@
    ]
   },
   {
-   "cell_type": "markdown",
-   "id": "f3717941-9c26-48a3-894f-a7e3a3c19162",
-   "metadata": {},
-   "source": [
-    "## Setting up the Visualizer"
-   ]
-  },
-  {
    "cell_type": "code",
    "execution_count": 10,
    "id": "588b288a-5117-4967-a339-1d32b8aa3e73",
@@ -278,14 +262,6 @@
     "\n",
     "# Focus the camera on the cart\n",
     "proj.visualizer.set_cam_target(cart.center_of_mass) # This returns 0 on success"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "d454209d-3490-48a7-92f3-02a1641dfd18",
-   "metadata": {},
-   "source": [
-    "## Setting up the Animator"
    ]
   },
   {
@@ -337,14 +313,6 @@
     "                                   x_label='Time [seconds]',\n",
     "                                   y_label='Position [meters]',\n",
     "                                   h_zero_line=True,)"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "ba01c0c0-bc8a-453b-8bd7-b187c28e6fd4",
-   "metadata": {},
-   "source": [
-    "## Running the Simulation"
    ]
   },
   {

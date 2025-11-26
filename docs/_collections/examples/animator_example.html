@@ -1,0 +1,249 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animator Example Usage &mdash; condynsate 0.7.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/autoclasstoc.css?v=08871587" />
+      <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fe7df9b0"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Keyboard Example" href="keyboard_example.html" />
+    <link rel="prev" title="Visualizer Example Usage" href="visualizer_example.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            condynsate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../package.html">The condynsate Package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="project_example.html">Project Example Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simulator_example.html">Simulator Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualizer_example.html">Visualizer Example Usage</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Animator Example Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="keyboard_example.html">Keyboard Example</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">condynsate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Animator Example Usage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/_collections/examples/animator_example.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Animator-Example-Usage">
+<h1>Animator Example Usage<a class="headerlink" href="#Animator-Example-Usage" title="Link to this heading"></a></h1>
+<p>This module provides an example usage case for the animator. Here we create a figure with 2 plots, 1 line plot and 1 bar chart. On the line plot, we plot 2 lines. On the bar chart, we show 4 bars.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Required imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">condynsate</span><span class="w"> </span><span class="kn">import</span> <span class="n">Animator</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</pre></div>
+</div>
+</div>
+<p>First we create the animator. In this case, we set the frame rate to 20 fps, and tell it not to record</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the animator with a frame rate of 20 fps</span>
+<span class="n">animator</span> <span class="o">=</span> <span class="n">Animator</span><span class="p">(</span><span class="n">frame_rate</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">record</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Next, we add the plots that we want to the animator. In this case, we want one line plot with two lines and one bar chart with 4 bars.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the line plot. add_lineplot will return a list of length</span>
+<span class="c1"># n_lines. In the case n_lines==1, then it will return a single value.</span>
+<span class="c1"># These values are used to index each line on the line plot.</span>
+<span class="n">lines</span> <span class="o">=</span> <span class="n">animator</span><span class="o">.</span><span class="n">add_lineplot</span><span class="p">(</span>
+    <span class="n">n_lines</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="c1">#add 2 lines to the plot</span>
+    <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">,</span><span class="s1">&#39;g&#39;</span><span class="p">],</span> <span class="c1">#color then black and green</span>
+    <span class="n">tail</span><span class="o">=</span><span class="p">[</span><span class="mi">33</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="c1">#give one a tail and the other infinite length</span>
+    <span class="n">line_style</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;-&#39;</span><span class="p">,</span><span class="s1">&#39;--&#39;</span><span class="p">],</span> <span class="c1">#set the line styles to solid and dashed</span>
+    <span class="n">label</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Line 1&#39;</span><span class="p">,</span><span class="s1">&#39;Line 2&#39;</span><span class="p">],</span> <span class="c1">#name one Line 1 and the other Line 2</span>
+    <span class="n">y_lim</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="c1">#set the y limits of the plot to 0 to 1</span>
+    <span class="n">x_label</span><span class="o">=</span><span class="s1">&#39;Index&#39;</span><span class="p">,</span> <span class="c1">#set the x axis label of the plot</span>
+    <span class="n">y_label</span><span class="o">=</span><span class="s1">&#39;Value&#39;</span><span class="p">,</span> <span class="c1">#set the y axis label of the plot</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the bar chart. Similarly, add_barchart returns either a list of</span>
+<span class="c1"># length n_bars or a single value.</span>
+<span class="n">bars</span> <span class="o">=</span> <span class="n">animator</span><span class="o">.</span><span class="n">add_barchart</span><span class="p">(</span>
+    <span class="n">n_bars</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="c1">#add 4 bars to the chart</span>
+    <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">],</span> <span class="c1">#color each bar a unique color</span>
+    <span class="n">label</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Bar 1&#39;</span><span class="p">,</span><span class="s1">&#39;Bar 2&#39;</span><span class="p">,</span><span class="s1">&#39;Bar 3&#39;</span><span class="p">,</span><span class="s1">&#39;Bar 4&#39;</span><span class="p">],</span> <span class="c1">#name each bar</span>
+    <span class="n">x_lim</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">],</span> <span class="c1">#set the x limits of the plot to -1.1 to 1.1</span>
+    <span class="n">x_label</span><span class="o">=</span><span class="s1">&#39;Number&#39;</span><span class="p">,</span> <span class="c1">#set the x axis label of the plot</span>
+    <span class="n">v_zero_line</span><span class="o">=</span><span class="kc">True</span> <span class="c1">#add a thin vertical line at x=0</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Note that the animator GUI is not open even though we have initialized an instance of the <code class="docutils literal notranslate"><span class="pre">Animator</span></code> class and added plots to it. This is because the main GUI loop does not start until the <code class="docutils literal notranslate"><span class="pre">start</span></code> function is called. Once this function is called, it is up to the user to keep the GUI responsive. This is done by either calling the <code class="docutils literal notranslate"><span class="pre">refresh</span></code> function regularly, or call any of the functions that also refresh the animator. The functions that refresh the animator automatically are</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">barchart_set_value</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lineplot_append_point</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lineplot_set_data</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reset</span></code></p></li>
+</ol>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start the animator. This will open the GUI and start the rendering thread</span>
+<span class="n">animator</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="c1"># returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<p>Now we can start the animation loop. To update the line plot, we call the <code class="docutils literal notranslate"><span class="pre">lineplot_append_point</span></code> or <code class="docutils literal notranslate"><span class="pre">lineplot_set_data</span></code> functions. To denote which line on the plot we are updating the data of, we can use the return value of <code class="docutils literal notranslate"><span class="pre">add_lineplot</span></code>. A similary process is used for updating the bar chart with the <code class="docutils literal notranslate"><span class="pre">barchart_set_value</span></code> function.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">N</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">percent_done</span> <span class="o">=</span> <span class="n">i</span><span class="o">/</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Add a point at the current step index to both lines in the line plot</span>
+    <span class="n">animator</span><span class="o">.</span><span class="n">lineplot_append_point</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">i</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">())</span>
+    <span class="n">animator</span><span class="o">.</span><span class="n">lineplot_append_point</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">i</span><span class="p">,</span> <span class="n">percent_done</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Set the values of each bar in the bar chart to something</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1">#Every fourth step update the bars</span>
+        <span class="n">animator</span><span class="o">.</span><span class="n">barchart_set_value</span><span class="p">(</span><span class="n">bars</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">percent_done</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">animator</span><span class="o">.</span><span class="n">barchart_set_value</span><span class="p">(</span><span class="n">bars</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="n">percent_done</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">animator</span><span class="o">.</span><span class="n">barchart_set_value</span><span class="p">(</span><span class="n">bars</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">percent_done</span><span class="p">))</span>
+        <span class="n">animator</span><span class="o">.</span><span class="n">barchart_set_value</span><span class="p">(</span><span class="n">bars</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span><span class="o">*</span><span class="mi">2</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.05</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>When done, terminate the animator to gracefully exit all children threads and close the GUI</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">animator</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span> <span class="c1"># returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="visualizer_example.html" class="btn btn-neutral float-left" title="Visualizer Example Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="keyboard_example.html" class="btn btn-neutral float-right" title="Keyboard Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, G. Schaer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
