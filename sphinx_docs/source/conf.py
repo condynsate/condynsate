@@ -15,10 +15,10 @@ release = condynsate.__version__
 
 
 # -- General configuration ---------------------------------------------------
-extensions = ['sphinx.ext.autodoc', 
-              'sphinx.ext.coverage', 
+extensions = ['sphinx.ext.autodoc',
+              'sphinx.ext.coverage',
               'sphinx.ext.napoleon',
-              "sphinxcontrib.collections",
+              "sphinx_collections",
               'numpydoc',
               'autoclasstoc',
               'sphinx_rtd_theme',
@@ -48,7 +48,3 @@ collections = {
 # -- Options for HTML output -------------------------------------------------
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
-
-
-
-

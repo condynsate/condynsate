@@ -25,16 +25,29 @@ class Simulator():
     Parameters
     ----------
     **kwargs
-        The optional arguments provided to build the simulator. Valid keys
-        include:
-            gravity : 3 tuple of floats, optional
-                The gravity vector used in the simulation. The default value is
-                (0.0, 0.0, -9.81).
-            dt : float, optional
-                The finite time step size used by the simulator. If set too
-                small, can result in visualizer, simulator desynch. Too small
-                is determined by the number of total links in the simulation.
-                The default value is 0.01.
+
+    Keyword Args
+    ------------
+    gravity : 3 tuple of floats, optional
+        The gravity vector used in the simulation. The default value is
+        (0.0, 0.0, -9.81).
+    dt : float, optional
+        The finite time step size used by the simulator. If set too
+        small, can result in visualizer, simulator desync. Too small
+        is determined by the number of total links in the simulation.
+        The default value is 0.01.
+
+    Attributes
+    ----------
+    dt : float
+        The simulator time step in seconds.
+    time : float
+        The current simulation time in seconds.
+    step_num : int
+        The number of steps the simulation has taken since instatiation or
+        reset.
+    bodies : List of condynsate.simulator.objects.Body
+        All bodies loaded into the simultor via the load_urdf fnc.
 
     """
     def __init__(self, **kwargs):
@@ -91,14 +104,16 @@ class Simulator():
         path : string
             The path pointing to the .URDF file that defines the body.
         **kwargs
-            Additional arguments for the body. Valid keys are
-            fixed : boolean, optional
-                A flag that indicates if the body is fixed (has 0 DoF) or free
-                (has 6 DoF).
+
+        Keyword Args
+        ------------
+        fixed : boolean, optional
+            A flag that indicates if the body is fixed (has 0 DoF) or free
+            (has 6 DoF).
 
         Returns
         -------
-        body : condynsate.core.objects.Body
+        body : condynsate.simulator.objects.Body
             The body added to the simulation. This retured object facilitates
             user interaction with the body and its joints and links.
 

@@ -18,45 +18,51 @@ import condynsate.misc.transforms as t
 @dataclass(frozen=True)
 class BodyState():
     """
-    Stores state information about the base of a body. Has 7 attributes:
-        position : 3 tuple of floats
-            The (x,y,z) position in world coordinates.
-        orientation : 4 tuple of floats
-            The wxyz quaternion representation of the orientation in world
-            coordinates.
-        ypr : 3 tuple of floats
-            The (z-y'-x' Tait–Bryan) Euler angles in radians ordered as
-            (yaw, pitch, roll).
-        velocity : 3 tuple of floats
-            The (x,y,z) velocity in world coordinates.
-        omega : 3 tuple of floats
-            The (x,y,z) angular velocity in world coordinates.
-        velocity_in_body : 3 tuple of floats
-            The (x,y,z) velocity in body coordinates.
-        omega_in_body : 3 tuple of floats
-            The (x,y,z) angular velocity in body coordinates.
+    Stores state information about the base of a body.
 
     Parameters
     ----------
-    **kwargs :
-        State information with the following acceptable keys
-        position : 3 tuple of floats, optional
-            The XYZ position in world coordinates.
-            The default is (0., 0., 0.)
-        orientation : 4 tuple of floats, optional
-            The wxyz quaternion representation of the orientation in world
-            coordinates. The default is (1., 0., 0., 0.)
-        velocity : 3 tuple of floats, optional
-            The XYZ velocity in either world or body coordinates. Body
-            coordinates are defined based on objects orientation.
-            The default is (0., 0., 0.)
-        omega : 3 tuple of floats, optional
-            The XYZ angular velocity in either world or body coordinates.
-            Body coordinates are defined based on objects orientation.
-            The default is (0., 0., 0.)
-        body : bool, optional
-            Whether velocity and omega are being set in world or body
-            coordinates. The default is False
+    **kwargs
+
+    Keyword Args
+    ------------
+    position : 3 tuple of floats, optional
+        The XYZ position in world coordinates.
+        The default is (0., 0., 0.)
+    orientation : 4 tuple of floats, optional
+        The wxyz quaternion representation of the orientation in world
+        coordinates. The default is (1., 0., 0., 0.)
+    velocity : 3 tuple of floats, optional
+        The XYZ velocity in either world or body coordinates. Body
+        coordinates are defined based on objects orientation.
+        The default is (0., 0., 0.)
+    omega : 3 tuple of floats, optional
+        The XYZ angular velocity in either world or body coordinates.
+        Body coordinates are defined based on objects orientation.
+        The default is (0., 0., 0.)
+    body : bool, optional
+        Whether velocity and omega are being set in world or body
+        coordinates. The default is False
+
+    Attributes
+    ----------
+    position : 3 tuple of floats
+        The (x,y,z) position in world coordinates.
+    orientation : 4 tuple of floats
+        The wxyz quaternion representation of the orientation in world
+        coordinates.
+    ypr : 3 tuple of floats
+        The (z-y'-x' Tait–Bryan) Euler angles in radians ordered as
+        (yaw, pitch, roll).
+    velocity : 3 tuple of floats
+        The (x,y,z) velocity in world coordinates.
+    omega : 3 tuple of floats
+        The (x,y,z) angular velocity in world coordinates.
+    velocity_in_body : 3 tuple of floats
+        The (x,y,z) velocity in body coordinates.
+    omega_in_body : 3 tuple of floats
+        The (x,y,z) angular velocity in body coordinates.
+
     """
     position: tuple
     orientation: tuple
@@ -135,13 +141,23 @@ class JointState():
 
     Parameters
     ----------
-    **kwargs :
-        State information with the following acceptable keys
-        angle : float, optional
-            The angle of the joint about the joint axis. The default is 0.
-        omega : float, optional
-            The angular velocity of the joint about the joint axis.
-            The default is 0.
+    **kwargs
+
+    Keyword Args
+    ------------
+    angle : float, optional
+        The angle of the joint about the joint axis. The default is 0.
+    omega : float, optional
+        The angular velocity of the joint about the joint axis.
+        The default is 0.
+
+    Attributes
+    ----------
+    angle : float
+        The angle of the joint about the joint axis.
+    omega : float
+        The angular velocity of the joint about the joint axis.
+
     """
     angle: float
     omega: float
@@ -162,45 +178,51 @@ class JointState():
 @dataclass(frozen=True)
 class LinkState(BodyState):
     """
-    Stores state information about a link. Has 7 attributes:
-        position : 3 tuple of floats
-            The (x,y,z) position in world coordinates.
-        orientation : 4 tuple of floats
-            The wxyz quaternion representation of the orientation in world
-            coordinates.
-        ypr : 3 tuple of floats
-            The (z-y'-x' Tait–Bryan) Euler angles in radians ordered as
-            (yaw, pitch, roll).
-        velocity : 3 tuple of floats
-            The (x,y,z) velocity in world coordinates.
-        omega : 3 tuple of floats
-            The (x,y,z) angular velocity in world coordinates.
-        velocity_in_body : 3 tuple of floats
-            The (x,y,z) velocity in body coordinates.
-        omega_in_body : 3 tuple of floats
-            The (x,y,z) angular velocity in body coordinates.
+    Stores state information about a link.
 
     Parameters
     ----------
-    **kwargs :
-        State information with the following acceptable keys
-        position : 3 tuple of floats, optional
-            The XYZ position in world coordinates.
-            The default is (0., 0., 0.)
-        orientation : 4 tuple of floats, optional
-            The wxyz quaternion representation of the orientation in world
-            coordinates. The default is (1., 0., 0., 0.)
-        velocity : 3 tuple of floats, optional
-            The XYZ velocity in either world or body coordinates. Body
-            coordinates are defined based on objects orientation.
-            The default is (0., 0., 0.)
-        omega : 3 tuple of floats, optional
-            The XYZ angular velocity in either world or body coordinates.
-            Body coordinates are defined based on objects orientation.
-            The default is (0., 0., 0.)
-        body : bool, optional
-            Whether velocity and omega are being set in world or body
-            coordinates. The default is False
+    **kwargs
+
+    Keyword Args
+    ------------
+    position : 3 tuple of floats, optional
+        The XYZ position in world coordinates.
+        The default is (0., 0., 0.)
+    orientation : 4 tuple of floats, optional
+        The wxyz quaternion representation of the orientation in world
+        coordinates. The default is (1., 0., 0., 0.)
+    velocity : 3 tuple of floats, optional
+        The XYZ velocity in either world or body coordinates. Body
+        coordinates are defined based on objects orientation.
+        The default is (0., 0., 0.)
+    omega : 3 tuple of floats, optional
+        The XYZ angular velocity in either world or body coordinates.
+        Body coordinates are defined based on objects orientation.
+        The default is (0., 0., 0.)
+    body : bool, optional
+        Whether velocity and omega are being set in world or body
+        coordinates. The default is False
+
+    Attributes
+    ----------
+    position : 3 tuple of floats
+        The (x,y,z) position in world coordinates.
+    orientation : 4 tuple of floats
+        The wxyz quaternion representation of the orientation in world
+        coordinates.
+    ypr : 3 tuple of floats
+        The (z-y'-x' Tait–Bryan) Euler angles in radians ordered as
+        (yaw, pitch, roll).
+    velocity : 3 tuple of floats
+        The (x,y,z) velocity in world coordinates.
+    omega : 3 tuple of floats
+        The (x,y,z) angular velocity in world coordinates.
+    velocity_in_body : 3 tuple of floats
+        The (x,y,z) velocity in body coordinates.
+    omega_in_body : 3 tuple of floats
+        The (x,y,z) angular velocity in body coordinates.
+
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

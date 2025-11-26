@@ -42,6 +42,16 @@ class Animator():
         call are recorded. After the terminate function call, these frames are
         saved with h.264 and outputs in an MP4 container. The saved file name
         has the form animator_video.mp4
+
+    Attributes
+    ----------
+    frame_delta : float
+        The time, in seconds, between each animator frame update.
+    record : bool
+        A boolean flag that indicates if the animator is recording or not.
+    is_running : bool
+        A boolean flag that indicates if the animator is running or not.
+
     """
     def __init__(self, frame_rate=20, record=False):
         """
@@ -79,6 +89,7 @@ class Animator():
         """
         self.terminate()
 
+    @property
     def is_running(self):
         """
         True if the animator GUI is open and the animation loop is running,
@@ -103,56 +114,59 @@ class Animator():
             The number of lines that are drawn on the plot. Must be integer
             between [1, 16].
         **kwargs
-            x_lim : [float, float], optional
-                The limits to apply to the x axis of the plot. A value of None
-                will apply automatically updating limits to the corresponding
-                bound of the axis. For example [None, 10.] will fix the upper
-                bound to exactly 10, but the lower bound will freely change to
-                show all data.The default is [None, None].
-            y_lim : [float, float], optional
-                The limits to apply to the y axis of the plot. A value of None
-                will apply automatically updating limits to the corresponding
-                bound of the axis. For example [None, 10.] will fix the upper
-                bound to exactly 10, but the lower bound will freely change to
-                show all data.The default is [None, None].
-            h_zero_line : boolean, optional
-                A boolean flag that indicates whether a horizontal line will be
-                drawn on the y=0 line. The default is false
-            v_zero_line : boolean, optional
-                A boolean flag that indicates whether a vertical line will be
-                drawn on the x=0 line. The default is false
-            tail : int or tuple of ints optional
-                Specifies how many data points are used to draw a line. Only
-                the most recently added data points are kept. Any data points
-                added more than tail data points ago are discarded and not
-                plotted. When tuple, must have length n_lines. A value less
-                than or equal to 0 means that no data is ever discarded and all
-                data points added to the animator will be drawn. The default
-                is -1.
-            title : string, optional
-                The title of the plot. Will be written above the plot when
-                rendered. The default is None.
-            x_label : string, optional
-                The label to apply to the x axis. Will be written under the
-                plot when rendered. The default is None.
-            y_label : string, optional
-                The label to apply to the y axis. Will be written to the
-                left of the plot when rendered. The default is None.
-            label : string or tuple of strings, optional
-                The label applied to each artist. The labels are shown in a
-                legend in the top right of the plot. When tuple, must have
-                length n_lines. When None, no labels are made. The default
-                is None.
-            color : matplotlib color string or tuple of color strings, optional
-                The color each artist draws in. When tuple, must have length
-                n_lines. The default is 'black'.
-            line_width : float or tuple of floats, optional
-                The line weigth each artist uses. When tuple, must have length
-                n_lines. The default is 1.5.
-            line_style : line style string or tuple of ls strings, optional
-                The line style each artist uses. When tuple, must have length
-                n_lines. The default is 'solid'. Select from 'solid', 'dashed',
-                'dashdot', or 'dotted'.
+
+        Keyword Args
+        ------------
+        x_lim : [float, float], optional
+            The limits to apply to the x axis of the plot. A value of None
+            will apply automatically updating limits to the corresponding
+            bound of the axis. For example [None, 10.] will fix the upper
+            bound to exactly 10, but the lower bound will freely change to
+            show all data.The default is [None, None].
+        y_lim : [float, float], optional
+            The limits to apply to the y axis of the plot. A value of None
+            will apply automatically updating limits to the corresponding
+            bound of the axis. For example [None, 10.] will fix the upper
+            bound to exactly 10, but the lower bound will freely change to
+            show all data.The default is [None, None].
+        h_zero_line : boolean, optional
+            A boolean flag that indicates whether a horizontal line will be
+            drawn on the y=0 line. The default is false
+        v_zero_line : boolean, optional
+            A boolean flag that indicates whether a vertical line will be
+            drawn on the x=0 line. The default is false
+        tail : int or tuple of ints optional
+            Specifies how many data points are used to draw a line. Only
+            the most recently added data points are kept. Any data points
+            added more than tail data points ago are discarded and not
+            plotted. When tuple, must have length n_lines. A value less
+            than or equal to 0 means that no data is ever discarded and all
+            data points added to the animator will be drawn. The default
+            is -1.
+        title : string, optional
+            The title of the plot. Will be written above the plot when
+            rendered. The default is None.
+        x_label : string, optional
+            The label to apply to the x axis. Will be written under the
+            plot when rendered. The default is None.
+        y_label : string, optional
+            The label to apply to the y axis. Will be written to the
+            left of the plot when rendered. The default is None.
+        label : string or tuple of strings, optional
+            The label applied to each artist. The labels are shown in a
+            legend in the top right of the plot. When tuple, must have
+            length n_lines. When None, no labels are made. The default
+            is None.
+        color : matplotlib color string or tuple of color strings, optional
+            The color each artist draws in. When tuple, must have length
+            n_lines. The default is 'black'.
+        line_width : float or tuple of floats, optional
+            The line weigth each artist uses. When tuple, must have length
+            n_lines. The default is 1.5.
+        line_style : line style string or tuple of ls strings, optional
+            The line style each artist uses. When tuple, must have length
+            n_lines. The default is 'solid'. Select from 'solid', 'dashed',
+            'dashdot', or 'dotted'.
 
         Raises
         ------
@@ -203,41 +217,44 @@ class Animator():
         ----------
         n_bars : int
             The number of bars on the chart. Must be integer between [1, 16].
-        **kwargs: dict
-            x_lim : [float, float], optional
-                The limits to apply to the x axis of the plot. A value of None
-                will apply automatically updating limits to the corresponding
-                bound of the axis. For example [None, 10.] will fix the upper
-                bound to exactly 10, but the lower bound will freely change to
-                show all data.The default is [None, None].
-            y_lim : [float, float], optional
-                The limits to apply to the y axis of the plot. A value of None
-                will apply automatically updating limits to the corresponding
-                bound of the axis. For example [None, 10.] will fix the upper
-                bound to exactly 10, but the lower bound will freely change to
-                show all data.The default is [None, None].
-            h_zero_line : boolean, optional
-                A boolean flag that indicates whether a horizontal line will be
-                drawn on the y=0 line. The default is false
-            v_zero_line : boolean, optional
-                A boolean flag that indicates whether a vertical line will be
-                drawn on the x=0 line. The default is false
-            title : string, optional
-                The title of the plot. Will be written above the plot when
-                rendered. The default is None.
-            x_label : string, optional
-                The label to apply to the x axis. Will be written under the
-                plot when rendered. The default is None.
-            y_label : string, optional
-                The label to apply to the y axis. Will be written to the left
-                of the plot when rendered. The default is None.
-            label : string or tuple of strings, optional
-                The label applied to each bar. The labels are shown in a legend
-                in the top right of the chart. When tuple, must have length
-                n_bars. When None, no labels are made. The default is None.
-            color : matplotlib color string or tuple of color strings, optional
-                The color of each bar. When tuple, must have length
-                n_bars. The default is 'blue'.
+        **kwargs
+
+        Keyword Args
+        ------------
+        x_lim : [float, float], optional
+            The limits to apply to the x axis of the plot. A value of None
+            will apply automatically updating limits to the corresponding
+            bound of the axis. For example [None, 10.] will fix the upper
+            bound to exactly 10, but the lower bound will freely change to
+            show all data.The default is [None, None].
+        y_lim : [float, float], optional
+            The limits to apply to the y axis of the plot. A value of None
+            will apply automatically updating limits to the corresponding
+            bound of the axis. For example [None, 10.] will fix the upper
+            bound to exactly 10, but the lower bound will freely change to
+            show all data.The default is [None, None].
+        h_zero_line : boolean, optional
+            A boolean flag that indicates whether a horizontal line will be
+            drawn on the y=0 line. The default is false
+        v_zero_line : boolean, optional
+            A boolean flag that indicates whether a vertical line will be
+            drawn on the x=0 line. The default is false
+        title : string, optional
+            The title of the plot. Will be written above the plot when
+            rendered. The default is None.
+        x_label : string, optional
+            The label to apply to the x axis. Will be written under the
+            plot when rendered. The default is None.
+        y_label : string, optional
+            The label to apply to the y axis. Will be written to the left
+            of the plot when rendered. The default is None.
+        label : string or tuple of strings, optional
+            The label applied to each bar. The labels are shown in a legend
+            in the top right of the chart. When tuple, must have length
+            n_bars. When None, no labels are made. The default is None.
+        color : matplotlib color string or tuple of color strings, optional
+            The color of each bar. When tuple, must have length
+            n_bars. The default is 'blue'.
 
         Raises
         ------

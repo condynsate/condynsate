@@ -22,24 +22,7 @@ class Body():
     """
     The class stores information about and allows interaction with a body
     in the simulation. This body is defined from a URDF file and is comprised
-    of a set of links and joints. Each Body member has the following attributes
-        initial_state : condynsate.simulator.dataclasses.BodyState
-            The initial state of the body. Can be upated with the
-            set_initial_state function.
-        state : condynsate.simulator.dataclasses.BodyState
-            The current state of the body in simulation. Can be upated either
-            by the simulation or with the set_state function.
-        center_of_mass : 3 tuple of floats
-            The center of mass of the body in world coordinates.
-        visual_data : list of dicts
-            All data needed to render the body assuming each link is rendered
-            individually.
-        links : dict of condynsate.simulator.objects.Link
-            A dictionary whose keys are link names (as defined by the .URDF)
-            and whose values are the Link objects that facilitate interaction.
-        joints : dict of condynsate.simulator.objects.Joint
-            A dictionary whose keys are joints names (as defined by the .URDF)
-            and whose values are the Joint objects that facilitate interaction.
+    of a set of links and joints.
 
     Parameters
     ----------
@@ -48,10 +31,32 @@ class Body():
     path : string
         The path pointing to the URDF file that defines the body.
     **kwargs
-        Additional arguments for the body. Valid keys are
-        fixed : boolean, optional
-            A flag that indicates if the body is fixed (has 0 DoF) or free
-            (has 6 DoF).
+
+    Keyword Args
+    ------------
+    fixed : boolean, optional
+        A flag that indicates if the body is fixed (has 0 DoF) or free
+        (has 6 DoF).
+
+    Attributes
+    ----------
+    initial_state : condynsate.simulator.dataclasses.BodyState
+        The initial state of the body. Can be upated with the
+        set_initial_state function.
+    state : condynsate.simulator.dataclasses.BodyState
+        The current state of the body in simulation. Can be upated either
+        by the simulation or with the set_state function.
+    center_of_mass : 3 tuple of floats
+        The center of mass of the body in world coordinates.
+    visual_data : list of dicts
+        All data needed to render the body assuming each link is rendered
+        individually.
+    links : dict of condynsate.simulator.objects.Link
+        A dictionary whose keys are link names (as defined by the .URDF)
+        and whose values are the Link objects that facilitate interaction.
+    joints : dict of condynsate.simulator.objects.Joint
+        A dictionary whose keys are joints names (as defined by the .URDF)
+        and whose values are the Joint objects that facilitate interaction.
 
     """
     def __init__(self, client, path, **kwargs):
@@ -302,27 +307,29 @@ class Body():
         Parameters
         ----------
         **kwargs
-            State information with the following acceptable keys
-            position : 3 tuple of floats, optional
-                The XYZ position in world coordinates.
-                The default is (0., 0., 0.)
-            yaw : float, optional
-                The (z-y'-x' Tait–Bryan) yaw angle of the object in radians.
-            pitch : float, optional
-                The (z-y'-x' Tait–Bryan) pitch angle of the object in radians.
-            roll : float, optional
-                The (z-y'-x' Tait–Bryan) roll angle of the object in radians.
-            velocity : 3 tuple of floats, optional
-                The XYZ velocity in either world or body coordinates. Body
-                coordinates are defined based on object's orientation.
-                The default is (0., 0., 0.)
-            omega : 3 tuple of floats, optional
-                The XYZ angular velocity in either world or body coordinates.
-                Body coordinates are defined based on object's orientation.
-                The default is (0., 0., 0.)
-            body : bool, optional
-                Whether velocity and omega are being set in world or body
-                coordinates. The default is False
+
+        Keyword Args
+        ------------
+        position : 3 tuple of floats, optional
+            The XYZ position in world coordinates.
+            The default is (0., 0., 0.)
+        yaw : float, optional
+            The (z-y'-x' Tait–Bryan) yaw angle of the object in radians.
+        pitch : float, optional
+            The (z-y'-x' Tait–Bryan) pitch angle of the object in radians.
+        roll : float, optional
+            The (z-y'-x' Tait–Bryan) roll angle of the object in radians.
+        velocity : 3 tuple of floats, optional
+            The XYZ velocity in either world or body coordinates. Body
+            coordinates are defined based on object's orientation.
+            The default is (0., 0., 0.)
+        omega : 3 tuple of floats, optional
+            The XYZ angular velocity in either world or body coordinates.
+            Body coordinates are defined based on object's orientation.
+            The default is (0., 0., 0.)
+        body : bool, optional
+            Whether velocity and omega are being set in world or body
+            coordinates. The default is False
 
         Returns
         -------
@@ -352,27 +359,29 @@ class Body():
         Parameters
         ----------
         **kwargs
-            State information with the following acceptable keys
-            position : 3 tuple of floats, optional
-                The XYZ position in world coordinates.
-                The default is (0., 0., 0.)
-            yaw : float, optional
-                The (z-y'-x' Tait–Bryan) yaw angle of the object in radians.
-            pitch : float, optional
-                The (z-y'-x' Tait–Bryan) pitch angle of the object in radians.
-            roll : float, optional
-                The (z-y'-x' Tait–Bryan) roll angle of the object in radians.
-            velocity : 3 tuple of floats, optional
-                The XYZ velocity in either world or body coordinates. Body
-                coordinates are defined based on object's orientation.
-                The default is (0., 0., 0.)
-            omega : 3 tuple of floats, optional
-                The XYZ angular velocity in either world or body coordinates.
-                Body coordinates are defined based on object's orientation.
-                The default is (0., 0., 0.)
-            body : bool, optional
-                Whether velocity and omega are being set in world or body
-                coordinates. The default is False
+
+        Keyword Args
+        ------------
+        position : 3 tuple of floats, optional
+            The XYZ position in world coordinates.
+            The default is (0., 0., 0.)
+        yaw : float, optional
+            The (z-y'-x' Tait–Bryan) yaw angle of the object in radians.
+        pitch : float, optional
+            The (z-y'-x' Tait–Bryan) pitch angle of the object in radians.
+        roll : float, optional
+            The (z-y'-x' Tait–Bryan) roll angle of the object in radians.
+        velocity : 3 tuple of floats, optional
+            The XYZ velocity in either world or body coordinates. Body
+            coordinates are defined based on object's orientation.
+            The default is (0., 0., 0.)
+        omega : 3 tuple of floats, optional
+            The XYZ angular velocity in either world or body coordinates.
+            Body coordinates are defined based on object's orientation.
+            The default is (0., 0., 0.)
+        body : bool, optional
+            Whether velocity and omega are being set in world or body
+            coordinates. The default is False
 
         Returns
         -------
@@ -460,17 +469,19 @@ class Body():
         force : 3 tuple of floats
             The force being applied to the center of mass.
         **kwargs
-            Extra arguments. Valid keys include
-            body : bool, optional
-                A Boolean flag that indicates if the force argument is in
-                body coordinates (True), or in world coordinates (False).
-                The default is False.
-            draw_arrow : bool, optional
-                A Boolean flag that indicates if an arrow should be drawn
-                to represent the applied force. The default is False.
-            arrow_scale : float, optional
-                The scaling factor, relative to the size of the applied force,
-                that is used to size the force arrow. The default is 1.0.
+
+        Keyword Args
+        ------------
+        body : bool, optional
+            A Boolean flag that indicates if the force argument is in
+            body coordinates (True), or in world coordinates (False).
+            The default is False.
+        draw_arrow : bool, optional
+            A Boolean flag that indicates if an arrow should be drawn
+            to represent the applied force. The default is False.
+        arrow_scale : float, optional
+            The scaling factor, relative to the size of the applied force,
+            that is used to size the force arrow. The default is 1.0.
 
         Returns
         -------
@@ -526,17 +537,19 @@ class Body():
         torque : 3 tuple of floats
             The torque being applied.
         **kwargs
-            Extra arguments. Valid keys include
-            body : bool, optional
-                A Boolean flag that indicates if the torque argument is in
-                body coordinates (True), or in world coordinates (False).
-                The default is False.
-            draw_arrow : bool, optional
-                A Boolean flag that indicates if an arrow should be drawn
-                to represent the applied torque. The default is False.
-            arrow_scale : float, optional
-                The scaling factor, relative to the size of the applied torque,
-                that is used to size the torque arrow. The default is 1.0.
+
+        Keyword Args
+        ------------
+        body : bool, optional
+            A Boolean flag that indicates if the torque argument is in
+            body coordinates (True), or in world coordinates (False).
+            The default is False.
+        draw_arrow : bool, optional
+            A Boolean flag that indicates if an arrow should be drawn
+            to represent the applied torque. The default is False.
+        arrow_scale : float, optional
+            The scaling factor, relative to the size of the applied torque,
+            that is used to size the torque arrow. The default is 1.0.
 
         Returns
         -------
@@ -593,14 +606,7 @@ class Body():
 class Joint:
     """
     The class stores information about and allows interaction with a joint
-    on a body in the simulation. Each Joint member has the following attributes
-        initial_state : condynsate.simulator.dataclasses.JointState
-            The initial state of the joint. Can be upated with the
-            set_initial_state function.
-        state : condynsate.simulator.dataclasses.JointState
-            The current state of the joint in simulation. Read only.
-        axis : 3 tuple of floats
-            The axis, in world coordinates, about which the joint operates.
+    on a body in the simulation.
 
     Parameters
     ----------
@@ -610,6 +616,16 @@ class Joint:
         The unique number that identifies the joint in the PyBullet client.
     parent : condynsate.core.objects.Link
         The parent link of the joint.
+
+    Attributes
+    ----------
+    initial_state : condynsate.simulator.dataclasses.JointState
+        The initial state of the joint. Can be upated with the
+        set_initial_state function.
+    state : condynsate.simulator.dataclasses.JointState
+        The current state of the joint in simulation. Read only.
+    axis : 3 tuple of floats
+        The axis, in world coordinates, about which the joint operates.
 
     """
     def __init__(self, sim_obj, idx, parent):
@@ -675,13 +691,15 @@ class Joint:
         Parameters
         ----------
         **kwargs
-            Dynamics information with the following acceptable keys
-            damping : float, optional
-                The damping of the joint about the joint axis.
-                The default value is 0.001.
-            max_omega : float, optional
-                The maximum allowed angular velocity of the joint about the
-                joint axis. The default value is 1000.0
+
+        Keyword Args
+        ------------
+        damping : float, optional
+            The damping of the joint about the joint axis.
+            The default value is 0.001.
+        max_omega : float, optional
+            The maximum allowed angular velocity of the joint about the
+            joint axis. The default value is 1000.0
 
         Returns
         -------
@@ -709,12 +727,14 @@ class Joint:
         Parameters
         ----------
         **kwargs
-            Joint state information with the following acceptable keys
-            angle : float, optional
-                The (angle in radians) of the joint about the joint axis.
-            omega : float, optional
-                The angular velocity (angle in radians / second) of the joint
-                about the joint axis.
+
+        Keyword Args
+        ------------
+        angle : float, optional
+            The (angle in radians) of the joint about the joint axis.
+        omega : float, optional
+            The angular velocity (angle in radians / second) of the joint
+            about the joint axis.
 
         Returns
         -------
@@ -739,14 +759,16 @@ class Joint:
         Parameters
         ----------
         **kwargs
-            Joint state information with the following acceptable keys
-            angle : float, optional
-                The (angle in radians) of the joint about the joint axis. When
-                not defined, does not change from current value.
-            omega : float, optional
-                The angular velocity (angle in radians / second) of the joint
-                about the joint axis.  When not defined, does not change from
-                current value.
+
+        Keyword Args
+        ------------
+        angle : float, optional
+            The (angle in radians) of the joint about the joint axis. When
+            not defined, does not change from current value.
+        omega : float, optional
+            The angular velocity (angle in radians / second) of the joint
+            about the joint axis.  When not defined, does not change from
+            current value.
 
         Returns
         -------
@@ -777,16 +799,18 @@ class Joint:
         torque : float
             The torque being applied about the joint's axis..
         **kwargs
-            Extra arguments. Valid keys include
-            draw_arrow : bool, optional
-                A Boolean flag that indicates if an arrow should be drawn
-                to represent the applied torque. The default is False.
-            arrow_scale : float, optional
-                The scaling factor, relative to the size of the applied torque,
-                that is used to size the torque arrow. The default is 1.0.
-            arrow_offset : float, optional
-                The amount by which the drawn is offset from the center of the
-                joint's child link along the joint axis. The default is 0.0.
+
+        Keyword Args
+        ------------
+        draw_arrow : bool, optional
+            A Boolean flag that indicates if an arrow should be drawn
+            to represent the applied torque. The default is False.
+        arrow_scale : float, optional
+            The scaling factor, relative to the size of the applied torque,
+            that is used to size the torque arrow. The default is 1.0.
+        arrow_offset : float, optional
+            The amount by which the drawn is offset from the center of the
+            joint's child link along the joint axis. The default is 0.0.
 
         Returns
         -------
@@ -855,19 +879,7 @@ class Joint:
 class Link:
     """
     The class stores information about and allows interaction with a link
-    on a body in the simulation. Each Link member has the following attributes
-        state : condynsate.simulator.dataclasses.LinkState
-            The current state of the link (position, orientation, velocity,
-                                           and angular velocity)
-        mass : float
-            The mass of the link. Can be set with the set_dynamics function.
-        center_of_mass : 3 tuple of floats
-            The current center of mass of the link in world coordinates.
-        visual_data : dict
-            A dictionary containing all required data to render the link.
-        Obw_Rbw : 2tuple of 3tuple and 3x3 array-like
-            The position of the link in world coordinates and the rotation
-            matrix of the link relative to the world.
+    on a body in the simulation.
 
     Parameters
     ----------
@@ -875,6 +887,21 @@ class Link:
         The member of the Body class to which the link belongs
     idx : int
         The unique number that identifies the link in the PyBullet client.
+
+    Attributes
+    ----------
+    state : condynsate.simulator.dataclasses.LinkState
+        The current state of the link (position, orientation, velocity,
+                                       and angular velocity)
+    mass : float
+        The mass of the link. Can be set with the set_dynamics function.
+    center_of_mass : 3 tuple of floats
+        The current center of mass of the link in world coordinates.
+    visual_data : dict
+        A dictionary containing all required data to render the link.
+    Obw_Rbw : 2tuple of 3tuple and 3x3 array-like
+        The position of the link in world coordinates and the rotation
+        matrix of the link relative to the world.
 
     """
     def __init__(self, sim_obj, idx):
@@ -966,35 +993,37 @@ class Link:
         Parameters
         ----------
         **kwargs
-            Dynamics values with the following acceptable keys
-            mass : float, optional
-                The mass of the link. The default is defined by the .URDF file
-            lateral_contact_friction : float, optional
-                The lateral (linear) contact friction of the link. 0.0 for
-                no friction, increasing friction with increasing value.
-                The default is 100.0.
-            spinning_contact_friction : float, optional
-                The torsional contact friction of the link about
-                contact normals. 0.0 for no friction, increasing friction
-                with increasing value. The default is 0.0.
-            rolling_contact_friction : float, optional
-                The torsional contact friction of the link orthogonal to
-                contact normals. 0.0 for no friction, increasing friction
-                with increasing value. Keep this value either 0.0 or very close
-                to 0.0, otherwise the simulations can become unstable.
-                The default is 0.0.
-            bounciness : float, optional
-                How bouncy this link is. 0.0 for inelastic collisions, 0.95 for
-                mostly elastic collisions. Setting above 0.95 can result in
-                unstable simulations. The default is 0.0.
-            linear_air_resistance : float, optional
-                The air resistance opposing linear movement applied to the
-                center of mass of the link. Usually set to either 0.0 or a
-                low value less than 0.1. The default is 0.005.
-            angular_air_resistance : float, optional
-                The air resistance opposing rotational movement applied about
-                the center of rotation of the link. Usually set to either 0.0
-                or a low value less than 0.1. The default is 0.005.
+
+        Keyword Args
+        ------------
+        mass : float, optional
+            The mass of the link. The default is defined by the .URDF file
+        lateral_contact_friction : float, optional
+            The lateral (linear) contact friction of the link. 0.0 for
+            no friction, increasing friction with increasing value.
+            The default is 100.0.
+        spinning_contact_friction : float, optional
+            The torsional contact friction of the link about
+            contact normals. 0.0 for no friction, increasing friction
+            with increasing value. The default is 0.0.
+        rolling_contact_friction : float, optional
+            The torsional contact friction of the link orthogonal to
+            contact normals. 0.0 for no friction, increasing friction
+            with increasing value. Keep this value either 0.0 or very close
+            to 0.0, otherwise the simulations can become unstable.
+            The default is 0.0.
+        bounciness : float, optional
+            How bouncy this link is. 0.0 for inelastic collisions, 0.95 for
+            mostly elastic collisions. Setting above 0.95 can result in
+            unstable simulations. The default is 0.0.
+        linear_air_resistance : float, optional
+            The air resistance opposing linear movement applied to the
+            center of mass of the link. Usually set to either 0.0 or a
+            low value less than 0.1. The default is 0.005.
+        angular_air_resistance : float, optional
+            The air resistance opposing rotational movement applied about
+            the center of rotation of the link. Usually set to either 0.0
+            or a low value less than 0.1. The default is 0.005.
 
         Returns
         -------
@@ -1057,6 +1086,21 @@ class Link:
         return 0
 
     def set_texture(self, texture):
+        """
+        Sets the texture of a link. Only works if the link is described by
+        an obj or dae file. Does not work for stl defined links.
+
+        Parameters
+        ----------
+        texture : path to image file
+            The path to the texture image file.
+
+        Returns
+        -------
+        ret_code : int
+            0 if successful, -1 if something went wrong.
+
+        """
         self._visual_data['tex_path'] = texture
 
     def apply_force(self, force, **kwargs):
@@ -1068,17 +1112,19 @@ class Link:
         force : 3 tuple of floats
             The force being applied to the center of mass.
         **kwargs
-            Extra arguments. Valid keys include
-            body : bool, optional
-                A Boolean flag that indicates if the force argument is in
-                body coordinates (True), or in world coordinates (False).
-                The default is False.
-            draw_arrow : bool, optional
-                A Boolean flag that indicates if an arrow should be drawn
-                to represent the applied force. The default is False.
-            arrow_scale : float, optional
-                The scaling factor, relative to the size of the applied force,
-                that is used to size the force arrow. The default is 1.0.
+
+        Keyword Args
+        ------------
+        body : bool, optional
+            A Boolean flag that indicates if the force argument is in
+            body coordinates (True), or in world coordinates (False).
+            The default is False.
+        draw_arrow : bool, optional
+            A Boolean flag that indicates if an arrow should be drawn
+            to represent the applied force. The default is False.
+        arrow_scale : float, optional
+            The scaling factor, relative to the size of the applied force,
+            that is used to size the force arrow. The default is 1.0.
 
         Returns
         -------

@@ -34,10 +34,17 @@ class Visualizer():
     ----------
     frame_rate : bool, optional
         The frame rate of the visualizer. When None, attempts to run at
-        unlimited. This is not reccomended because it can cause communication
+        unlimited. This is not recommended because it can cause communication
         bottlenecks that cause slow downs. The default value is 45.
     record : bool, optional
-        A boolean flag that indicates if the visualizer will record
+        A boolean flag that indicates if the visualizer will record.
+
+    Attributes
+    ----------
+    frame_delta : float
+        The time, in seconds, between each visualizer frame update.
+    record : bool
+        A boolean flag that indicates if the visualizer is recording or not.
 
     """
     def __init__(self, frame_rate=45.0, record=False):
@@ -406,22 +413,25 @@ class Visualizer():
             The case sensitive name of the light in the scene tree. Choose
             from "SpotLight", "PointLightNegativeX", "PointLightPositiveX",
             "AmbientLight", or "FillLight".
-        **kwargs :
-            on : bool
-                Boolean flag that indicates if the light is on.
-            position : 3tuple of floats
-                The position of the light source in (x,y,z) world coordinates.
-            intensity : float
-                Numeric value of the light's strength/intensity.
-            distance : float
-                Maximum range of the light. Default is 0 (no limit).
-            decay : float
-                The amount a ptlight or spotlight type light dims along the
-                distance of the light.
-            angle : float between 0.0 and 1.5707
-                The beam angle of a spotlight type light in radians.
-            shadow : bool
-                Boolean flag that indicates if the light casts a shadow.
+        **kwargs
+
+        Keyword Args
+        ------------
+        on : bool
+            Boolean flag that indicates if the light is on.
+        position : 3tuple of floats
+            The position of the light source in (x,y,z) world coordinates.
+        intensity : float
+            Numeric value of the light's strength/intensity.
+        distance : float
+            Maximum range of the light. Default is 0 (no limit).
+        decay : float
+            The amount a ptlight or spotlight type light dims along the
+            distance of the light.
+        angle : float between 0.0 and 1.5707
+            The beam angle of a spotlight type light in radians.
+        shadow : bool
+            Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -483,23 +493,26 @@ class Visualizer():
             The case sensitive name of the light in the scene tree. Choose
             from "SpotLight", "PointLightNegativeX", "PointLightPositiveX",
             "AmbientLight", or "FillLight".
-        **kwargs :
-            on : bool
-                Boolean flag that indicates if the light is on.
-            position : 3tuple of floats
-                The position of the light source in (x,y,z) world coordinates.
-                Does not apply to amblight type sources.
-            intensity : float
-                Numeric value of the light's strength/intensity.
-            distance : float
-                Maximum range of the light. Default is 0 (no limit).
-            decay : float
-                The amount a ptlight or spotlight type light dims along the
-                distance of the light.
-            angle : float between 0.0 and 1.5707
-                The beam angle of a spotlight type light in radians.
-            shadow : bool
-                Boolean flag that indicates if the light casts a shadow.
+        **kwargs
+
+        Keyword Args
+        ------------
+        on : bool
+            Boolean flag that indicates if the light is on.
+        position : 3tuple of floats
+            The position of the light source in (x,y,z) world coordinates.
+            Does not apply to amblight type sources.
+        intensity : float
+            Numeric value of the light's strength/intensity.
+        distance : float
+            Maximum range of the light. Default is 0 (no limit).
+        decay : float
+            The amount a ptlight or spotlight type light dims along the
+            distance of the light.
+        angle : float between 0.0 and 1.5707
+            The beam angle of a spotlight type light in radians.
+        shadow : bool
+            Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -531,23 +544,26 @@ class Visualizer():
 
         Parameters
         ----------
-        **kwargs :
-            on : bool
-                Boolean flag that indicates if the light is on.
-            position : 3tuple of floats
-                The position of the light source in (x,y,z) world coordinates.
-                Does not apply to amblight type sources.
-            intensity : float
-                Numeric value of the light's strength/intensity.
-            distance : float
-                Maximum range of the light. Default is 0 (no limit).
-            decay : float
-                The amount a ptlight or spotlight type light dims along the
-                distance of the light.
-            angle : float between 0.0 and 1.5707
-                The beam angle of a spotlight type light in radians.
-            shadow : bool
-                Boolean flag that indicates if the light casts a shadow.
+        **kwargs
+
+        Keyword Args
+        ------------
+        on : bool
+            Boolean flag that indicates if the light is on.
+        position : 3tuple of floats
+            The position of the light source in (x,y,z) world coordinates.
+            Does not apply to amblight type sources.
+        intensity : float
+            Numeric value of the light's strength/intensity.
+        distance : float
+            Maximum range of the light. Default is 0 (no limit).
+        decay : float
+            The amount a ptlight or spotlight type light dims along the
+            distance of the light.
+        angle : float between 0.0 and 1.5707
+            The beam angle of a spotlight type light in radians.
+        shadow : bool
+            Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -567,23 +583,25 @@ class Visualizer():
 
     def set_ptlight_1(self, **kwargs):
         """
-        Sets the properties of the point light along the positive x axis
-        in the scene.
+        Sets the properties of the first point light.
 
         Parameters
         ----------
-        **kwargs :
-            on : bool
-                Boolean flag that indicates if the light is on.
-            position : 3tuple of floats
-                The position of the light source in (x,y,z) world coordinates.
-                Does not apply to amblight type sources.
-            intensity : float
-                Numeric value of the light's strength/intensity.
-            distance : float
-                Maximum range of the light. Default is 0 (no limit).
-            shadow : bool
-                Boolean flag that indicates if the light casts a shadow.
+        **kwargs
+
+        Keyword Args
+        ------------
+        on : bool
+            Boolean flag that indicates if the light is on.
+        position : 3tuple of floats
+            The position of the light source in (x,y,z) world coordinates.
+            Does not apply to amblight type sources.
+        intensity : float
+            Numeric value of the light's strength/intensity.
+        distance : float
+            Maximum range of the light. Default is 0 (no limit).
+        shadow : bool
+            Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -603,23 +621,25 @@ class Visualizer():
 
     def set_ptlight_2(self, **kwargs):
         """
-        Sets the properties of the point light along the negative x axis
-        in the scene.
+        Sets the properties of the second point light.
 
         Parameters
         ----------
-        **kwargs :
-            on : bool
-                Boolean flag that indicates if the light is on.
-            position : 3tuple of floats
-                The position of the light source in (x,y,z) world coordinates.
-                Does not apply to amblight type sources.
-            intensity : float
-                Numeric value of the light's strength/intensity.
-            distance : float
-                Maximum range of the light. Default is 0 (no limit).
-            shadow : bool
-                Boolean flag that indicates if the light casts a shadow.
+        **kwargs
+
+        Keyword Args
+        ------------
+        on : bool
+            Boolean flag that indicates if the light is on.
+        position : 3tuple of floats
+            The position of the light source in (x,y,z) world coordinates.
+            Does not apply to amblight type sources.
+        intensity : float
+            Numeric value of the light's strength/intensity.
+        distance : float
+            Maximum range of the light. Default is 0 (no limit).
+        shadow : bool
+            Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -643,13 +663,16 @@ class Visualizer():
 
         Parameters
         ----------
-        **kwargs :
-            on : bool
-                Boolean flag that indicates if the light is on.
-            intensity : float
-                Numeric value of the light's strength/intensity.
-            shadow : bool
-                Boolean flag that indicates if the light casts a shadow.
+        **kwargs
+
+        Keyword Args
+        ------------
+        on : bool
+            Boolean flag that indicates if the light is on.
+        intensity : float
+            Numeric value of the light's strength/intensity.
+        shadow : bool
+            Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -673,16 +696,19 @@ class Visualizer():
 
         Parameters
         ----------
-        **kwargs :
-            on : bool
-                Boolean flag that indicates if the light is on.
-            position : 3tuple of floats
-                The position of the light source in (x,y,z) world coordinates.
-                Does not apply to amblight type sources.
-            intensity : float
-                Numeric value of the light's strength/intensity.
-            shadow : bool
-                Boolean flag that indicates if the light casts a shadow.
+        **kwargs
+
+        Keyword Args
+        ------------
+        on : bool
+            Boolean flag that indicates if the light is on.
+        position : 3tuple of floats
+            The position of the light source in (x,y,z) world coordinates.
+            Does not apply to amblight type sources.
+        intensity : float
+            Numeric value of the light's strength/intensity.
+        shadow : bool
+            Boolean flag that indicates if the light casts a shadow.
 
         Returns
         -------
@@ -860,24 +886,24 @@ class Visualizer():
         if not far is None:
             self._scene[scene_path].set_property('far', far)
 
-    def set_cam_frustum(self, aspect=None, fov=None, near=None, far=None):
+    def set_cam_frustum(self, **kwargs):
         """
         Sets the size and shape of the camera's frustum.
 
         Parameters
         ----------
-        aspect : float, optional
-            The aspect ratio of the near and far planes of the frustum. When
-            None, maintains the current value. The default is None.
-        fov : float, optional
+        **kwargs
+
+        Keyword Args
+        ------------
+        aspect : float
+            The aspect ratio of the near and far planes of the frustum.
+        fov : float
             The vertical field of view of the frustum in degrees.
-            None, maintains the current value. The default is None.
-        near : float less than far, optional
+        near : float less than far
             The distance to the near plane of the frustum.
-            None, maintains the current value. The default is None.
-        far : float greater than near, optional
+        far : float greater than near
             The distance to the far plane of the frustum.
-            None, maintains the current value. The default is None.
 
         Returns
         -------
@@ -885,6 +911,11 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
+        aspect=kwargs.get('aspect', None)
+        fov=kwargs.get('fov', None)
+        near=kwargs.get('near', None)
+        far=kwargs.get('far', None)
+
         # Check the inputs are in the correct type
         is_okay = True
         if not aspect is None:
@@ -1020,41 +1051,44 @@ class Visualizer():
             Path pointing to the file that describes the object's
             geometry. The file may be of type .obj, .stl, or .dae.
         **kwargs
-            tex_path : string, optional
-                The path pointing to a .png file that defines the texture of
-                the object being added. Is only applied correctly if object is
-                of type .obj or .dae. .stl files do not support proper
-                texturing and attempting to apply texture to .stl may result in
-                unexpected viual results. If None, no texture is applied. The
-                default is None
-            color : 3vec of floats, optional
-                The color to apply to the object being added. In the form of
-                (R, G, B) where all elements range from 0.0 to 1.0. The default
-                is (1.0, 1.0, 1.0).
-            shininess : float, optional
-                The shininess of the object being added. Ranges from 0.0 to 1.0
-                The default value of 0.01.
-            opacity : float, optional
-                The opacity of the object being added. Ranges from 0.0 to 1.0.
-                The default value is 1.0.
-            position : 3vec of floats, optional
-                The extrinsic position to set.
-                The default value is (0., 0., 0.)
-            wxyz_quat : 4vec of floats, optional
-                The extrinsic rotation to set as defined by a quaternion.
-                The default value is (1., 0., 0., 0.)
-            yaw : float, optional
-                The intrinsic yaw angle to set in degrees. Defined about the
-                object's Z axis. The default value is 0.0.
-            pitch : float, optional
-                The intrinsic pitch angle to set in degrees. Defined about the
-                object's Y axis. The default value is 0.0.
-            roll : float, optional
-                The intrinsic roll angle to set in degrees. Defined about the
-                object's X axis. The default value is 0.0.
-            scale : 3vec of floats, optional
-                The intrinsic scale of the object. When not set, defaults to
-                (1., 1., 1.).
+
+        Keyword Args
+        ------------
+        tex_path : string
+            The path pointing to a .png file that defines the texture of
+            the object being added. Is only applied correctly if object is
+            of type .obj or .dae. .stl files do not support proper
+            texturing and attempting to apply texture to .stl may result in
+            unexpected viual results. If None, no texture is applied. The
+            default is None
+        color : 3vec of floats
+            The color to apply to the object being added. In the form of
+            (R, G, B) where all elements range from 0.0 to 1.0. The default
+            is (1.0, 1.0, 1.0).
+        shininess : float
+            The shininess of the object being added. Ranges from 0.0 to 1.0
+            The default value of 0.01.
+        opacity : float
+            The opacity of the object being added. Ranges from 0.0 to 1.0.
+            The default value is 1.0.
+        position : 3vec of floats
+            The extrinsic position to set.
+            The default value is (0., 0., 0.)
+        wxyz_quat : 4vec of floats
+            The extrinsic rotation to set as defined by a quaternion.
+            The default value is (1., 0., 0., 0.)
+        yaw : float
+            The intrinsic yaw angle to set in degrees. Defined about the
+            object's Z axis. The default value is 0.0.
+        pitch : float
+            The intrinsic pitch angle to set in degrees. Defined about the
+            object's Y axis. The default value is 0.0.
+        roll : float
+            The intrinsic roll angle to set in degrees. Defined about the
+            object's X axis. The default value is 0.0.
+        scale : 3vec of floats
+            The intrinsic scale of the object. When not set, defaults to
+            (1., 1., 1.).
 
         Returns
         -------
@@ -1204,24 +1238,27 @@ class Visualizer():
             /Scene/foo/bar while 'baz' refers to the object at scene location
             /Scene/baz
         **kwargs
-            position : 3vec of floats, optional
-                The extrinsic position to set.
-                The default value is (0., 0., 0.)
-            wxyz_quat : 4vec of floats, optional
-                The extrinsic rotation to set as defined by a quaternion.
-                The default value is (1., 0., 0., 0.)
-            yaw : float, optional
-                The intrinsic yaw angle to set in radians. Defined about the
-                object's Z axis. The default value is 0.0.
-            pitch : float, optional
-                The intrinsic pitch angle to set in radians. Defined about the
-                object's Y axis. The default value is 0.0.
-            roll : float, optional
-                The intrinsic roll angle to set in radians. Defined about the
-                object's X axis. The default value is 0.0.
-            scale : 3vec of floats, optional
-                The intrinsic scale of the object. When not set, defaults to
-                (1., 1., 1.).
+
+        Keyword Args
+        ------------
+        position : 3vec of floats, optional
+            The extrinsic position to set.
+            The default value is (0., 0., 0.)
+        wxyz_quat : 4vec of floats, optional
+            The extrinsic rotation to set as defined by a quaternion.
+            The default value is (1., 0., 0., 0.)
+        yaw : float, optional
+            The intrinsic yaw angle to set in radians. Defined about the
+            object's Z axis. The default value is 0.0.
+        pitch : float, optional
+            The intrinsic pitch angle to set in radians. Defined about the
+            object's Y axis. The default value is 0.0.
+        roll : float, optional
+            The intrinsic roll angle to set in radians. Defined about the
+            object's X axis. The default value is 0.0.
+        scale : 3vec of floats, optional
+            The intrinsic scale of the object. When not set, defaults to
+            (1., 1., 1.).
 
         Returns
         -------
@@ -1352,23 +1389,26 @@ class Visualizer():
             /Scene/foo/bar while 'baz' refers to the object at scene location
             /Scene/baz
         **kwargs
-            tex_path : string, optional
-                The path pointing to a .png file that defines the texture of
-                the object being added. Is only applied correctly if object is
-                of type .obj or .dae. .stl files do not support proper
-                texturing and attempting to apply texture to .stl may result in
-                unexpected viual results. If None, no texture is applied. The
-                default is None
-            color : 3vec of floats, optional
-                The color to apply to the object. In the form of
-                (R, G, B) where all elements range from 0.0 to 1.0. The default
-                is (1.0, 1.0, 1.0).
-            shininess : float, optional
-                The shininess of the object. Ranges from 0.0 to 1.0.
-                The default value is 0.01
-            opacity : float, optional
-                The opacity of the object. Ranges from 0.0 to 1.0.
-                The default value is 1.0.
+
+        Keyword Args
+        ------------
+        tex_path : string, optional
+            The path pointing to a .png file that defines the texture of
+            the object being added. Is only applied correctly if object is
+            of type .obj or .dae. .stl files do not support proper
+            texturing and attempting to apply texture to .stl may result in
+            unexpected viual results. If None, no texture is applied. The
+            default is None
+        color : 3vec of floats, optional
+            The color to apply to the object. In the form of
+            (R, G, B) where all elements range from 0.0 to 1.0. The default
+            is (1.0, 1.0, 1.0).
+        shininess : float, optional
+            The shininess of the object. Ranges from 0.0 to 1.0.
+            The default value is 0.01
+        opacity : float, optional
+            The opacity of the object. Ranges from 0.0 to 1.0.
+            The default value is 1.0.
 
         Returns
         -------
