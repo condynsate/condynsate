@@ -36,15 +36,18 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Visualization"
 ]
 dependencies = [
+   "ipython >= 5",
    "matplotlib",
-   "meshcat @ git+https://github.com/meshcat-dev/meshcat-python.git",
    "notebook",
-   "numpy",
+   "numpy >= 1.14.0",
    "opencv-python",
-   "pillow",
+   "pillow >= 7.0.0",
    "pybullet",
+   "pyngrok >= 4.1.6",
    "pynput",
-   "u-msgpack-python",
+   "pyzmq >= 17.0.0",
+   "tornado >= 4.0.0",
+   "u-msgpack-python >= 2.4.1",
 ]
 
 

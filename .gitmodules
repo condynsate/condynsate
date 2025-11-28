@@ -1,0 +1,3 @@
+[submodule "src/condynsate/visualizer/meshcat"]
+	path = src/condynsate/visualizer/meshcat
+	url = https://github.com/meshcat-dev/meshcat-python

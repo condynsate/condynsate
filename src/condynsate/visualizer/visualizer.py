@@ -6,6 +6,14 @@ This module provides the Visualizer class.
 """
 
 ###############################################################################
+# ADD MESHCAT SOURCE TO SYS PATH
+###############################################################################
+import sys
+import os
+meshcat_path = os.path.join(os.path.dirname(__file__), r'meshcat\src')
+sys.path.append(meshcat_path)
+
+###############################################################################
 #DEPENDENCIES
 ###############################################################################
 import zlib
