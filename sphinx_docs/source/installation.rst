@@ -40,27 +40,13 @@ To clone the repository:
 
    (.venv) C:\Users\username> git clone https://github.com/condynsate/condynsate.git
    (.venv) C:\Users\username> cd condynsate
+   (.venv) C:\Users\username> git submodule update --init --recursive
 
 To install condynsate:
 
 .. code-block:: console   
 
    (.venv) C:\Users\username\condynsate> pip install -e .
-
-
-
-
-
-macOS
------
-**From PyPi (Recommended)**
-***************************
-Coming soon!
-
-
-From Source
-***********
-Coming soon!
 
 
 
@@ -135,6 +121,7 @@ To clone the repository:
 
    (.venv) user@device:~$ git clone https://github.com/condynsate/condynsate.git
    (.venv) user@device:~$ cd condynsate
+   (.venv) user@device:~$ git submodule update --init --recursive
 
 To install condynsate:
 

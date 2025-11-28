@@ -50,6 +50,19 @@ dependencies = [
    "u-msgpack-python >= 2.4.1",
 ]
 
+[project.optional-dependencies]
+dev = [
+   "spyder",
+   "notebook",
+   "twine",
+   "build",
+   "sphinx",
+   "sphinx-collections",
+   "numpydoc",
+   "autoclasstoc",
+   "sphinx-rtd-theme",
+   "nbsphinx",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/GrayKS3248/condynsate"
