@@ -742,9 +742,18 @@ class Visualizer():
         None.
 
         """
-        scene_path = "/Cameras/default/rotated/<object>"
-        p = (float(p[0]), float(p[2]), -float(p[1])) #Camera is rotated
-        self._scene[scene_path].set_property('position', p)
+        v = [float(p[0]), float(p[1]), float(p[2])]
+        v[1], v[2] = v[2], -v[1]
+        cmd_data = {u"type": u"set_property",
+                    u"path": "/Cameras/default/rotated/<object>",
+                    u"property": "position",
+                    u"value": v}
+        self._socket.send_multipart([
+            cmd_data["type"].encode("utf-8"),
+            cmd_data["path"].encode("utf-8"),
+            umsgpack.packb(cmd_data)
+        ])
+        self._socket.recv()
 
     def set_cam_position(self, p):
         """
@@ -786,8 +795,20 @@ class Visualizer():
         None.
 
         """
-        p = (float(t[0]), float(t[1]), float(t[2]))
-        self._scene.set_cam_target(p)
+        v = [float(t[0]), float(t[1]), float(t[2])]
+        v[1], v[2] = v[2], -v[1]
+        cmd_data = {u"type": "set_target",
+                    u"path": "",
+                    u"value": v}
+        self._socket.send_multipart([
+            cmd_data["type"].encode("utf-8"),
+            cmd_data["path"].encode("utf-8"),
+            umsgpack.packb(cmd_data)
+        ])
+        self._socket.recv()
+
+        # v = (float(t[0]), float(t[1]), float(t[2]))
+        # self._scene.set_cam_target(v)
 
     def set_cam_target(self, t):
         """

@@ -44,8 +44,7 @@ dependencies = [
    "pillow",
    "pybullet",
    "pynput",
-   "scipy",
-   "sympy",
+   "u-msgpack-python",
 ]
 
 
