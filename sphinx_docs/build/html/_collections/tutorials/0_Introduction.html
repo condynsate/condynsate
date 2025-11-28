@@ -1,0 +1,531 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial 0: Introduction &mdash; condynsate 0.7.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/autoclasstoc.css?v=08871587" />
+      <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fe7df9b0"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Tutorial 1: External Forces and Torques" href="1_External_Forces_and_Torques.html" />
+    <link rel="prev" title="Tutorials" href="../../tutorials.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            condynsate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../package.html">The condynsate Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Tutorial 0: Introduction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Tutorial-Description">Tutorial Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Imports">Imports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Initializing-the-Project-Class">Initializing the Project Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Running-a-Simulation-Loop">Running a Simulation Loop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Challenge">Challenge</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="1_External_Forces_and_Torques.html">Tutorial 1: External Forces and Torques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_Joint_Torques.html">Tutorial 2: Joint Torques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_Link_Forces.html">Tutorial 3: Link Forces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="4_The_Animator.html">Tutorial 4: The Animator</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">condynsate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../tutorials.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Tutorial 0: Introduction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/_collections/tutorials/0_Introduction.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Tutorial-0:-Introduction">
+<h1>Tutorial 0: Introduction<a class="headerlink" href="#Tutorial-0:-Introduction" title="Link to this heading"></a></h1>
+<section id="Tutorial-Description">
+<h2>Tutorial Description<a class="headerlink" href="#Tutorial-Description" title="Link to this heading"></a></h2>
+<p>This tutorial covers creating a new <code class="docutils literal notranslate"><span class="pre">Project</span></code> using <code class="docutils literal notranslate"><span class="pre">condynsate</span></code>. In this tutorial, we will cover how to:</p>
+<ol class="arabic simple">
+<li><p>Load objects in a <code class="docutils literal notranslate"><span class="pre">condynsate</span></code> <code class="docutils literal notranslate"><span class="pre">Project</span></code>.</p></li>
+<li><p>Test that objects behave as expected.</p></li>
+</ol>
+<p>We will accomplish these goals by loading a cube 1 meter above a solid ground plane, starting the physics engine, then observing the dynamics of the cube. Note that this project will not coverhow to create your own .urdf files. Instead, we recommend reviewing <a class="reference external" href="https://wiki.ros.org/urdf">https://wiki.ros.org/urdf</a>.</p>
+</section>
+<section id="Imports">
+<h2>Imports<a class="headerlink" href="#Imports" title="Link to this heading"></a></h2>
+<p>To begin, we import the required dependencies. For most applications, the <code class="docutils literal notranslate"><span class="pre">condynsate.Project</span></code> class, is used. The <code class="docutils literal notranslate"><span class="pre">Project</span></code> class automatically combines and managers the <code class="docutils literal notranslate"><span class="pre">condynsate</span></code> simulation engine, visualization engine, animation engine, and keyboard listener.</p>
+<p>We also import <code class="docutils literal notranslate"><span class="pre">condynsate.__assets__</span></code>. <code class="docutils literal notranslate"><span class="pre">__assets__</span></code> is a dictionary that defines the path to all default assets that come with <code class="docutils literal notranslate"><span class="pre">condynsate</span></code> including .urdf files, .stl files, and .png texture files. In thic case, we use <code class="docutils literal notranslate"><span class="pre">__assets__</span></code> to load the default cube and the default ground plane.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">condynsate</span><span class="w"> </span><span class="kn">import</span> <span class="n">Project</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">condynsate</span><span class="w"> </span><span class="kn">import</span> <span class="n">__assets__</span> <span class="k">as</span> <span class="n">assets</span>
+</pre></div>
+</div>
+</div>
+<p>To see what default assets are available to us, we can list the keys of <code class="docutils literal notranslate"><span class="pre">assets</span></code>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">assets</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+dict_keys([&#39;arrow_ccw.stl&#39;, &#39;arrow_lin.stl&#39;, &#39;bricks.png&#39;, &#39;carpet.png&#39;, &#39;cart.urdf&#39;, &#39;classroom_wall.png&#39;, &#39;concrete.png&#39;, &#39;cube.stl&#39;, &#39;cube.urdf&#39;, &#39;cylinder.stl&#39;, &#39;cylinder_lower_origin.stl&#39;, &#39;door_wall.png&#39;, &#39;double_pendulum.urdf&#39;, &#39;gate_med.stl&#39;, &#39;gate_short.stl&#39;, &#39;gate_tall.stl&#39;, &#39;gyro.urdf&#39;, &#39;gyro_core.stl&#39;, &#39;gyro_outer.stl&#39;, &#39;gyro_ring.stl&#39;, &#39;half_plane_medium.urdf&#39;, &#39;missing_tex.png&#39;, &#39;pendulum.urdf&#39;, &#39;plane.obj&#39;, &#39;plane_big.urdf&#39;, &#39;plane_medium.urdf&#39;, &#39;plane_small.urdf&#39;, &#39;pyramid.stl&#39;, &#39;sphere.stl&#39;, &#39;sphere.urdf&#39;, &#39;target_arrow.urdf&#39;, &#39;wheel.urdf&#39;, &#39;white_wall.png&#39;, &#39;window_wall.png&#39;])
+</pre></div></div>
+</div>
+</section>
+<section id="Initializing-the-Project-Class">
+<h2>Initializing the Project Class<a class="headerlink" href="#Initializing-the-Project-Class" title="Link to this heading"></a></h2>
+<p>To begin, we initialize a member of the <code class="docutils literal notranslate"><span class="pre">Project</span></code> class. Doing so will automatically initialize a simulation engine and open the visualization engine.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-----------------------------------------------------------------------------
+| condynsate.Project                                                        |
+-----------------------------------------------------------------------------
+The Project class ties together a Simulator, Visualizer, Animator, and
+Keyboard into class.
+
+Parameters
+----------
+**kwargs
+
+Keyword Args
+------------
+simulator_gravity : 3 tuple of floats, optional
+    The gravity vector used in the simulation. The default value is
+    (0.0, 0.0, -9.81).
+simulator_dt : float, optional
+    The finite time step size used by the simulator. If set too
+    small, can result in visualizer, simulator desynch. Too small
+    is determined by the number of total links in the simulation.
+    The default value is 0.01.
+visualizer : bool, optional
+    A boolean flag that indicates if the project should include a
+    visualizer. This visualizer provides a 3D rendering of the
+    simulation state. The default is True.
+visualizer_frame_rate : bool, optional
+    The frame rate of the visualizer. When None, attempts to run at
+    unlimited. This is not reccomended because it can cause
+    communication bottlenecks that cause slow downs. The default
+    value is 45.
+visualizer_record : bool, optional
+    A boolean flag that indicates if the visualizer will record.
+    True, all frames from the start function call to the terminate
+    function call are recorded. After the terminate function call,
+    these frames are saved with h.264 and outputs in an MP4
+    container. The saved file name has the form visualizer.mp4.
+    The default is False.
+animator : bool, optional
+    A boolean flag that indicates if the project should include an
+    animator. This animator provides real-time 2D plotting.
+    The default is False.
+animator_frame_rate : float, optional
+    The upper limit of the allowed frame rate in frames per second.
+    When set, the animator will not update faster than this speed.
+    The default is 15.0
+animator_record : bool, optional
+    A boolean flag that indicates if the animator should be
+    recorded. If True, all frames from the start function call to
+    the terminate function call are recorded. After the terminate
+    function call, these frames are saved with h.264 and outputs in
+    an MP4 container. The saved file name has the form
+    animator.mp4. The default is False.
+
+Attributes
+----------
+simulator : condynsate.Simulator
+    The instance of the condynsate.Simulator class used by this project.
+visualizer : condynsate.Visualizer or None
+    The instance of the condynsate.Visualizer class used by this project.
+    None if this project uses no visualizer.
+animator : condynsate.Animator or None
+    The instance of the condynsate.Animator class used by this project.
+    None if this project uses no animator.
+keyboard : condynsate.Keyboard or None
+    The instance of the condynsate.Keyboard class used by this project.
+    None if this project uses no keyboard.
+bodies : List of condynsate.simulator.objects.Body
+    All bodies loaded into the project via the load_urdf fnc.
+simtime : float
+    The current simulation time in seconds.
+</pre></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the project</span>
+<span class="n">proj</span> <span class="o">=</span> <span class="n">Project</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+You can open the visualizer by visiting the following URL:
+http://127.0.0.1:7000/static/
+</pre></div></div>
+</div>
+<p>You should now see the default empty environment opened in your default web browser.</p>
+<p>We are now able to interact with the <code class="docutils literal notranslate"><span class="pre">Visualizer</span></code>. For now, let’s turn off the grid plane and axes. These are both visual references and not physical objects.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_axes</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Returns 0 on success</span>
+<span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<p>Next, we will load our first physics object, the ground plane. To load physics objects we use the <code class="docutils literal notranslate"><span class="pre">condynsate.Project.load_urdf</span></code> function:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-----------------------------------------------------------------------------
+| condynsate.Project.load_urdf                                              |
+-----------------------------------------------------------------------------
+ Loads a body defined by a .URDF file (https://wiki.ros.org/urdf) into
+ the project.
+
+ Parameters
+ ----------
+ path : string
+     The path pointing to the .URDF file that defines the body.
+ **kwargs
+
+ Keyword Args
+ ------------
+ fixed : boolean, optional
+     A flag that indicates if the body is fixed (has 0 DoF) or free
+     (has 6 DoF).
+
+ Returns
+ -------
+ body : condynsate.core.objects.Body
+     The body added to the simulation. This retured object facilitates
+     user interaction with the body and its joints and links.
+</pre></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load a fixed plane as the ground object</span>
+<span class="n">ground</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;plane_medium.urdf&#39;</span><span class="p">],</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Once the ground plane is loaded, we will add a cube and set its initial state to 1 meter above the ground. To se the initial state, we use the <code class="docutils literal notranslate"><span class="pre">condynsate.simulator.objects.Body.set_initial_state</span></code> function.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-----------------------------------------------------------------------------
+| condynsate.simulator.objects.Body.set_initial_state                       |
+-----------------------------------------------------------------------------
+Sets the initial state of the body. When the simulation is
+reset, this object will be reset to this state.
+
+Parameters
+----------
+**kwargs
+
+Keyword Args
+------------
+position : 3 tuple of floats, optional
+    The XYZ position in world coordinates. The default is (0., 0., 0.)
+yaw : float, optional
+    The (z-y&#39;-x&#39; Tait–Bryan) yaw angle of the object in radians.
+pitch : float, optional
+    The (z-y&#39;-x&#39; Tait–Bryan) pitch angle of the object in radians.
+roll : float, optional
+    The (z-y&#39;-x&#39; Tait–Bryan) roll angle of the object in radians.
+velocity : 3 tuple of floats, optional
+    The XYZ velocity in either world or body coordinates. Body
+    coordinates are defined based on object&#39;s orientation.
+    The default is (0., 0., 0.)
+omega : 3 tuple of floats, optional
+    The XYZ angular velocity in either world or body coordinates.
+    Body coordinates are defined based on object&#39;s orientation.
+    The default is (0., 0., 0.)
+body : bool, optional
+    Whether velocity and omega are being set in world or body
+    coordinates. The default is False
+
+Returns
+-------
+ret_code : int
+    0 if successful, -1 if something went wrong.
+</pre></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load a cube object and set its initial position to 1 meter above the ground</span>
+<span class="n">cube</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;cube.urdf&#39;</span><span class="p">])</span>
+
+<span class="c1"># The origin of the cube is at its center, and the cube is 1 meter length.</span>
+<span class="c1"># 1.5 meters places bottom of cube 1 meter above the ground.</span>
+<span class="n">cube</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">1.5</span><span class="p">))</span> <span class="c1"># Returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<p>Notice that upon setting the initial state, the <code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> is not updated automatically. Where as calls to <code class="docutils literal notranslate"><span class="pre">Project</span></code> member functions will automatically update the <code class="docutils literal notranslate"><span class="pre">Visualizer</span></code>, calls to other classes’ member functions will not. To reflect our changes, we can now call the <code class="docutils literal notranslate"><span class="pre">condynsate.Project.refresh_visualizer</span></code> function.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-----------------------------------------------------------------------------
+| condynsate.Project.refresh_visualizer                                     |
+-----------------------------------------------------------------------------
+Refreshes the visualizer to synchronize it to the current simulator
+state. This is automatically called by load_urdf, reset, step,
+await_keypress, and await_anykeys. Therefore, its use cases are limited
+to when bodies are modified outside of the main simulation loop.
+
+Returns
+-------
+ret_code : int
+    0 if successful, -1 if something went wrong.
+</pre></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">refresh_visualizer</span><span class="p">()</span> <span class="c1"># Returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+</section>
+<section id="Running-a-Simulation-Loop">
+<h2>Running a Simulation Loop<a class="headerlink" href="#Running-a-Simulation-Loop" title="Link to this heading"></a></h2>
+<p>Before running a simulation, it is important to call the <code class="docutils literal notranslate"><span class="pre">condynsate.Project.reset</span></code> function. This function resets the <code class="docutils literal notranslate"><span class="pre">Simulator</span></code>, <code class="docutils literal notranslate"><span class="pre">Visualizer</span></code>, and, if applicable, <code class="docutils literal notranslate"><span class="pre">Animator</span></code> to the initial state and synchronizes them.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-----------------------------------------------------------------------------
+| condynsate.Project.reset                                                  |
+-----------------------------------------------------------------------------
+Resets the simulator, visualizer (if there is one), and animator
+(if there is one). If the animator is not already running, starts the
+animator then resets it
+
+Returns
+-------
+ret_code : int
+    0 if successful, -1 if something went wrong.
+</pre></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span> <span class="c1"># Returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+-1
+</pre></div></div>
+</div>
+<p>Now everything is set up and we are ready to run a simulation loop. To do so, we use the <code class="docutils literal notranslate"><span class="pre">condynsate.Project.step</span></code> function. This function takes a single physics step and updates the <code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> to reflect changes in the <code class="docutils literal notranslate"><span class="pre">Simulator</span></code> state. We will call the <code class="docutils literal notranslate"><span class="pre">step</span></code> function in a loop until the simulation time is 2.0 seconds. Doing so will run a 2.0 second simulation.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-----------------------------------------------------------------------------
+| condynsate.Project.step                                                   |
+-----------------------------------------------------------------------------
+Takes a single simulation step and updates the visualizer to reflect
+the new simulator state.
+
+Parameters
+----------
+real_time : bool, optional
+    A boolean flag that indicates whether the step is to be taken in
+    real time (True) or as fast as possible (False).
+    The default is True.
+stable_step : bool, optional
+    Boolean flag that indicates the type of real time stepping that
+    should be used. The default is False.
+
+    When real_time is False, this flag is ignored.
+
+    When real_time is True and stable_step is False, the time of the
+    first step() call since instantiation or reset is noted. Then, at
+    every subsequent step() call, the function will sleep until it has
+    been exactly dt*(n-1) seconds since the noted epoch. dt is the
+    simulator time step and n is the number of times step() has been
+    called since instantiation or reset. This guarantees a more
+    accurate total run time, but less stable frame rates, especially
+    if, at any point while running a simulation, there is a long pause
+    between step() calls.
+
+    When real_time and stable_step are True, the function will sleep
+    until the duration since the last time step() was called is equal
+    to the time step of the simulation. This guarantees a more stable
+    frame rate, but less accurate total run time.
+
+Returns
+-------
+ret_code : int
+    0 if successful, -1 if something went wrong.
+</pre></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="n">proj</span><span class="o">.</span><span class="n">simtime</span> <span class="o">&lt;=</span> <span class="mf">2.</span><span class="p">:</span>
+    <span class="n">proj</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">real_time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="c1"># Run the simulation in real time</span>
+              <span class="n">stable_step</span><span class="o">=</span><span class="kc">False</span> <span class="c1"># Dynamically adjust the refresh rate for best total run time</span>
+             <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>When we are done using a <code class="docutils literal notranslate"><span class="pre">Project</span></code> object, it is imperative we call the <code class="docutils literal notranslate"><span class="pre">condynsate.Project.terminate</span></code> function. Doing so will save all recordings, if any were captured, and ensure all children threads exit gracefully.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-----------------------------------------------------------------------------
+| condynsate.Project.terminate                                              |
+-----------------------------------------------------------------------------
+Gracefully terminates the project and all children threads.
+
+Returns
+-------
+ret_code : int
+    0 if successful, -1 if something went wrong.
+</pre></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span> <span class="c1"># Returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+</section>
+<section id="Challenge">
+<h2>Challenge<a class="headerlink" href="#Challenge" title="Link to this heading"></a></h2>
+<p>This tutorial is now complete. For an added challenge, think of how you would modify this project so that two cubes, one above the other, are loaded but only the top one has 6 degrees of freedom.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../../tutorials.html" class="btn btn-neutral float-left" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="1_External_Forces_and_Torques.html" class="btn btn-neutral float-right" title="Tutorial 1: External Forces and Torques" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, G. Schaer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

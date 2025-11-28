@@ -1,0 +1,2488 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The condynsate Package &mdash; condynsate 0.7.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/autoclasstoc.css?v=08871587" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=fe7df9b0"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            condynsate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The condynsate Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-project-subpackage">The project Subpackage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-condynsate.project.project">The project Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-project-class">The Project Class</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#the-simulator-subpackage">The simulator Subpackage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-condynsate.simulator.simulator">The simulator Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-simulator-class">The Simulator Class</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-condynsate.simulator.dataclasses">The dataclasses Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#condynsate.simulator.dataclasses.BodyState"><code class="docutils literal notranslate"><span class="pre">BodyState</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#condynsate.simulator.dataclasses.JointState"><code class="docutils literal notranslate"><span class="pre">JointState</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#condynsate.simulator.dataclasses.LinkState"><code class="docutils literal notranslate"><span class="pre">LinkState</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-condynsate.simulator.objects">The objects Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-body-class">The Body Class</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#the-joint-class">The Joint Class</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#the-link-class">The Link Class</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#the-visualizer-subpackage">The visualizer Subpackage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-condynsate.visualizer.visualizer">The visualizer Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-visualizer-class">The Visualizer Class</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#the-animator-subpackage">The animator Subpackage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-condynsate.animator.animator">The animator Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-animator-class">The Animator Class</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#the-keyboard-subpackage">The keyboard Subpackage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-condynsate.keyboard.keyboard">The keyboard Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-keyboard-class">The Keyboard Class</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">condynsate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">The condynsate Package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/package.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="the-condynsate-package">
+<h1>The condynsate Package<a class="headerlink" href="#the-condynsate-package" title="Link to this heading"></a></h1>
+<section id="the-project-subpackage">
+<h2>The project Subpackage<a class="headerlink" href="#the-project-subpackage" title="Link to this heading"></a></h2>
+<section id="module-condynsate.project.project">
+<span id="the-project-module"></span><h3>The project Module<a class="headerlink" href="#module-condynsate.project.project" title="Link to this heading"></a></h3>
+<p>This module provides the Project class which is the primary interface with
+which users interact when using condynsate.</p>
+<p>&#64;author: G. Schaer</p>
+<section id="the-project-class">
+<h4>The Project Class<a class="headerlink" href="#the-project-class" title="Link to this heading"></a></h4>
+<dl class="py class">
+<dt class="sig sig-object py" id="condynsate.Project">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">condynsate.</span></span><span class="sig-name descname"><span class="pre">Project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Project" title="Link to this definition"></a></dt>
+<dd><p>The Project class ties together a Simulator, Visualizer, Animator, and
+Keyboard into class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>simulator_gravity</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The gravity vector used in the simulation. The default value is
+(0.0, 0.0, -9.81).</p></li>
+<li><p><strong>simulator_dt</strong> (<em>float</em><em>, </em><em>optional</em>) – The finite time step size used by the simulator. If set too
+small, can result in visualizer, simulator desynch. Too small
+is determined by the number of total links in the simulation.
+The default value is 0.01.</p></li>
+<li><p><strong>visualizer</strong> (<em>bool</em><em>, </em><em>optional</em>) – A boolean flag that indicates if the project should include a
+visualizer. This visualizer provides a 3D rendering of the
+simulation state. The default is True.</p></li>
+<li><p><strong>visualizer_frame_rate</strong> (<em>bool</em><em>, </em><em>optional</em>) – The frame rate of the visualizer. When None, attempts to run at
+unlimited. This is not reccomended because it can cause
+communication bottlenecks that cause slow downs. The default
+value is 45.</p></li>
+<li><p><strong>visualizer_record</strong> (<em>bool</em><em>, </em><em>optional</em>) – A boolean flag that indicates if the visualizer will record.
+True, all frames from the start function call to the terminate
+function call are recorded. After the terminate function call,
+these frames are saved with h.264 and outputs in an MP4
+container. The saved file name has the form visualizer.mp4.
+The default is False.</p></li>
+<li><p><strong>animator</strong> (<em>bool</em><em>, </em><em>optional</em>) – A boolean flag that indicates if the project should include an
+animator. This animator provides real-time 2D plotting.
+The default is False.</p></li>
+<li><p><strong>animator_frame_rate</strong> (<em>float</em><em>, </em><em>optional</em>) – The upper limit of the allowed frame rate in frames per second.
+When set, the animator will not update faster than this speed.
+The default is 15.0</p></li>
+<li><p><strong>animator_record</strong> (<em>bool</em><em>, </em><em>optional</em>) – A boolean flag that indicates if the animator should be
+recorded. If True, all frames from the start function call to
+the terminate function call are recorded. After the terminate
+function call, these frames are saved with h.264 and outputs in
+an MP4 container. The saved file name has the form
+animator.mp4. The default is False.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Project.simulator">
+<span class="sig-name descname"><span class="pre">simulator</span></span><a class="headerlink" href="#condynsate.Project.simulator" title="Link to this definition"></a></dt>
+<dd><p>The instance of the condynsate.Simulator class used by this project.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#condynsate.Simulator" title="condynsate.Simulator">condynsate.Simulator</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Project.visualizer">
+<span class="sig-name descname"><span class="pre">visualizer</span></span><a class="headerlink" href="#condynsate.Project.visualizer" title="Link to this definition"></a></dt>
+<dd><p>The instance of the condynsate.Visualizer class used by this project.
+None if this project uses no visualizer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#condynsate.Visualizer" title="condynsate.Visualizer">condynsate.Visualizer</a> or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Project.animator">
+<span class="sig-name descname"><span class="pre">animator</span></span><a class="headerlink" href="#condynsate.Project.animator" title="Link to this definition"></a></dt>
+<dd><p>The instance of the condynsate.Animator class used by this project.
+None if this project uses no animator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#condynsate.Animator" title="condynsate.Animator">condynsate.Animator</a> or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Project.keyboard">
+<span class="sig-name descname"><span class="pre">keyboard</span></span><a class="headerlink" href="#condynsate.Project.keyboard" title="Link to this definition"></a></dt>
+<dd><p>The instance of the condynsate.Keyboard class used by this project.
+None if this project uses no keyboard.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#condynsate.Keyboard" title="condynsate.Keyboard">condynsate.Keyboard</a> or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Project.bodies">
+<span class="sig-name descname"><span class="pre">bodies</span></span><a class="headerlink" href="#condynsate.Project.bodies" title="Link to this definition"></a></dt>
+<dd><p>All bodies loaded into the project via the load_urdf fnc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of <a class="reference internal" href="#condynsate.simulator.objects.Body" title="condynsate.simulator.objects.Body">condynsate.simulator.objects.Body</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Project.simtime">
+<span class="sig-name descname"><span class="pre">simtime</span></span><a class="headerlink" href="#condynsate.Project.simtime" title="Link to this definition"></a></dt>
+<dd><p>The current simulation time in seconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Project.load_urdf">
+<span class="sig-prename descclassname"><span class="pre">Project.</span></span><span class="sig-name descname"><span class="pre">load_urdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Project.load_urdf" title="Link to this definition"></a></dt>
+<dd><p>Loads a body defined by a .URDF file (<a class="reference external" href="https://wiki.ros.org/urdf">https://wiki.ros.org/urdf</a>) into
+the project.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>string</em>) – The path pointing to the .URDF file that defines the body.</p></li>
+<li><p><strong>**kwargs</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fixed</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the body is fixed (has 0 DoF) or free
+(has 6 DoF).</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>body</strong> – The body added to the simulation. This retured object facilitates
+user interaction with the body and its joints and links.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>condynsate.core.objects.Body</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Project.step">
+<span class="sig-prename descclassname"><span class="pre">Project.</span></span><span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">real_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stable_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Project.step" title="Link to this definition"></a></dt>
+<dd><p>Takes a single simulation step and updates the visualizer to reflect
+the new simulator state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>real_time</strong> (<em>bool</em><em>, </em><em>optional</em>) – A boolean flag that indicates whether the step is to be taken in
+real time (True) or as fast as possible (False).
+The default is True.</p></li>
+<li><p><strong>stable_step</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>Boolean flag that indicates the type of real time stepping that
+should be used. The default is False.</p>
+<p>When real_time is False, this flag is ignored.</p>
+<p>When real_time is True and stable_step is False, the time of the
+first step() call since instantiation or reset is noted. Then, at
+every subsequent step() call, the function will sleep until it has
+been exactly dt*(n-1) seconds since the noted epoch. dt is the
+simulator time step and n is the number of times step() has been
+called since instantiation or reset. This guarantees a more
+accurate total run time, but less stable frame rates, especially
+if, at any point while running a simulation, there is a long pause
+between step() calls.</p>
+<p>When real_time and stable_step are True, the function will sleep
+until the duration since the last time step() was called is equal
+to the time step of the simulation. This guarantees a more stable
+frame rate, but less accurate total run time.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Project.reset">
+<span class="sig-prename descclassname"><span class="pre">Project.</span></span><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Project.reset" title="Link to this definition"></a></dt>
+<dd><p>Resets the simulator, visualizer (if there is one), and animator
+(if there is one). If the animator is not already running, starts the
+animator then resets it</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Project.refresh_visualizer">
+<span class="sig-prename descclassname"><span class="pre">Project.</span></span><span class="sig-name descname"><span class="pre">refresh_visualizer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Project.refresh_visualizer" title="Link to this definition"></a></dt>
+<dd><p>Refreshes the visualizer to synchronize it to the current simulator
+state. This is automatically called by load_urdf, reset, step,
+await_keypress, and await_anykeys. Therefore, its use cases are limited
+to when bodies are modified outside of the main simulation loop.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Project.refresh_animator">
+<span class="sig-prename descclassname"><span class="pre">Project.</span></span><span class="sig-name descname"><span class="pre">refresh_animator</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Project.refresh_animator" title="Link to this definition"></a></dt>
+<dd><p>Refreshes the animator GUI to keep it responsive. This is automatically
+called by step, await_keypress, and await_anykeys so the
+animator will remain responsive during those calls.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Project.await_keypress">
+<span class="sig-prename descclassname"><span class="pre">Project.</span></span><span class="sig-name descname"><span class="pre">await_keypress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Project.await_keypress" title="Link to this definition"></a></dt>
+<dd><p>Blocks progress until the user presses a desired key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key_str</strong> (<em>string</em>) – The key to be detected. May be a lowercase letter, a digit, a
+special character, or a punctuation mark that does not use shift on
+a QWERTY keyboard.
+The special keys are as follows:
+“esc”, “f1”, “f2”, “f3”, “f4”, “f5”, “f6”, “f7”, “f8”, “f9”, “f10”,
+“f11”, “f12”, “print_screen”, “scroll_lock”, “pause”, “backspace”,
+“insert”, “home”, “page_up”, “num_lock”, “tab”, “delete”, “end”,
+“page_down”, “caps_lock”, “enter”, “up”, “left”, “down”, “right”
+The punctuation marks that do not use shift on a QWERTY keyboard
+are as follows:
+“`”, “-”, “=”, “[”, “]”, “”, “;”, “’”, “,”, “.”, “/”
+The following modifiers can also be used:
+“shift”, “alt”, “ctrl”, “cmd”.
+Modifiers are added with the following format:
+“shift+a”, “ctrl+a”, “alt+a”, “shift+ctrl+alt+a”, etc.</p></li>
+<li><p><strong>timeout</strong> (<em>float</em><em>, </em><em>optional</em>) – The timeout time at which the function will stop blocking and exit.
+The default is None. When None, this function will not timeout.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AttributeError:</strong> – If the project has no keyboard.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Project.await_anykeys">
+<span class="sig-prename descclassname"><span class="pre">Project.</span></span><span class="sig-name descname"><span class="pre">await_anykeys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Project.await_anykeys" title="Link to this definition"></a></dt>
+<dd><p>Blocks progress until the user presses any key or any set of keys.
+Returns which key or keys were pressed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>timeout</strong> (<em>float</em><em>, </em><em>optional</em>) – The timeout time at which the function will stop blocking and exit.
+The default is None. When None, this function will not timeout.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AttributeError:</strong> – If the project has no keyboard.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>keys</strong> – A list of which keys were pressed.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Project.terminate">
+<span class="sig-prename descclassname"><span class="pre">Project.</span></span><span class="sig-name descname"><span class="pre">terminate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Project.terminate" title="Link to this definition"></a></dt>
+<dd><p>Gracefully terminates the project and all children threads.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+<section id="the-simulator-subpackage">
+<h2>The simulator Subpackage<a class="headerlink" href="#the-simulator-subpackage" title="Link to this heading"></a></h2>
+<section id="module-condynsate.simulator.simulator">
+<span id="the-simulator-module"></span><h3>The simulator Module<a class="headerlink" href="#module-condynsate.simulator.simulator" title="Link to this heading"></a></h3>
+<p>This module provides the simulator class which is used to run physics
+simulations using the PyBullet package.</p>
+<p>&#64;author: G. Schaer</p>
+<section id="the-simulator-class">
+<h4>The Simulator Class<a class="headerlink" href="#the-simulator-class" title="Link to this heading"></a></h4>
+<dl class="py class">
+<dt class="sig sig-object py" id="condynsate.Simulator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">condynsate.</span></span><span class="sig-name descname"><span class="pre">Simulator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Simulator" title="Link to this definition"></a></dt>
+<dd><p>The Simulator class handles running the physics simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>gravity</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The gravity vector used in the simulation. The default value is
+(0.0, 0.0, -9.81).</p></li>
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>optional</em>) – The finite time step size used by the simulator. If set too
+small, can result in visualizer, simulator desync. Too small
+is determined by the number of total links in the simulation.
+The default value is 0.01.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Simulator.dt">
+<span class="sig-name descname"><span class="pre">dt</span></span><a class="headerlink" href="#condynsate.Simulator.dt" title="Link to this definition"></a></dt>
+<dd><p>The simulator time step in seconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Simulator.time">
+<span class="sig-name descname"><span class="pre">time</span></span><a class="headerlink" href="#condynsate.Simulator.time" title="Link to this definition"></a></dt>
+<dd><p>The current simulation time in seconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Simulator.step_num">
+<span class="sig-name descname"><span class="pre">step_num</span></span><a class="headerlink" href="#condynsate.Simulator.step_num" title="Link to this definition"></a></dt>
+<dd><p>The number of steps the simulation has taken since instatiation or
+reset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Simulator.bodies">
+<span class="sig-name descname"><span class="pre">bodies</span></span><a class="headerlink" href="#condynsate.Simulator.bodies" title="Link to this definition"></a></dt>
+<dd><p>All bodies loaded into the simultor via the load_urdf fnc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of <a class="reference internal" href="#condynsate.simulator.objects.Body" title="condynsate.simulator.objects.Body">condynsate.simulator.objects.Body</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Simulator.set_gravity">
+<span class="sig-prename descclassname"><span class="pre">Simulator.</span></span><span class="sig-name descname"><span class="pre">set_gravity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gravity</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Simulator.set_gravity" title="Link to this definition"></a></dt>
+<dd><p>Sets the acceleration due to gravity</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>gravity</strong> (<em>array-like</em><em>, </em><em>shape</em><em> (</em><em>3</em><em>,</em><em>)</em>) – The graavity vector in world coordinates with metric units.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Simulator.load_urdf">
+<span class="sig-prename descclassname"><span class="pre">Simulator.</span></span><span class="sig-name descname"><span class="pre">load_urdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Simulator.load_urdf" title="Link to this definition"></a></dt>
+<dd><p>Loads a body defined by a .URDF file (<a class="reference external" href="https://wiki.ros.org/urdf">https://wiki.ros.org/urdf</a>) into
+the simulator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>string</em>) – The path pointing to the .URDF file that defines the body.</p></li>
+<li><p><strong>**kwargs</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fixed</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the body is fixed (has 0 DoF) or free
+(has 6 DoF).</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>body</strong> – The body added to the simulation. This retured object facilitates
+user interaction with the body and its joints and links.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#condynsate.simulator.objects.Body" title="condynsate.simulator.objects.Body">condynsate.simulator.objects.Body</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Simulator.step">
+<span class="sig-prename descclassname"><span class="pre">Simulator.</span></span><span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">real_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stable_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Simulator.step" title="Link to this definition"></a></dt>
+<dd><p>Takes a single simulation step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>real_time</strong> (<em>bool</em><em>, </em><em>optional</em>) – A boolean flag that indicates whether the step is to be taken in
+real time (True) or as fast as possible (False).
+The default is True.</p></li>
+<li><p><strong>stable_step</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>Boolean flag that indicates the type of real time stepping that
+should be used. The default is False.</p>
+<p>When real_time is False, this flag is ignored.</p>
+<p>When real_time is True and stable_step is False, the time of the
+first step() call since instantiation or reset is noted. Then, at
+every subsequent step() call, the function will sleep until it has
+been exactly dt*(n-1) seconds since the noted epoch. dt is the
+simulator time step and n is the number of times step() has been
+called since instantiation or reset. This guarantees a more
+accurate total run time, but less stable frame rates, especially
+if, at any point while running a simulation, there is a long pause
+between step() calls.</p>
+<p>When real_time and stable_step are True, the function will sleep
+until the duration since the last time step() was called is equal
+to the time step of the simulation. This guarantees a more stable
+frame rate, but less accurate total run time.</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Simulator.reset">
+<span class="sig-prename descclassname"><span class="pre">Simulator.</span></span><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Simulator.reset" title="Link to this definition"></a></dt>
+<dd><p>Resets the simulation and all bodies loaded in the simulation to the
+initial state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Simulator.terminate">
+<span class="sig-prename descclassname"><span class="pre">Simulator.</span></span><span class="sig-name descname"><span class="pre">terminate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Simulator.terminate" title="Link to this definition"></a></dt>
+<dd><p>Terminates the simulator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="module-condynsate.simulator.dataclasses">
+<span id="the-dataclasses-module"></span><h3>The dataclasses Module<a class="headerlink" href="#module-condynsate.simulator.dataclasses" title="Link to this heading"></a></h3>
+<p>This module provides the dataclasses which simulator objects use.</p>
+<p>&#64;author: G. Schaer</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.BodyState">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">condynsate.simulator.dataclasses.</span></span><span class="sig-name descname"><span class="pre">BodyState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.dataclasses.BodyState" title="Link to this definition"></a></dt>
+<dd><p>Stores state information about the base of a body.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>position</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The XYZ position in world coordinates.
+The default is (0., 0., 0.)</p></li>
+<li><p><strong>orientation</strong> (<em>4 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The wxyz quaternion representation of the orientation in world
+coordinates. The default is (1., 0., 0., 0.)</p></li>
+<li><p><strong>velocity</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The XYZ velocity in either world or body coordinates. Body
+coordinates are defined based on objects orientation.
+The default is (0., 0., 0.)</p></li>
+<li><p><strong>omega</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The XYZ angular velocity in either world or body coordinates.
+Body coordinates are defined based on objects orientation.
+The default is (0., 0., 0.)</p></li>
+<li><p><strong>body</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether velocity and omega are being set in world or body
+coordinates. The default is False</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.BodyState.position">
+<span class="sig-name descname"><span class="pre">position</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.BodyState.position" title="Link to this definition"></a></dt>
+<dd><p>The (x,y,z) position in world coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.BodyState.orientation">
+<span class="sig-name descname"><span class="pre">orientation</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.BodyState.orientation" title="Link to this definition"></a></dt>
+<dd><p>The wxyz quaternion representation of the orientation in world
+coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>4 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.BodyState.ypr">
+<span class="sig-name descname"><span class="pre">ypr</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.BodyState.ypr" title="Link to this definition"></a></dt>
+<dd><p>The (z-y’-x’ Tait–Bryan) Euler angles in radians ordered as
+(yaw, pitch, roll).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.BodyState.velocity">
+<span class="sig-name descname"><span class="pre">velocity</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.BodyState.velocity" title="Link to this definition"></a></dt>
+<dd><p>The (x,y,z) velocity in world coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.BodyState.omega">
+<span class="sig-name descname"><span class="pre">omega</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.BodyState.omega" title="Link to this definition"></a></dt>
+<dd><p>The (x,y,z) angular velocity in world coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.BodyState.velocity_in_body">
+<span class="sig-name descname"><span class="pre">velocity_in_body</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.BodyState.velocity_in_body" title="Link to this definition"></a></dt>
+<dd><p>The (x,y,z) velocity in body coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.BodyState.omega_in_body">
+<span class="sig-name descname"><span class="pre">omega_in_body</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.BodyState.omega_in_body" title="Link to this definition"></a></dt>
+<dd><p>The (x,y,z) angular velocity in body coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.JointState">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">condynsate.simulator.dataclasses.</span></span><span class="sig-name descname"><span class="pre">JointState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.dataclasses.JointState" title="Link to this definition"></a></dt>
+<dd><p>Stores state information about a joint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>angle</strong> (<em>float</em><em>, </em><em>optional</em>) – The angle of the joint about the joint axis. The default is 0.</p></li>
+<li><p><strong>omega</strong> (<em>float</em><em>, </em><em>optional</em>) – The angular velocity of the joint about the joint axis.
+The default is 0.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.JointState.angle">
+<span class="sig-name descname"><span class="pre">angle</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.JointState.angle" title="Link to this definition"></a></dt>
+<dd><p>The angle of the joint about the joint axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.JointState.omega">
+<span class="sig-name descname"><span class="pre">omega</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.JointState.omega" title="Link to this definition"></a></dt>
+<dd><p>The angular velocity of the joint about the joint axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.LinkState">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">condynsate.simulator.dataclasses.</span></span><span class="sig-name descname"><span class="pre">LinkState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.dataclasses.LinkState" title="Link to this definition"></a></dt>
+<dd><p>Stores state information about a link.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>position</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The XYZ position in world coordinates.
+The default is (0., 0., 0.)</p></li>
+<li><p><strong>orientation</strong> (<em>4 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The wxyz quaternion representation of the orientation in world
+coordinates. The default is (1., 0., 0., 0.)</p></li>
+<li><p><strong>velocity</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The XYZ velocity in either world or body coordinates. Body
+coordinates are defined based on objects orientation.
+The default is (0., 0., 0.)</p></li>
+<li><p><strong>omega</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The XYZ angular velocity in either world or body coordinates.
+Body coordinates are defined based on objects orientation.
+The default is (0., 0., 0.)</p></li>
+<li><p><strong>body</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether velocity and omega are being set in world or body
+coordinates. The default is False</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.LinkState.position">
+<span class="sig-name descname"><span class="pre">position</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.LinkState.position" title="Link to this definition"></a></dt>
+<dd><p>The (x,y,z) position in world coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.LinkState.orientation">
+<span class="sig-name descname"><span class="pre">orientation</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.LinkState.orientation" title="Link to this definition"></a></dt>
+<dd><p>The wxyz quaternion representation of the orientation in world
+coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>4 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.LinkState.ypr">
+<span class="sig-name descname"><span class="pre">ypr</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.LinkState.ypr" title="Link to this definition"></a></dt>
+<dd><p>The (z-y’-x’ Tait–Bryan) Euler angles in radians ordered as
+(yaw, pitch, roll).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.LinkState.velocity">
+<span class="sig-name descname"><span class="pre">velocity</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.LinkState.velocity" title="Link to this definition"></a></dt>
+<dd><p>The (x,y,z) velocity in world coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.LinkState.omega">
+<span class="sig-name descname"><span class="pre">omega</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.LinkState.omega" title="Link to this definition"></a></dt>
+<dd><p>The (x,y,z) angular velocity in world coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.LinkState.velocity_in_body">
+<span class="sig-name descname"><span class="pre">velocity_in_body</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.LinkState.velocity_in_body" title="Link to this definition"></a></dt>
+<dd><p>The (x,y,z) velocity in body coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.dataclasses.LinkState.omega_in_body">
+<span class="sig-name descname"><span class="pre">omega_in_body</span></span><a class="headerlink" href="#condynsate.simulator.dataclasses.LinkState.omega_in_body" title="Link to this definition"></a></dt>
+<dd><p>The (x,y,z) angular velocity in body coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-condynsate.simulator.objects">
+<span id="the-objects-module"></span><h3>The objects Module<a class="headerlink" href="#module-condynsate.simulator.objects" title="Link to this heading"></a></h3>
+<p>This module provides the objects that reside in the simulator class which is
+used to run physics simulations using the PyBullet package.</p>
+<p>&#64;author: G. Schaer</p>
+<section id="the-body-class">
+<h4>The Body Class<a class="headerlink" href="#the-body-class" title="Link to this heading"></a></h4>
+<dl class="py class">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Body">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">condynsate.simulator.objects.</span></span><span class="sig-name descname"><span class="pre">Body</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Body" title="Link to this definition"></a></dt>
+<dd><p>The class stores information about and allows interaction with a body
+in the simulation. This body is defined from a URDF file and is comprised
+of a set of links and joints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>client</strong> (<em>pybullet_utils.bullet_client.BulletClient</em>) – The PyBullet physics client in which the body lives.</p></li>
+<li><p><strong>path</strong> (<em>string</em>) – The path pointing to the URDF file that defines the body.</p></li>
+<li><p><strong>**kwargs</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fixed</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the body is fixed (has 0 DoF) or free
+(has 6 DoF).</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Body.initial_state">
+<span class="sig-name descname"><span class="pre">initial_state</span></span><a class="headerlink" href="#condynsate.simulator.objects.Body.initial_state" title="Link to this definition"></a></dt>
+<dd><p>The initial state of the body. Can be upated with the
+set_initial_state function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#condynsate.simulator.dataclasses.BodyState" title="condynsate.simulator.dataclasses.BodyState">condynsate.simulator.dataclasses.BodyState</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Body.state">
+<span class="sig-name descname"><span class="pre">state</span></span><a class="headerlink" href="#condynsate.simulator.objects.Body.state" title="Link to this definition"></a></dt>
+<dd><p>The current state of the body in simulation. Can be upated either
+by the simulation or with the set_state function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#condynsate.simulator.dataclasses.BodyState" title="condynsate.simulator.dataclasses.BodyState">condynsate.simulator.dataclasses.BodyState</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Body.center_of_mass">
+<span class="sig-name descname"><span class="pre">center_of_mass</span></span><a class="headerlink" href="#condynsate.simulator.objects.Body.center_of_mass" title="Link to this definition"></a></dt>
+<dd><p>The center of mass of the body in world coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Body.visual_data">
+<span class="sig-name descname"><span class="pre">visual_data</span></span><a class="headerlink" href="#condynsate.simulator.objects.Body.visual_data" title="Link to this definition"></a></dt>
+<dd><p>All data needed to render the body assuming each link is rendered
+individually.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of dicts</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Body.links">
+<span class="sig-name descname"><span class="pre">links</span></span><a class="headerlink" href="#condynsate.simulator.objects.Body.links" title="Link to this definition"></a></dt>
+<dd><p>A dictionary whose keys are link names (as defined by the .URDF)
+and whose values are the Link objects that facilitate interaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict of <a class="reference internal" href="#condynsate.simulator.objects.Link" title="condynsate.simulator.objects.Link">condynsate.simulator.objects.Link</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Body.joints">
+<span class="sig-name descname"><span class="pre">joints</span></span><a class="headerlink" href="#condynsate.simulator.objects.Body.joints" title="Link to this definition"></a></dt>
+<dd><p>A dictionary whose keys are joints names (as defined by the .URDF)
+and whose values are the Joint objects that facilitate interaction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict of <a class="reference internal" href="#condynsate.simulator.objects.Joint" title="condynsate.simulator.objects.Joint">condynsate.simulator.objects.Joint</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Body.set_initial_state">
+<span class="sig-prename descclassname"><span class="pre">Body.</span></span><span class="sig-name descname"><span class="pre">set_initial_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Body.set_initial_state" title="Link to this definition"></a></dt>
+<dd><p>Sets the initial state of the body. When the simulation is
+reset, this object will be reset to this state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>position</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The XYZ position in world coordinates.
+The default is (0., 0., 0.)</p></li>
+<li><p><strong>yaw</strong> (<em>float</em><em>, </em><em>optional</em>) – The (z-y’-x’ Tait–Bryan) yaw angle of the object in radians.</p></li>
+<li><p><strong>pitch</strong> (<em>float</em><em>, </em><em>optional</em>) – The (z-y’-x’ Tait–Bryan) pitch angle of the object in radians.</p></li>
+<li><p><strong>roll</strong> (<em>float</em><em>, </em><em>optional</em>) – The (z-y’-x’ Tait–Bryan) roll angle of the object in radians.</p></li>
+<li><p><strong>velocity</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The XYZ velocity in either world or body coordinates. Body
+coordinates are defined based on object’s orientation.
+The default is (0., 0., 0.)</p></li>
+<li><p><strong>omega</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The XYZ angular velocity in either world or body coordinates.
+Body coordinates are defined based on object’s orientation.
+The default is (0., 0., 0.)</p></li>
+<li><p><strong>body</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether velocity and omega are being set in world or body
+coordinates. The default is False</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Body.set_state">
+<span class="sig-prename descclassname"><span class="pre">Body.</span></span><span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Body.set_state" title="Link to this definition"></a></dt>
+<dd><p>Sets the state of the body.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>position</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The XYZ position in world coordinates.
+The default is (0., 0., 0.)</p></li>
+<li><p><strong>yaw</strong> (<em>float</em><em>, </em><em>optional</em>) – The (z-y’-x’ Tait–Bryan) yaw angle of the object in radians.</p></li>
+<li><p><strong>pitch</strong> (<em>float</em><em>, </em><em>optional</em>) – The (z-y’-x’ Tait–Bryan) pitch angle of the object in radians.</p></li>
+<li><p><strong>roll</strong> (<em>float</em><em>, </em><em>optional</em>) – The (z-y’-x’ Tait–Bryan) roll angle of the object in radians.</p></li>
+<li><p><strong>velocity</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The XYZ velocity in either world or body coordinates. Body
+coordinates are defined based on object’s orientation.
+The default is (0., 0., 0.)</p></li>
+<li><p><strong>omega</strong> (<em>3 tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The XYZ angular velocity in either world or body coordinates.
+Body coordinates are defined based on object’s orientation.
+The default is (0., 0., 0.)</p></li>
+<li><p><strong>body</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether velocity and omega are being set in world or body
+coordinates. The default is False</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Body.apply_force">
+<span class="sig-prename descclassname"><span class="pre">Body.</span></span><span class="sig-name descname"><span class="pre">apply_force</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Body.apply_force" title="Link to this definition"></a></dt>
+<dd><p>Applies force to the center of mass of the body.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>force</strong> (<em>3 tuple</em><em> of </em><em>floats</em>) – The force being applied to the center of mass.</p></li>
+<li><p><strong>**kwargs</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>body</strong> (<em>bool</em><em>, </em><em>optional</em>) – A Boolean flag that indicates if the force argument is in
+body coordinates (True), or in world coordinates (False).
+The default is False.</p></li>
+<li><p><strong>draw_arrow</strong> (<em>bool</em><em>, </em><em>optional</em>) – A Boolean flag that indicates if an arrow should be drawn
+to represent the applied force. The default is False.</p></li>
+<li><p><strong>arrow_scale</strong> (<em>float</em><em>, </em><em>optional</em>) – The scaling factor, relative to the size of the applied force,
+that is used to size the force arrow. The default is 1.0.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Body.apply_torque">
+<span class="sig-prename descclassname"><span class="pre">Body.</span></span><span class="sig-name descname"><span class="pre">apply_torque</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">torque</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Body.apply_torque" title="Link to this definition"></a></dt>
+<dd><p>Applies external torque to the body.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>torque</strong> (<em>3 tuple</em><em> of </em><em>floats</em>) – The torque being applied.</p></li>
+<li><p><strong>**kwargs</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>body</strong> (<em>bool</em><em>, </em><em>optional</em>) – A Boolean flag that indicates if the torque argument is in
+body coordinates (True), or in world coordinates (False).
+The default is False.</p></li>
+<li><p><strong>draw_arrow</strong> (<em>bool</em><em>, </em><em>optional</em>) – A Boolean flag that indicates if an arrow should be drawn
+to represent the applied torque. The default is False.</p></li>
+<li><p><strong>arrow_scale</strong> (<em>float</em><em>, </em><em>optional</em>) – The scaling factor, relative to the size of the applied torque,
+that is used to size the torque arrow. The default is 1.0.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Body.reset">
+<span class="sig-prename descclassname"><span class="pre">Body.</span></span><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Body.reset" title="Link to this definition"></a></dt>
+<dd><p>Resets body and each of its joints to their initial conditions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Body.clear_visual_buffer">
+<span class="sig-prename descclassname"><span class="pre">Body.</span></span><span class="sig-name descname"><span class="pre">clear_visual_buffer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Body.clear_visual_buffer" title="Link to this definition"></a></dt>
+<dd><p>Clears the body’s visual buffer. If visual_data is not collected each
+time step, then clear_visual_buffer must be called to prevent the
+visual_data buffer from growing indeterminately.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="the-joint-class">
+<h4>The Joint Class<a class="headerlink" href="#the-joint-class" title="Link to this heading"></a></h4>
+<dl class="py class">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Joint">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">condynsate.simulator.objects.</span></span><span class="sig-name descname"><span class="pre">Joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Joint" title="Link to this definition"></a></dt>
+<dd><p>The class stores information about and allows interaction with a joint
+on a body in the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sim_obj</strong> (<em>condynsate.core.objects.Body</em>) – The member of the Body class to which the joint belongs</p></li>
+<li><p><strong>idx</strong> (<em>int</em>) – The unique number that identifies the joint in the PyBullet client.</p></li>
+<li><p><strong>parent</strong> (<em>condynsate.core.objects.Link</em>) – The parent link of the joint.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Joint.initial_state">
+<span class="sig-name descname"><span class="pre">initial_state</span></span><a class="headerlink" href="#condynsate.simulator.objects.Joint.initial_state" title="Link to this definition"></a></dt>
+<dd><p>The initial state of the joint. Can be upated with the
+set_initial_state function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#condynsate.simulator.dataclasses.JointState" title="condynsate.simulator.dataclasses.JointState">condynsate.simulator.dataclasses.JointState</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Joint.state">
+<span class="sig-name descname"><span class="pre">state</span></span><a class="headerlink" href="#condynsate.simulator.objects.Joint.state" title="Link to this definition"></a></dt>
+<dd><p>The current state of the joint in simulation. Read only.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#condynsate.simulator.dataclasses.JointState" title="condynsate.simulator.dataclasses.JointState">condynsate.simulator.dataclasses.JointState</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Joint.axis">
+<span class="sig-name descname"><span class="pre">axis</span></span><a class="headerlink" href="#condynsate.simulator.objects.Joint.axis" title="Link to this definition"></a></dt>
+<dd><p>The axis, in world coordinates, about which the joint operates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Joint.set_dynamics">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">set_dynamics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Joint.set_dynamics" title="Link to this definition"></a></dt>
+<dd><p>Set the joint damping and the maximum joint angular
+velocity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>damping</strong> (<em>float</em><em>, </em><em>optional</em>) – The damping of the joint about the joint axis.
+The default value is 0.001.</p></li>
+<li><p><strong>max_omega</strong> (<em>float</em><em>, </em><em>optional</em>) – The maximum allowed angular velocity of the joint about the
+joint axis. The default value is 1000.0</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Joint.set_initial_state">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">set_initial_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Joint.set_initial_state" title="Link to this definition"></a></dt>
+<dd><p>Sets the initial state of the joint. When the simulation is reset
+the joint will be reset to this value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>angle</strong> (<em>float</em><em>, </em><em>optional</em>) – The (angle in radians) of the joint about the joint axis.</p></li>
+<li><p><strong>omega</strong> (<em>float</em><em>, </em><em>optional</em>) – The angular velocity (angle in radians / second) of the joint
+about the joint axis.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Joint.set_state">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Joint.set_state" title="Link to this definition"></a></dt>
+<dd><p>Sets the current state of the joint.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>angle</strong> (<em>float</em><em>, </em><em>optional</em>) – The (angle in radians) of the joint about the joint axis. When
+not defined, does not change from current value.</p></li>
+<li><p><strong>omega</strong> (<em>float</em><em>, </em><em>optional</em>) – The angular velocity (angle in radians / second) of the joint
+about the joint axis.  When not defined, does not change from
+current value.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Joint.apply_torque">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">apply_torque</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">torque</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Joint.apply_torque" title="Link to this definition"></a></dt>
+<dd><p>Applies torque to a joint for a single simulation step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>torque</strong> (<em>float</em>) – The torque being applied about the joint’s axis..</p></li>
+<li><p><strong>**kwargs</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>draw_arrow</strong> (<em>bool</em><em>, </em><em>optional</em>) – A Boolean flag that indicates if an arrow should be drawn
+to represent the applied torque. The default is False.</p></li>
+<li><p><strong>arrow_scale</strong> (<em>float</em><em>, </em><em>optional</em>) – The scaling factor, relative to the size of the applied torque,
+that is used to size the torque arrow. The default is 1.0.</p></li>
+<li><p><strong>arrow_offset</strong> (<em>float</em><em>, </em><em>optional</em>) – The amount by which the drawn is offset from the center of the
+joint’s child link along the joint axis. The default is 0.0.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Joint.reset">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Joint.reset" title="Link to this definition"></a></dt>
+<dd><p>Resets the joint to its initial conditions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="the-link-class">
+<h4>The Link Class<a class="headerlink" href="#the-link-class" title="Link to this heading"></a></h4>
+<dl class="py class">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Link">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">condynsate.simulator.objects.</span></span><span class="sig-name descname"><span class="pre">Link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Link" title="Link to this definition"></a></dt>
+<dd><p>The class stores information about and allows interaction with a link
+on a body in the simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sim_obj</strong> (<em>condynsate.core.objects.Body</em>) – The member of the Body class to which the link belongs</p></li>
+<li><p><strong>idx</strong> (<em>int</em>) – The unique number that identifies the link in the PyBullet client.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Link.state">
+<span class="sig-name descname"><span class="pre">state</span></span><a class="headerlink" href="#condynsate.simulator.objects.Link.state" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>The current state of the link (position, orientation, velocity,</dt><dd><p>and angular velocity)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#condynsate.simulator.dataclasses.LinkState" title="condynsate.simulator.dataclasses.LinkState">condynsate.simulator.dataclasses.LinkState</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Link.mass">
+<span class="sig-name descname"><span class="pre">mass</span></span><a class="headerlink" href="#condynsate.simulator.objects.Link.mass" title="Link to this definition"></a></dt>
+<dd><p>The mass of the link. Can be set with the set_dynamics function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Link.center_of_mass">
+<span class="sig-name descname"><span class="pre">center_of_mass</span></span><a class="headerlink" href="#condynsate.simulator.objects.Link.center_of_mass" title="Link to this definition"></a></dt>
+<dd><p>The current center of mass of the link in world coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>3 tuple of floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Link.visual_data">
+<span class="sig-name descname"><span class="pre">visual_data</span></span><a class="headerlink" href="#condynsate.simulator.objects.Link.visual_data" title="Link to this definition"></a></dt>
+<dd><p>A dictionary containing all required data to render the link.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Link.Obw_Rbw">
+<span class="sig-name descname"><span class="pre">Obw_Rbw</span></span><a class="headerlink" href="#condynsate.simulator.objects.Link.Obw_Rbw" title="Link to this definition"></a></dt>
+<dd><p>The position of the link in world coordinates and the rotation
+matrix of the link relative to the world.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>2tuple of 3tuple and 3x3 array-like</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Link.set_color">
+<span class="sig-prename descclassname"><span class="pre">Link.</span></span><span class="sig-name descname"><span class="pre">set_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Link.set_color" title="Link to this definition"></a></dt>
+<dd><p>Changes the color of the link.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>color</strong> (<em>3 tuple</em><em> of </em><em>floats</em>) – The color to set the link. In the form (R, G, B) where R is the
+red channel, G is the green channel, and B is the blue channel.
+Each channel has value between 0.0 and 1.0.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Link.set_texture">
+<span class="sig-prename descclassname"><span class="pre">Link.</span></span><span class="sig-name descname"><span class="pre">set_texture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">texture</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Link.set_texture" title="Link to this definition"></a></dt>
+<dd><p>Sets the texture of a link. Only works if the link is described by
+an obj or dae file. Does not work for stl defined links.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>texture</strong> (<em>path to image file</em>) – The path to the texture image file.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Link.set_dynamics">
+<span class="sig-prename descclassname"><span class="pre">Link.</span></span><span class="sig-name descname"><span class="pre">set_dynamics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Link.set_dynamics" title="Link to this definition"></a></dt>
+<dd><p>Sets the dynamics properties of a single link. Allows user to change
+the mass, contact friction, the bounciness, and the air resistance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>mass</strong> (<em>float</em><em>, </em><em>optional</em>) – The mass of the link. The default is defined by the .URDF file</p></li>
+<li><p><strong>lateral_contact_friction</strong> (<em>float</em><em>, </em><em>optional</em>) – The lateral (linear) contact friction of the link. 0.0 for
+no friction, increasing friction with increasing value.
+The default is 100.0.</p></li>
+<li><p><strong>spinning_contact_friction</strong> (<em>float</em><em>, </em><em>optional</em>) – The torsional contact friction of the link about
+contact normals. 0.0 for no friction, increasing friction
+with increasing value. The default is 0.0.</p></li>
+<li><p><strong>rolling_contact_friction</strong> (<em>float</em><em>, </em><em>optional</em>) – The torsional contact friction of the link orthogonal to
+contact normals. 0.0 for no friction, increasing friction
+with increasing value. Keep this value either 0.0 or very close
+to 0.0, otherwise the simulations can become unstable.
+The default is 0.0.</p></li>
+<li><p><strong>bounciness</strong> (<em>float</em><em>, </em><em>optional</em>) – How bouncy this link is. 0.0 for inelastic collisions, 0.95 for
+mostly elastic collisions. Setting above 0.95 can result in
+unstable simulations. The default is 0.0.</p></li>
+<li><p><strong>linear_air_resistance</strong> (<em>float</em><em>, </em><em>optional</em>) – The air resistance opposing linear movement applied to the
+center of mass of the link. Usually set to either 0.0 or a
+low value less than 0.1. The default is 0.005.</p></li>
+<li><p><strong>angular_air_resistance</strong> (<em>float</em><em>, </em><em>optional</em>) – The air resistance opposing rotational movement applied about
+the center of rotation of the link. Usually set to either 0.0
+or a low value less than 0.1. The default is 0.005.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.simulator.objects.Link.apply_force">
+<span class="sig-prename descclassname"><span class="pre">Link.</span></span><span class="sig-name descname"><span class="pre">apply_force</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Link.apply_force" title="Link to this definition"></a></dt>
+<dd><p>Applies force to the center of mass of a link.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>force</strong> (<em>3 tuple</em><em> of </em><em>floats</em>) – The force being applied to the center of mass.</p></li>
+<li><p><strong>**kwargs</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>body</strong> (<em>bool</em><em>, </em><em>optional</em>) – A Boolean flag that indicates if the force argument is in
+body coordinates (True), or in world coordinates (False).
+The default is False.</p></li>
+<li><p><strong>draw_arrow</strong> (<em>bool</em><em>, </em><em>optional</em>) – A Boolean flag that indicates if an arrow should be drawn
+to represent the applied force. The default is False.</p></li>
+<li><p><strong>arrow_scale</strong> (<em>float</em><em>, </em><em>optional</em>) – The scaling factor, relative to the size of the applied force,
+that is used to size the force arrow. The default is 1.0.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+<section id="the-visualizer-subpackage">
+<h2>The visualizer Subpackage<a class="headerlink" href="#the-visualizer-subpackage" title="Link to this heading"></a></h2>
+<section id="module-condynsate.visualizer.visualizer">
+<span id="the-visualizer-module"></span><h3>The visualizer Module<a class="headerlink" href="#module-condynsate.visualizer.visualizer" title="Link to this heading"></a></h3>
+<p>This module provides the Visualizer class.</p>
+<p>&#64;author: G. Schaer</p>
+<section id="the-visualizer-class">
+<h4>The Visualizer Class<a class="headerlink" href="#the-visualizer-class" title="Link to this heading"></a></h4>
+<dl class="py class">
+<dt class="sig sig-object py" id="condynsate.Visualizer">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">condynsate.</span></span><span class="sig-name descname"><span class="pre">Visualizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">45.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer" title="Link to this definition"></a></dt>
+<dd><p>Visualizer manages the meshcat based visulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame_rate</strong> (<em>bool</em><em>, </em><em>optional</em>) – The frame rate of the visualizer. When None, attempts to run at
+unlimited. This is not recommended because it can cause communication
+bottlenecks that cause slow downs. The default value is 45.</p></li>
+<li><p><strong>record</strong> (<em>bool</em><em>, </em><em>optional</em>) – A boolean flag that indicates if the visualizer will record.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Visualizer.frame_delta">
+<span class="sig-name descname"><span class="pre">frame_delta</span></span><a class="headerlink" href="#condynsate.Visualizer.frame_delta" title="Link to this definition"></a></dt>
+<dd><p>The time, in seconds, between each visualizer frame update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Visualizer.record">
+<span class="sig-name descname"><span class="pre">record</span></span><a class="headerlink" href="#condynsate.Visualizer.record" title="Link to this definition"></a></dt>
+<dd><p>A boolean flag that indicates if the visualizer is recording or not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_grid">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">visible</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_grid" title="Link to this definition"></a></dt>
+<dd><p>Controls the visibility state of the XY grid in the visualizer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>visible</strong> (<em>bool</em>) – The boolean value to which the visibility of the XY grid is set.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_axes">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_axes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">visible</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_axes" title="Link to this definition"></a></dt>
+<dd><p>Controls the visibility state of the axes in the visualizer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>visible</strong> (<em>bool</em>) – The boolean value to which the visibility of the axes is set.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_background">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_background</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_background" title="Link to this definition"></a></dt>
+<dd><p>Set the top and bottom colors of the background of the scene.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>top</strong> (<em>3 tuple</em><em> of </em><em>floats between 0.0 and 1.0</em><em>, </em><em>optional</em>) – The RGB color to apply to the top of the background.
+If None, is not altered. The default is None</p></li>
+<li><p><strong>bottom</strong> (<em>3 tuple</em><em> of </em><em>floats between 0.0 and 1.0</em><em>, </em><em>optional</em>) – The RGB color to apply to the bottom of the background.
+If None, is not altered. The default is None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_spotlight">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_spotlight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_spotlight" title="Link to this definition"></a></dt>
+<dd><p>Sets the properties of the spotlight in the scene.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>on</strong> (<em>bool</em>) – Boolean flag that indicates if the light is on.</p></li>
+<li><p><strong>position</strong> (<em>3tuple</em><em> of </em><em>floats</em>) – The position of the light source in (x,y,z) world coordinates.
+Does not apply to amblight type sources.</p></li>
+<li><p><strong>intensity</strong> (<em>float</em>) – Numeric value of the light’s strength/intensity.</p></li>
+<li><p><strong>distance</strong> (<em>float</em>) – Maximum range of the light. Default is 0 (no limit).</p></li>
+<li><p><strong>decay</strong> (<em>float</em>) – The amount a ptlight or spotlight type light dims along the
+distance of the light.</p></li>
+<li><p><strong>angle</strong> (<em>float between 0.0 and 1.5707</em>) – The beam angle of a spotlight type light in radians.</p></li>
+<li><p><strong>shadow</strong> (<em>bool</em>) – Boolean flag that indicates if the light casts a shadow.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_ptlight_1">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_ptlight_1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_ptlight_1" title="Link to this definition"></a></dt>
+<dd><p>Sets the properties of the first point light.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>on</strong> (<em>bool</em>) – Boolean flag that indicates if the light is on.</p></li>
+<li><p><strong>position</strong> (<em>3tuple</em><em> of </em><em>floats</em>) – The position of the light source in (x,y,z) world coordinates.
+Does not apply to amblight type sources.</p></li>
+<li><p><strong>intensity</strong> (<em>float</em>) – Numeric value of the light’s strength/intensity.</p></li>
+<li><p><strong>distance</strong> (<em>float</em>) – Maximum range of the light. Default is 0 (no limit).</p></li>
+<li><p><strong>shadow</strong> (<em>bool</em>) – Boolean flag that indicates if the light casts a shadow.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_ptlight_2">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_ptlight_2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_ptlight_2" title="Link to this definition"></a></dt>
+<dd><p>Sets the properties of the second point light.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>on</strong> (<em>bool</em>) – Boolean flag that indicates if the light is on.</p></li>
+<li><p><strong>position</strong> (<em>3tuple</em><em> of </em><em>floats</em>) – The position of the light source in (x,y,z) world coordinates.
+Does not apply to amblight type sources.</p></li>
+<li><p><strong>intensity</strong> (<em>float</em>) – Numeric value of the light’s strength/intensity.</p></li>
+<li><p><strong>distance</strong> (<em>float</em>) – Maximum range of the light. Default is 0 (no limit).</p></li>
+<li><p><strong>shadow</strong> (<em>bool</em>) – Boolean flag that indicates if the light casts a shadow.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_amblight">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_amblight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_amblight" title="Link to this definition"></a></dt>
+<dd><p>Sets the properties ambient light of the scene.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>on</strong> (<em>bool</em>) – Boolean flag that indicates if the light is on.</p></li>
+<li><p><strong>intensity</strong> (<em>float</em>) – Numeric value of the light’s strength/intensity.</p></li>
+<li><p><strong>shadow</strong> (<em>bool</em>) – Boolean flag that indicates if the light casts a shadow.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_dirnlight">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_dirnlight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_dirnlight" title="Link to this definition"></a></dt>
+<dd><p>Sets the properties fill light of the scene.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>on</strong> (<em>bool</em>) – Boolean flag that indicates if the light is on.</p></li>
+<li><p><strong>position</strong> (<em>3tuple</em><em> of </em><em>floats</em>) – The position of the light source in (x,y,z) world coordinates.
+Does not apply to amblight type sources.</p></li>
+<li><p><strong>intensity</strong> (<em>float</em>) – Numeric value of the light’s strength/intensity.</p></li>
+<li><p><strong>shadow</strong> (<em>bool</em>) – Boolean flag that indicates if the light casts a shadow.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_cam_position">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_cam_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_cam_position" title="Link to this definition"></a></dt>
+<dd><p>Set the XYZ position of camera.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>p</strong> (<em>3Vec</em><em> of </em><em>floats</em>) – The XYZ position to which the camera will be moved. After moving,
+the camera will automatically adjust its orientation to continue
+looking directly at its target.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_cam_target">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_cam_target</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_cam_target" title="Link to this definition"></a></dt>
+<dd><p>Set the XYZ position of the point the camera is looking at.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>3Vec</em><em> of </em><em>floats</em>) – The XYZ position for the camera to look at. Regardless of updates
+to the camera position, the camera will always look directly at
+this point.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_cam_zoom">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_cam_zoom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zoom</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_cam_zoom" title="Link to this definition"></a></dt>
+<dd><p>Sets the zoom value of the camera</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>zoom</strong> (<em>float greater than 0 and less than</em><em> or </em><em>equal to 100.</em>) – The zoom value .</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_cam_frustum">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_cam_frustum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_cam_frustum" title="Link to this definition"></a></dt>
+<dd><p>Sets the size and shape of the camera’s frustum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>aspect</strong> (<em>float</em>) – The aspect ratio of the near and far planes of the frustum.</p></li>
+<li><p><strong>fov</strong> (<em>float</em>) – The vertical field of view of the frustum in degrees.</p></li>
+<li><p><strong>near</strong> (<em>float less than far</em>) – The distance to the near plane of the frustum.</p></li>
+<li><p><strong>far</strong> (<em>float greater than near</em>) – The distance to the far plane of the frustum.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.add_object">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">add_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.add_object" title="Link to this definition"></a></dt>
+<dd><p>Adds an object to the visualizer scene.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em><em> or </em><em>tuple</em><em> of </em><em>strings</em>) – A list of strings defining the name of the object as well
+as its position in the scene heirarchy. For example,
+(‘foo’, ‘bar’) would insert a new object to the scene at location
+/Scene/foo/bar while ‘baz’ would insert the object at
+/Scene/baz</p></li>
+<li><p><strong>path</strong> (<em>string</em>) – Path pointing to the file that describes the object’s
+geometry. The file may be of type .obj, .stl, or .dae.</p></li>
+<li><p><strong>**kwargs</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>tex_path</strong> (<em>string</em>) – The path pointing to a .png file that defines the texture of
+the object being added. Is only applied correctly if object is
+of type .obj or .dae. .stl files do not support proper
+texturing and attempting to apply texture to .stl may result in
+unexpected viual results. If None, no texture is applied. The
+default is None</p></li>
+<li><p><strong>color</strong> (<em>3vec</em><em> of </em><em>floats</em>) – The color to apply to the object being added. In the form of
+(R, G, B) where all elements range from 0.0 to 1.0. The default
+is (1.0, 1.0, 1.0).</p></li>
+<li><p><strong>shininess</strong> (<em>float</em>) – The shininess of the object being added. Ranges from 0.0 to 1.0
+The default value of 0.01.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em>) – The opacity of the object being added. Ranges from 0.0 to 1.0.
+The default value is 1.0.</p></li>
+<li><p><strong>position</strong> (<em>3vec</em><em> of </em><em>floats</em>) – The extrinsic position to set.
+The default value is (0., 0., 0.)</p></li>
+<li><p><strong>wxyz_quat</strong> (<em>4vec</em><em> of </em><em>floats</em>) – The extrinsic rotation to set as defined by a quaternion.
+The default value is (1., 0., 0., 0.)</p></li>
+<li><p><strong>yaw</strong> (<em>float</em>) – The intrinsic yaw angle to set in degrees. Defined about the
+object’s Z axis. The default value is 0.0.</p></li>
+<li><p><strong>pitch</strong> (<em>float</em>) – The intrinsic pitch angle to set in degrees. Defined about the
+object’s Y axis. The default value is 0.0.</p></li>
+<li><p><strong>roll</strong> (<em>float</em>) – The intrinsic roll angle to set in degrees. Defined about the
+object’s X axis. The default value is 0.0.</p></li>
+<li><p><strong>scale</strong> (<em>3vec</em><em> of </em><em>floats</em>) – The intrinsic scale of the object. When not set, defaults to
+(1., 1., 1.).</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_transform">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_transform" title="Link to this definition"></a></dt>
+<dd><p>Sets the position, orientation, and scale of a scene object relative to
+its original origin and size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em><em> or </em><em>tuple</em><em> of </em><em>strings</em>) – A list of strings defining the name of the object as well
+as its position in the scene heirarchy. For example,
+(‘foo’, ‘bar’) would refers to the object at the scene location
+/Scene/foo/bar while ‘baz’ refers to the object at scene location
+/Scene/baz</p></li>
+<li><p><strong>**kwargs</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>position</strong> (<em>3vec</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The extrinsic position to set.
+The default value is (0., 0., 0.)</p></li>
+<li><p><strong>wxyz_quat</strong> (<em>4vec</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The extrinsic rotation to set as defined by a quaternion.
+The default value is (1., 0., 0., 0.)</p></li>
+<li><p><strong>yaw</strong> (<em>float</em><em>, </em><em>optional</em>) – The intrinsic yaw angle to set in radians. Defined about the
+object’s Z axis. The default value is 0.0.</p></li>
+<li><p><strong>pitch</strong> (<em>float</em><em>, </em><em>optional</em>) – The intrinsic pitch angle to set in radians. Defined about the
+object’s Y axis. The default value is 0.0.</p></li>
+<li><p><strong>roll</strong> (<em>float</em><em>, </em><em>optional</em>) – The intrinsic roll angle to set in radians. Defined about the
+object’s X axis. The default value is 0.0.</p></li>
+<li><p><strong>scale</strong> (<em>3vec</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The intrinsic scale of the object. When not set, defaults to
+(1., 1., 1.).</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.set_material">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">set_material</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.set_material" title="Link to this definition"></a></dt>
+<dd><p>Sets an objects material.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em><em> or </em><em>tuple</em><em> of </em><em>strings</em>) – A list of strings defining the name of the object as well
+as its position in the scene heirarchy. For example,
+(‘foo’, ‘bar’) refers to the object at the scene location
+/Scene/foo/bar while ‘baz’ refers to the object at scene location
+/Scene/baz</p></li>
+<li><p><strong>**kwargs</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>tex_path</strong> (<em>string</em><em>, </em><em>optional</em>) – The path pointing to a .png file that defines the texture of
+the object being added. Is only applied correctly if object is
+of type .obj or .dae. .stl files do not support proper
+texturing and attempting to apply texture to .stl may result in
+unexpected viual results. If None, no texture is applied. The
+default is None</p></li>
+<li><p><strong>color</strong> (<em>3vec</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The color to apply to the object. In the form of
+(R, G, B) where all elements range from 0.0 to 1.0. The default
+is (1.0, 1.0, 1.0).</p></li>
+<li><p><strong>shininess</strong> (<em>float</em><em>, </em><em>optional</em>) – The shininess of the object. Ranges from 0.0 to 1.0.
+The default value is 0.01</p></li>
+<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>optional</em>) – The opacity of the object. Ranges from 0.0 to 1.0.
+The default value is 1.0.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.reset">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.reset" title="Link to this definition"></a></dt>
+<dd><p>Resets the recording data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Visualizer.terminate">
+<span class="sig-prename descclassname"><span class="pre">Visualizer.</span></span><span class="sig-name descname"><span class="pre">terminate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Visualizer.terminate" title="Link to this definition"></a></dt>
+<dd><p>Terminates the visualizer’s communication with the web browser.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+<section id="the-animator-subpackage">
+<h2>The animator Subpackage<a class="headerlink" href="#the-animator-subpackage" title="Link to this heading"></a></h2>
+<section id="module-condynsate.animator.animator">
+<span id="the-animator-module"></span><h3>The animator Module<a class="headerlink" href="#module-condynsate.animator.animator" title="Link to this heading"></a></h3>
+<p>This module provides the Animator class which is used to draw data to a plot
+in real time.</p>
+<p>&#64;author: G. Schaer</p>
+<section id="the-animator-class">
+<h4>The Animator Class<a class="headerlink" href="#the-animator-class" title="Link to this heading"></a></h4>
+<dl class="py class">
+<dt class="sig sig-object py" id="condynsate.Animator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">condynsate.</span></span><span class="sig-name descname"><span class="pre">Animator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Animator" title="Link to this definition"></a></dt>
+<dd><p>The animator main class. Creates, modifies, and displays lineplots and
+barcharts in real time according to user inputs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame_rate</strong> (<em>float</em><em>, </em><em>optional</em>) – The upper limit of the allowed frame rate in frames per second.
+When set, the animator will not update faster than this speed.
+When none, the animator will update each time refresh is called.
+The default is 20.</p></li>
+<li><p><strong>record</strong> (<em>bool</em><em>, </em><em>optional</em>) – A boolean flag that indicates if the animator should be recorded. If
+True, all frames from the start function call to the terminate function
+call are recorded. After the terminate function call, these frames are
+saved with h.264 and outputs in an MP4 container. The saved file name
+has the form animator_video.mp4</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Animator.frame_delta">
+<span class="sig-name descname"><span class="pre">frame_delta</span></span><a class="headerlink" href="#condynsate.Animator.frame_delta" title="Link to this definition"></a></dt>
+<dd><p>The time, in seconds, between each animator frame update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Animator.record">
+<span class="sig-name descname"><span class="pre">record</span></span><a class="headerlink" href="#condynsate.Animator.record" title="Link to this definition"></a></dt>
+<dd><p>A boolean flag that indicates if the animator is recording or not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="condynsate.Animator.is_running">
+<span class="sig-name descname"><span class="pre">is_running</span></span><a class="headerlink" href="#condynsate.Animator.is_running" title="Link to this definition"></a></dt>
+<dd><p>A boolean flag that indicates if the animator is running or not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Animator.add_lineplot">
+<span class="sig-prename descclassname"><span class="pre">Animator.</span></span><span class="sig-name descname"><span class="pre">add_lineplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_lines</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Animator.add_lineplot" title="Link to this definition"></a></dt>
+<dd><p>Adds a lineplot to the animator window. Neither the lineplot nor the
+window appear until the user calls the start function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_lines</strong> (<em>int</em>) – The number of lines that are drawn on the plot. Must be integer
+between [1, 16].</p></li>
+<li><p><strong>**kwargs</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>x_lim</strong> (<em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>, </em><em>optional</em>) – The limits to apply to the x axis of the plot. A value of None
+will apply automatically updating limits to the corresponding
+bound of the axis. For example [None, 10.] will fix the upper
+bound to exactly 10, but the lower bound will freely change to
+show all data.The default is [None, None].</p></li>
+<li><p><strong>y_lim</strong> (<em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>, </em><em>optional</em>) – The limits to apply to the y axis of the plot. A value of None
+will apply automatically updating limits to the corresponding
+bound of the axis. For example [None, 10.] will fix the upper
+bound to exactly 10, but the lower bound will freely change to
+show all data.The default is [None, None].</p></li>
+<li><p><strong>h_zero_line</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A boolean flag that indicates whether a horizontal line will be
+drawn on the y=0 line. The default is false</p></li>
+<li><p><strong>v_zero_line</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A boolean flag that indicates whether a vertical line will be
+drawn on the x=0 line. The default is false</p></li>
+<li><p><strong>tail</strong> (<em>int</em><em> or </em><em>tuple</em><em> of </em><em>ints optional</em>) – Specifies how many data points are used to draw a line. Only
+the most recently added data points are kept. Any data points
+added more than tail data points ago are discarded and not
+plotted. When tuple, must have length n_lines. A value less
+than or equal to 0 means that no data is ever discarded and all
+data points added to the animator will be drawn. The default
+is -1.</p></li>
+<li><p><strong>title</strong> (<em>string</em><em>, </em><em>optional</em>) – The title of the plot. Will be written above the plot when
+rendered. The default is None.</p></li>
+<li><p><strong>x_label</strong> (<em>string</em><em>, </em><em>optional</em>) – The label to apply to the x axis. Will be written under the
+plot when rendered. The default is None.</p></li>
+<li><p><strong>y_label</strong> (<em>string</em><em>, </em><em>optional</em>) – The label to apply to the y axis. Will be written to the
+left of the plot when rendered. The default is None.</p></li>
+<li><p><strong>label</strong> (<em>string</em><em> or </em><em>tuple</em><em> of </em><em>strings</em><em>, </em><em>optional</em>) – The label applied to each artist. The labels are shown in a
+legend in the top right of the plot. When tuple, must have
+length n_lines. When None, no labels are made. The default
+is None.</p></li>
+<li><p><strong>color</strong> (<em>matplotlib color string</em><em> or </em><em>tuple</em><em> of </em><em>color strings</em><em>, </em><em>optional</em>) – The color each artist draws in. When tuple, must have length
+n_lines. The default is ‘black’.</p></li>
+<li><p><strong>line_width</strong> (<em>float</em><em> or </em><em>tuple</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The line weigth each artist uses. When tuple, must have length
+n_lines. The default is 1.5.</p></li>
+<li><p><strong>line_style</strong> (<em>line style string</em><em> or </em><em>tuple</em><em> of </em><em>ls strings</em><em>, </em><em>optional</em>) – The line style each artist uses. When tuple, must have length
+n_lines. The default is ‘solid’. Select from ‘solid’, ‘dashed’,
+‘dashdot’, or ‘dotted’.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>RuntimeError</strong> – If cannot add another subplot or the animator was already running.
+Can only add up to 16 subplots total.</p></li>
+<li><p><strong>ValueError</strong> – If n_lines is not an int or is less than 1 or greater than 16.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>lines_ids</strong> – A unique identifier that allows the user to address each line
+in the lineplot. For example, if n_lines = 3, the tuple will have
+length three; however, if n_lines = 1, the returned value will be
+the hex id of the only line (not a tuple).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>hex or tuple of hex</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Animator.add_barchart">
+<span class="sig-prename descclassname"><span class="pre">Animator.</span></span><span class="sig-name descname"><span class="pre">add_barchart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bars</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Animator.add_barchart" title="Link to this definition"></a></dt>
+<dd><p>Adds a barchart to the animator window. Neither the barchart nor the
+window appear until the user calls the start function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_bars</strong> (<em>int</em>) – The number of bars on the chart. Must be integer between [1, 16].</p></li>
+<li><p><strong>**kwargs</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>x_lim</strong> (<em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>, </em><em>optional</em>) – The limits to apply to the x axis of the plot. A value of None
+will apply automatically updating limits to the corresponding
+bound of the axis. For example [None, 10.] will fix the upper
+bound to exactly 10, but the lower bound will freely change to
+show all data.The default is [None, None].</p></li>
+<li><p><strong>y_lim</strong> (<em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>, </em><em>optional</em>) – The limits to apply to the y axis of the plot. A value of None
+will apply automatically updating limits to the corresponding
+bound of the axis. For example [None, 10.] will fix the upper
+bound to exactly 10, but the lower bound will freely change to
+show all data.The default is [None, None].</p></li>
+<li><p><strong>h_zero_line</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A boolean flag that indicates whether a horizontal line will be
+drawn on the y=0 line. The default is false</p></li>
+<li><p><strong>v_zero_line</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A boolean flag that indicates whether a vertical line will be
+drawn on the x=0 line. The default is false</p></li>
+<li><p><strong>title</strong> (<em>string</em><em>, </em><em>optional</em>) – The title of the plot. Will be written above the plot when
+rendered. The default is None.</p></li>
+<li><p><strong>x_label</strong> (<em>string</em><em>, </em><em>optional</em>) – The label to apply to the x axis. Will be written under the
+plot when rendered. The default is None.</p></li>
+<li><p><strong>y_label</strong> (<em>string</em><em>, </em><em>optional</em>) – The label to apply to the y axis. Will be written to the left
+of the plot when rendered. The default is None.</p></li>
+<li><p><strong>label</strong> (<em>string</em><em> or </em><em>tuple</em><em> of </em><em>strings</em><em>, </em><em>optional</em>) – The label applied to each bar. The labels are shown in a legend
+in the top right of the chart. When tuple, must have length
+n_bars. When None, no labels are made. The default is None.</p></li>
+<li><p><strong>color</strong> (<em>matplotlib color string</em><em> or </em><em>tuple</em><em> of </em><em>color strings</em><em>, </em><em>optional</em>) – The color of each bar. When tuple, must have length
+n_bars. The default is ‘blue’.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>RuntimeError</strong> – If cannot add another subplot or the animator was already running.
+Can only add up to 16 subplots total.</p></li>
+<li><p><strong>ValueError</strong> – If n_bars is not an int or is less than 1 or greater than 16.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>bar_ids</strong> – A unique identifier that allows the user to address each bar
+in the barchart. For example, if n_bars = 3, the tuple will have
+length three; however, if n_bars = 1, the returned value will be
+the hex id of the only bar (not a tuple).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple of hex</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Animator.start">
+<span class="sig-prename descclassname"><span class="pre">Animator.</span></span><span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Animator.start" title="Link to this definition"></a></dt>
+<dd><p>Starts the animator. Creates a new window and begins displaying live
+subplot data to it. Please ensure to call the terminate function
+when done to ensure all child threads are killed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RuntimeError</strong> – If something goes wrong while attempting to start the animator.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Animator.refresh">
+<span class="sig-prename descclassname"><span class="pre">Animator.</span></span><span class="sig-name descname"><span class="pre">refresh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Animator.refresh" title="Link to this definition"></a></dt>
+<dd><p>Updates the animator GUI with the most recently drawn figure. Must
+be called regularly to maintain responsivness of GUI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Animator.barchart_set_value">
+<span class="sig-prename descclassname"><span class="pre">Animator.</span></span><span class="sig-name descname"><span class="pre">barchart_set_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bar_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Animator.barchart_set_value" title="Link to this definition"></a></dt>
+<dd><p>Set’s a bar’s value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bar_id</strong> (<em>hex string</em>) – The id of the bar whose value is being set.</p></li>
+<li><p><strong>value</strong> (<em>float</em>) – The value to which the bar is set.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Animator.lineplot_append_point">
+<span class="sig-prename descclassname"><span class="pre">Animator.</span></span><span class="sig-name descname"><span class="pre">lineplot_append_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_val</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Animator.lineplot_append_point" title="Link to this definition"></a></dt>
+<dd><p>Appends a single y versus x data point to the end of a line.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>line_id</strong> (<em>hex string</em>) – The id of the line to which a point is appended.</p></li>
+<li><p><strong>x_val</strong> (<em>float</em>) – The x coordinate of the data point being appended.</p></li>
+<li><p><strong>y_val</strong> (<em>float</em>) – The y coordinate of the data point being appended.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Animator.lineplot_set_data">
+<span class="sig-prename descclassname"><span class="pre">Animator.</span></span><span class="sig-name descname"><span class="pre">lineplot_set_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_vals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_vals</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Animator.lineplot_set_data" title="Link to this definition"></a></dt>
+<dd><p>Plots y_vals versus x_vals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>line_id</strong> (<em>hex string</em>) – The id of the line on which that data are plotted.</p></li>
+<li><p><strong>x_vals</strong> (<em>list</em><em> of </em><em>floats</em>) – A list of x coordinates of the points being plotted.</p></li>
+<li><p><strong>y_vals</strong> (<em>list</em><em> of </em><em>floats</em>) – A list of y coordinates of the points being plotted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Animator.reset">
+<span class="sig-prename descclassname"><span class="pre">Animator.</span></span><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Animator.reset" title="Link to this definition"></a></dt>
+<dd><p>Resets all data on all subplots and the recording, if applicable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Animator.terminate">
+<span class="sig-prename descclassname"><span class="pre">Animator.</span></span><span class="sig-name descname"><span class="pre">terminate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Animator.terminate" title="Link to this definition"></a></dt>
+<dd><p>Terminates and removes all subplots from the animator. Should be called
+when done with Animator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+<section id="the-keyboard-subpackage">
+<h2>The keyboard Subpackage<a class="headerlink" href="#the-keyboard-subpackage" title="Link to this heading"></a></h2>
+<section id="module-condynsate.keyboard.keyboard">
+<span id="the-keyboard-module"></span><h3>The keyboard Module<a class="headerlink" href="#module-condynsate.keyboard.keyboard" title="Link to this heading"></a></h3>
+<p>This module provides the Keyboard class which monitors the keyboard and tells
+users which keys are pressed.</p>
+<p>&#64;author: G. Schaer</p>
+<section id="the-keyboard-class">
+<h4>The Keyboard Class<a class="headerlink" href="#the-keyboard-class" title="Link to this heading"></a></h4>
+<dl class="py class">
+<dt class="sig sig-object py" id="condynsate.Keyboard">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">condynsate.</span></span><span class="sig-name descname"><span class="pre">Keyboard</span></span><a class="headerlink" href="#condynsate.Keyboard" title="Link to this definition"></a></dt>
+<dd><p>Keyboard asynchronously detects and reports keyboard events. Used to detect
+which keys are pressed and which modifiers are being used. Works best on
+QWERTY keyboards.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Keyboard.get_pressed">
+<span class="sig-prename descclassname"><span class="pre">Keyboard.</span></span><span class="sig-name descname"><span class="pre">get_pressed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Keyboard.get_pressed" title="Link to this definition"></a></dt>
+<dd><p>Returns a list of all keys that are currently pressed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>keys_pressed</strong> – The list of keys to be detected. Each item in list may be a
+lowercase letter, a digit, a special character, or a punctuation
+mark that does not use shift on a QWERTY keyboard.
+The special keys are as follows:
+“esc”, “f1”, “f2”, “f3”, “f4”, “f5”, “f6”, “f7”, “f8”, “f9”, “f10”,
+“f11”, “f12”, “print_screen”, “scroll_lock”, “pause”, “backspace”,
+“insert”, “home”, “page_up”, “num_lock”, “tab”, “delete”, “end”,
+“page_down”, “caps_lock”, “enter”, “up”, “left”, “down”, “right”
+The punctuation marks that do not use shift on a QWERTY keyboard
+are as follows:
+“`”, “-”, “=”, “[”, “]”, “”, “;”, “’”, “,”, “.”, “/”
+If one of the following modifiers are used:
+“shift”, “alt”, “ctrl”, “cmd”,
+each item in the list will prepend them following format:
+“shift+a”, “ctrl+a”, “alt+a”, “cmd+a”, “shift+ctrl+a”, etc.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of strings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Keyboard.is_pressed">
+<span class="sig-prename descclassname"><span class="pre">Keyboard.</span></span><span class="sig-name descname"><span class="pre">is_pressed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key_str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Keyboard.is_pressed" title="Link to this definition"></a></dt>
+<dd><p>Returns a boolean flag to indicate whether a desired key is pressed.
+The key may be alpha numeric or some special keys.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key_str</strong> (<em>string</em>) – The key to be detected. May be a lowercase letter, a digit, a
+special character, or a punctuation mark that does not use shift on
+a QWERTY keyboard.
+The special keys are as follows:
+“esc”, “f1”, “f2”, “f3”, “f4”, “f5”, “f6”, “f7”, “f8”, “f9”, “f10”,
+“f11”, “f12”, “print_screen”, “scroll_lock”, “pause”, “backspace”,
+“insert”, “home”, “page_up”, “num_lock”, “tab”, “delete”, “end”,
+“page_down”, “caps_lock”, “enter”, “up”, “left”, “down”, “right”
+The punctuation marks that do not use shift on a QWERTY keyboard
+are as follows:
+“`”, “-”, “=”, “[”, “]”, “”, “;”, “’”, “,”, “.”, “/”
+The following modifiers can also be used:
+“shift”, “alt”, “ctrl”, “cmd”.
+Modifiers are added with the following format:
+“shift+a”, “ctrl+a”, “alt+a”, “shift+ctrl+alt+a”, etc.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A boolean flag to indicate whether the desired key is pressed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Keyboard.await_press">
+<span class="sig-prename descclassname"><span class="pre">Keyboard.</span></span><span class="sig-name descname"><span class="pre">await_press</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Keyboard.await_press" title="Link to this definition"></a></dt>
+<dd><p>Waits until the user presses a specified key or until the timeout
+condition is met</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key_str</strong> (<em>string</em>) – The key to await. May be a lowercase letter, a digit, a
+special character, or a punctuation mark that does not use shift on
+a QWERTY keyboard.
+The special keys are as follows:
+“esc”, “f1”, “f2”, “f3”, “f4”, “f5”, “f6”, “f7”, “f8”, “f9”, “f10”,
+“f11”, “f12”, “print_screen”, “scroll_lock”, “pause”, “backspace”,
+“insert”, “home”, “page_up”, “num_lock”, “tab”, “delete”, “end”,
+“page_down”, “caps_lock”, “enter”, “up”, “left”, “down”, “right”
+The punctuation marks that do not use shift on a QWERTY keyboard
+are as follows:
+“`”, “-”, “=”, “[”, “]”, “”, “;”, “’”, “,”, “.”, “/”
+The following modifiers can also be used:
+“shift”, “alt”, “ctrl”, “cmd”.
+Modifiers are added with the following format:
+“shift+a”, “ctrl+a”, “alt+a”, “shift+ctrl+alt+a”, etc.</p></li>
+<li><p><strong>timeout</strong> (<em>float &gt; 0.0</em><em>, </em><em>optional</em>) – The timeout value in seconds. The default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ret_code</strong> – 0 is the key is pressed, -1 is the timeout value is reached before
+the key is pressed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="condynsate.Keyboard.terminate">
+<span class="sig-prename descclassname"><span class="pre">Keyboard.</span></span><span class="sig-name descname"><span class="pre">terminate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Keyboard.terminate" title="Link to this definition"></a></dt>
+<dd><p>Terminates the Keyboard asynchronous listener. Should be called
+when done with the keyboard.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, G. Schaer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

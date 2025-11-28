@@ -1,0 +1,387 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>condynsate &mdash; condynsate 0.7.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/autoclasstoc.css?v=08871587" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=fe7df9b0"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            condynsate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package.html">The condynsate Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">condynsate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">condynsate</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="condynsate">
+<h1>condynsate<a class="headerlink" href="#condynsate" title="Link to this heading"></a></h1>
+<p><strong>condynsate</strong> (<strong>con</strong>trol and <strong>dyn</strong>amics simul<strong>at</strong>or) is a python-based, open-source educational tool built by <a class="reference external" href="http://bretl.csl.illinois.edu/people">G. Schaer</a> at the University of Illinois at Urbana-Champaign under the Grainger College of Engineering 2023-2025 Strategic Instructional Innovations Program: <a class="reference external" href="https://ae3.grainger.illinois.edu/programs/siip-grants/64459">Computational Tools for Dynamics and Control grant</a>. It is designed to aid the education of control and dynamics to aerospace, mechanical, and robotics engineering students by</p>
+<ol class="arabic simple">
+<li><p>providing a simulation environment in which students can see and interact with controlled and uncontrolled dynamic systems in familiar and <a class="reference external" href="https://doi.org/10.3390/educsci13070747">beneficial ways</a>,</p></li>
+<li><p>serving as a platform for introductory Python programming, and</p></li>
+<li><p>equipping instructors with a streamlined method of implementing custom in-class demonstrations and lab demos without the need for physical equipment.</p></li>
+</ol>
+<p>Built on <a class="reference external" href="https://pybullet.org/wordpress/">PyBullet</a>, <a class="reference external" href="https://github.com/meshcat-dev/meshcat-python/">MeshCat</a>, and <a class="reference external" href="https://www.tcl-lang.org/">Tk</a>, it implements nonlinear simulation of <a class="reference external" href="https://en.wikipedia.org/wiki/STL_(file_format)/">stl</a> or <a class="reference external" href="https://en.wikipedia.org/wiki/Wavefront_.obj_file/">obj</a> rigid bodies andor <a class="reference external" href="http://wiki.ros.org/urd/">urdf</a> articulated bodies. A browser-based 3D viewer visualizes the simulation and the evolution of individual states are plotted, all in real-time. By simultaneously enabling keyboard interactivity, condynsate projects are designed to feel more like video games, familiar and fun, rather than conventional lab demos all while providing similar educational benefits.</p>
+<section id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#windows">Windows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#from-pypi-recommended"><strong>From PyPi (Recommended)</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#from-source">From Source</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#linux">Linux</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#id1"><strong>From PyPi (Recommended)</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#id2">From Source</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="package.html">The condynsate Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="package.html#the-project-subpackage">The project Subpackage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="package.html#module-condynsate.project.project">The project Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="package.html#the-project-class">The Project Class</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Project"><code class="docutils literal notranslate"><span class="pre">Project</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Project.simulator"><code class="docutils literal notranslate"><span class="pre">Project.simulator</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Project.visualizer"><code class="docutils literal notranslate"><span class="pre">Project.visualizer</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Project.animator"><code class="docutils literal notranslate"><span class="pre">Project.animator</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Project.keyboard"><code class="docutils literal notranslate"><span class="pre">Project.keyboard</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Project.bodies"><code class="docutils literal notranslate"><span class="pre">Project.bodies</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Project.simtime"><code class="docutils literal notranslate"><span class="pre">Project.simtime</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Project.load_urdf"><code class="docutils literal notranslate"><span class="pre">Project.load_urdf()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Project.step"><code class="docutils literal notranslate"><span class="pre">Project.step()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Project.reset"><code class="docutils literal notranslate"><span class="pre">Project.reset()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Project.refresh_visualizer"><code class="docutils literal notranslate"><span class="pre">Project.refresh_visualizer()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Project.refresh_animator"><code class="docutils literal notranslate"><span class="pre">Project.refresh_animator()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Project.await_keypress"><code class="docutils literal notranslate"><span class="pre">Project.await_keypress()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Project.await_anykeys"><code class="docutils literal notranslate"><span class="pre">Project.await_anykeys()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Project.terminate"><code class="docutils literal notranslate"><span class="pre">Project.terminate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="package.html#the-simulator-subpackage">The simulator Subpackage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="package.html#module-condynsate.simulator.simulator">The simulator Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="package.html#the-simulator-class">The Simulator Class</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Simulator"><code class="docutils literal notranslate"><span class="pre">Simulator</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Simulator.dt"><code class="docutils literal notranslate"><span class="pre">Simulator.dt</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Simulator.time"><code class="docutils literal notranslate"><span class="pre">Simulator.time</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Simulator.step_num"><code class="docutils literal notranslate"><span class="pre">Simulator.step_num</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Simulator.bodies"><code class="docutils literal notranslate"><span class="pre">Simulator.bodies</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Simulator.set_gravity"><code class="docutils literal notranslate"><span class="pre">Simulator.set_gravity()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Simulator.load_urdf"><code class="docutils literal notranslate"><span class="pre">Simulator.load_urdf()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Simulator.step"><code class="docutils literal notranslate"><span class="pre">Simulator.step()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Simulator.reset"><code class="docutils literal notranslate"><span class="pre">Simulator.reset()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Simulator.terminate"><code class="docutils literal notranslate"><span class="pre">Simulator.terminate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="package.html#module-condynsate.simulator.dataclasses">The dataclasses Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.BodyState"><code class="docutils literal notranslate"><span class="pre">BodyState</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.BodyState.position"><code class="docutils literal notranslate"><span class="pre">BodyState.position</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.BodyState.orientation"><code class="docutils literal notranslate"><span class="pre">BodyState.orientation</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.BodyState.ypr"><code class="docutils literal notranslate"><span class="pre">BodyState.ypr</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.BodyState.velocity"><code class="docutils literal notranslate"><span class="pre">BodyState.velocity</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.BodyState.omega"><code class="docutils literal notranslate"><span class="pre">BodyState.omega</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.BodyState.velocity_in_body"><code class="docutils literal notranslate"><span class="pre">BodyState.velocity_in_body</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.BodyState.omega_in_body"><code class="docutils literal notranslate"><span class="pre">BodyState.omega_in_body</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.JointState"><code class="docutils literal notranslate"><span class="pre">JointState</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.JointState.angle"><code class="docutils literal notranslate"><span class="pre">JointState.angle</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.JointState.omega"><code class="docutils literal notranslate"><span class="pre">JointState.omega</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.LinkState"><code class="docutils literal notranslate"><span class="pre">LinkState</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.LinkState.position"><code class="docutils literal notranslate"><span class="pre">LinkState.position</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.LinkState.orientation"><code class="docutils literal notranslate"><span class="pre">LinkState.orientation</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.LinkState.ypr"><code class="docutils literal notranslate"><span class="pre">LinkState.ypr</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.LinkState.velocity"><code class="docutils literal notranslate"><span class="pre">LinkState.velocity</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.LinkState.omega"><code class="docutils literal notranslate"><span class="pre">LinkState.omega</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.LinkState.velocity_in_body"><code class="docutils literal notranslate"><span class="pre">LinkState.velocity_in_body</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.dataclasses.LinkState.omega_in_body"><code class="docutils literal notranslate"><span class="pre">LinkState.omega_in_body</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="package.html#module-condynsate.simulator.objects">The objects Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="package.html#the-body-class">The Body Class</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Body"><code class="docutils literal notranslate"><span class="pre">Body</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Body.initial_state"><code class="docutils literal notranslate"><span class="pre">Body.initial_state</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Body.state"><code class="docutils literal notranslate"><span class="pre">Body.state</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Body.center_of_mass"><code class="docutils literal notranslate"><span class="pre">Body.center_of_mass</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Body.visual_data"><code class="docutils literal notranslate"><span class="pre">Body.visual_data</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Body.links"><code class="docutils literal notranslate"><span class="pre">Body.links</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Body.joints"><code class="docutils literal notranslate"><span class="pre">Body.joints</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Body.set_initial_state"><code class="docutils literal notranslate"><span class="pre">Body.set_initial_state()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Body.set_state"><code class="docutils literal notranslate"><span class="pre">Body.set_state()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Body.apply_force"><code class="docutils literal notranslate"><span class="pre">Body.apply_force()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Body.apply_torque"><code class="docutils literal notranslate"><span class="pre">Body.apply_torque()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Body.reset"><code class="docutils literal notranslate"><span class="pre">Body.reset()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Body.clear_visual_buffer"><code class="docutils literal notranslate"><span class="pre">Body.clear_visual_buffer()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="package.html#the-joint-class">The Joint Class</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Joint"><code class="docutils literal notranslate"><span class="pre">Joint</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Joint.initial_state"><code class="docutils literal notranslate"><span class="pre">Joint.initial_state</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Joint.state"><code class="docutils literal notranslate"><span class="pre">Joint.state</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Joint.axis"><code class="docutils literal notranslate"><span class="pre">Joint.axis</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Joint.set_dynamics"><code class="docutils literal notranslate"><span class="pre">Joint.set_dynamics()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Joint.set_initial_state"><code class="docutils literal notranslate"><span class="pre">Joint.set_initial_state()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Joint.set_state"><code class="docutils literal notranslate"><span class="pre">Joint.set_state()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Joint.apply_torque"><code class="docutils literal notranslate"><span class="pre">Joint.apply_torque()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Joint.reset"><code class="docutils literal notranslate"><span class="pre">Joint.reset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="package.html#the-link-class">The Link Class</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Link"><code class="docutils literal notranslate"><span class="pre">Link</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Link.state"><code class="docutils literal notranslate"><span class="pre">Link.state</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Link.mass"><code class="docutils literal notranslate"><span class="pre">Link.mass</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Link.center_of_mass"><code class="docutils literal notranslate"><span class="pre">Link.center_of_mass</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Link.visual_data"><code class="docutils literal notranslate"><span class="pre">Link.visual_data</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.simulator.objects.Link.Obw_Rbw"><code class="docutils literal notranslate"><span class="pre">Link.Obw_Rbw</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Link.set_color"><code class="docutils literal notranslate"><span class="pre">Link.set_color()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Link.set_texture"><code class="docutils literal notranslate"><span class="pre">Link.set_texture()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Link.set_dynamics"><code class="docutils literal notranslate"><span class="pre">Link.set_dynamics()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.simulator.objects.Link.apply_force"><code class="docutils literal notranslate"><span class="pre">Link.apply_force()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="package.html#the-visualizer-subpackage">The visualizer Subpackage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="package.html#module-condynsate.visualizer.visualizer">The visualizer Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="package.html#the-visualizer-class">The Visualizer Class</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer"><code class="docutils literal notranslate"><span class="pre">Visualizer</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Visualizer.frame_delta"><code class="docutils literal notranslate"><span class="pre">Visualizer.frame_delta</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Visualizer.record"><code class="docutils literal notranslate"><span class="pre">Visualizer.record</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_grid"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_grid()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_axes"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_axes()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_background"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_background()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_spotlight"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_spotlight()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_ptlight_1"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_ptlight_1()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_ptlight_2"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_ptlight_2()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_amblight"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_amblight()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_dirnlight"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_dirnlight()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_cam_position"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_cam_position()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_cam_target"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_cam_target()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_cam_zoom"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_cam_zoom()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_cam_frustum"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_cam_frustum()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.add_object"><code class="docutils literal notranslate"><span class="pre">Visualizer.add_object()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_transform"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_transform()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.set_material"><code class="docutils literal notranslate"><span class="pre">Visualizer.set_material()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.reset"><code class="docutils literal notranslate"><span class="pre">Visualizer.reset()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Visualizer.terminate"><code class="docutils literal notranslate"><span class="pre">Visualizer.terminate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="package.html#the-animator-subpackage">The animator Subpackage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="package.html#module-condynsate.animator.animator">The animator Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="package.html#the-animator-class">The Animator Class</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Animator"><code class="docutils literal notranslate"><span class="pre">Animator</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Animator.frame_delta"><code class="docutils literal notranslate"><span class="pre">Animator.frame_delta</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Animator.record"><code class="docutils literal notranslate"><span class="pre">Animator.record</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="package.html#condynsate.Animator.is_running"><code class="docutils literal notranslate"><span class="pre">Animator.is_running</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Animator.add_lineplot"><code class="docutils literal notranslate"><span class="pre">Animator.add_lineplot()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Animator.add_barchart"><code class="docutils literal notranslate"><span class="pre">Animator.add_barchart()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Animator.start"><code class="docutils literal notranslate"><span class="pre">Animator.start()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Animator.refresh"><code class="docutils literal notranslate"><span class="pre">Animator.refresh()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Animator.barchart_set_value"><code class="docutils literal notranslate"><span class="pre">Animator.barchart_set_value()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Animator.lineplot_append_point"><code class="docutils literal notranslate"><span class="pre">Animator.lineplot_append_point()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Animator.lineplot_set_data"><code class="docutils literal notranslate"><span class="pre">Animator.lineplot_set_data()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Animator.reset"><code class="docutils literal notranslate"><span class="pre">Animator.reset()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Animator.terminate"><code class="docutils literal notranslate"><span class="pre">Animator.terminate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="package.html#the-keyboard-subpackage">The keyboard Subpackage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="package.html#module-condynsate.keyboard.keyboard">The keyboard Module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="package.html#the-keyboard-class">The Keyboard Class</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Keyboard"><code class="docutils literal notranslate"><span class="pre">Keyboard</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Keyboard.get_pressed"><code class="docutils literal notranslate"><span class="pre">Keyboard.get_pressed()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Keyboard.is_pressed"><code class="docutils literal notranslate"><span class="pre">Keyboard.is_pressed()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Keyboard.await_press"><code class="docutils literal notranslate"><span class="pre">Keyboard.await_press()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="package.html#condynsate.Keyboard.terminate"><code class="docutils literal notranslate"><span class="pre">Keyboard.terminate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="_collections/examples/project_example.html">Project Example Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_collections/examples/simulator_example.html">Simulator Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_collections/examples/visualizer_example.html">Visualizer Example Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_collections/examples/animator_example.html">Animator Example Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_collections/examples/keyboard_example.html">Keyboard Example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="_collections/tutorials/0_Introduction.html">Tutorial 0: Introduction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/0_Introduction.html#Tutorial-Description">Tutorial Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/0_Introduction.html#Imports">Imports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/0_Introduction.html#Initializing-the-Project-Class">Initializing the Project Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/0_Introduction.html#Running-a-Simulation-Loop">Running a Simulation Loop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/0_Introduction.html#Challenge">Challenge</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_collections/tutorials/1_External_Forces_and_Torques.html">Tutorial 1: External Forces and Torques</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/1_External_Forces_and_Torques.html#Tutorial-Description">Tutorial Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/1_External_Forces_and_Torques.html#Imports">Imports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/1_External_Forces_and_Torques.html#Initializing-the-Project-Class">Initializing the Project Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/1_External_Forces_and_Torques.html#Running-a-Simulation-Loop">Running a Simulation Loop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/1_External_Forces_and_Torques.html#Challenge">Challenge</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_collections/tutorials/2_Joint_Torques.html">Tutorial 2: Joint Torques</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/2_Joint_Torques.html#Tutorial-Description">Tutorial Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/2_Joint_Torques.html#Imports">Imports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/2_Joint_Torques.html#Initializing-the-Project-Class">Initializing the Project Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/2_Joint_Torques.html#Running-a-Simulation-Loop">Running a Simulation Loop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/2_Joint_Torques.html#Challenge">Challenge</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_collections/tutorials/3_Link_Forces.html">Tutorial 3: Link Forces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/3_Link_Forces.html#Tutorial-Description">Tutorial Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/3_Link_Forces.html#Imports">Imports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/3_Link_Forces.html#Initializing-the-Project-Class">Initializing the Project Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/3_Link_Forces.html#Running-a-Simulation-Loop">Running a Simulation Loop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/3_Link_Forces.html#Challenge">Challenge</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="_collections/tutorials/4_The_Animator.html">Tutorial 4: The Animator</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/4_The_Animator.html#Tutorial-Description">Tutorial Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/4_The_Animator.html#Imports">Imports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/4_The_Animator.html#Initializing-the-Project-Class">Initializing the Project Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/4_The_Animator.html#Adding-Plots-to-the-Animator">Adding Plots to the Animator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/4_The_Animator.html#Running-a-Simulation-Loop">Running a Simulation Loop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="_collections/tutorials/4_The_Animator.html#Challenge">Challenge</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, G. Schaer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
