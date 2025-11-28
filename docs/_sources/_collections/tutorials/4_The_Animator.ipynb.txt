@@ -1,0 +1,496 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "9bd6dd9a-a0f6-4248-89d4-657c318e0d79",
+   "metadata": {},
+   "source": [
+    "# Tutorial 4: The Animator"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3c18bd9e-7470-4b09-b7a7-fac8bb2dec17",
+   "metadata": {},
+   "source": [
+    "## Tutorial Description"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b7e48aef-41be-4597-be37-1bd196bc97a5",
+   "metadata": {},
+   "source": [
+    "This tutorial covers creating a `condynsate` `Project` with an `Animator`. We will cover:\n",
+    "1. Initializing the `Animator`\n",
+    "2. Adding line plots to the `Animator`\n",
+    "3. Updating the `Animator` plots during simulation"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "be64a904-72de-4411-8a77-37a630f0c3a4",
+   "metadata": {},
+   "source": [
+    "## Imports"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5ca5c838-ffae-45eb-9e60-0ad1e0ac8698",
+   "metadata": {},
+   "source": [
+    "To begin, we import the same modules for the same reasons as tutorial 0."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "b2b6dc1e-8420-4242-91a3-e73422ce713e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from condynsate import Project\n",
+    "from condynsate import __assets__ as assets"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "846403b0-0ac0-4cd8-bc64-0ce4aa5e7d60",
+   "metadata": {},
+   "source": [
+    "## Initializing the Project Class"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6e8b4d04-e298-491d-bffe-1e4f87f5dbaf",
+   "metadata": {},
+   "source": [
+    "Here we initialize the `Project` in the same way as Tutorial 2, however, we set the `Animator` flag to `True`. This tells the `Project` to initialize with an internal `Animator` instance."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "54974e36-d9c3-417a-b12a-fb9259c6f76a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Create the project\n",
+    "proj = Project(animator=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d15cee85-9874-453b-82c3-25726a344d32",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "proj.visualizer.set_axes(False) # Returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "5431e17b-4926-44c0-b544-f652d7ee5f1f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Load a pendulum object and set its initial position to resting on the ground\n",
+    "pendulum = proj.load_urdf(assets['pendulum.urdf'], \n",
+    "                          fixed=True\n",
+    "                         )\n",
+    "\n",
+    "# The origin of the pendulum is at the center of its chassis, which is a cube 0.1 meters in length\n",
+    "# 0.05 meters places bottom of the chassis on the ground grid.\n",
+    "pendulum.set_initial_state(position=(0,0,0.05)) # Returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "399f40d8-fc5f-4b26-8a07-5c4fdbc5ea7c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Set the initial angle of the pendulum arm\n",
+    "pendulum.joints['chassis_to_arm'].set_initial_state(angle=0.1745) # All angles in condynsate are radians"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "1f58e78f-780c-4604-878d-5b4e162aa364",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Refresh the visualizer to show changes to the pendulums's position and angle\n",
+    "proj.refresh_visualizer() # Returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "324940a8-187d-4d39-8ef3-c56163463a0a",
+   "metadata": {},
+   "source": [
+    "## Adding Plots to the Animator"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "fbe216ce-2002-4ab6-b7fb-69c2cb8086c2",
+   "metadata": {},
+   "source": [
+    "We will now add two plots to the `Animator`. The first plot will be used to track the angle of the pendulum and the second plot will be used to track the inputs applied. To add line plots to the `Animator`, we use the `condynsate.Animator.add_lineplot` function."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "7940fbd1-e2d3-4810-bab3-47a9adea97f5",
+   "metadata": {},
+   "source": [
+    "    -----------------------------------------------------------------------------\n",
+    "    | condynsate.Animator.add_lineplot                                          |\n",
+    "    -----------------------------------------------------------------------------\n",
+    "    Adds a lineplot to the animator window. Neither the lineplot nor the\n",
+    "    window appear until the user calls the start function.\n",
+    "\n",
+    "    Parameters\n",
+    "    ----------\n",
+    "    n_lines : int\n",
+    "        The number of lines that are drawn on the plot. Must be integer\n",
+    "        between [1, 16].\n",
+    "    **kwargs\n",
+    "\n",
+    "    Keyword Args\n",
+    "    ------------\n",
+    "    x_lim : [float, float], optional\n",
+    "        The limits to apply to the x axis of the plot. A value of None\n",
+    "        will apply automatically updating limits to the corresponding\n",
+    "        bound of the axis. For example [None, 10.] will fix the upper\n",
+    "        bound to exactly 10, but the lower bound will freely change to\n",
+    "        show all data.The default is [None, None].\n",
+    "    y_lim : [float, float], optional\n",
+    "        The limits to apply to the y axis of the plot. A value of None\n",
+    "        will apply automatically updating limits to the corresponding\n",
+    "        bound of the axis. For example [None, 10.] will fix the upper\n",
+    "        bound to exactly 10, but the lower bound will freely change to\n",
+    "        show all data.The default is [None, None].\n",
+    "    h_zero_line : boolean, optional\n",
+    "        A boolean flag that indicates whether a horizontal line will be\n",
+    "        drawn on the y=0 line. The default is false\n",
+    "    v_zero_line : boolean, optional\n",
+    "        A boolean flag that indicates whether a vertical line will be\n",
+    "        drawn on the x=0 line. The default is false\n",
+    "    tail : int or tuple of ints optional\n",
+    "        Specifies how many data points are used to draw a line. Only\n",
+    "        the most recently added data points are kept. Any data points\n",
+    "        added more than tail data points ago are discarded and not\n",
+    "        plotted. When tuple, must have length n_lines. A value less\n",
+    "        than or equal to 0 means that no data is ever discarded and all\n",
+    "        data points added to the animator will be drawn. The default\n",
+    "        is -1.\n",
+    "    title : string, optional\n",
+    "        The title of the plot. Will be written above the plot when\n",
+    "        rendered. The default is None.\n",
+    "    x_label : string, optional\n",
+    "        The label to apply to the x axis. Will be written under the\n",
+    "        plot when rendered. The default is None.\n",
+    "    y_label : string, optional\n",
+    "        The label to apply to the y axis. Will be written to the\n",
+    "        left of the plot when rendered. The default is None.\n",
+    "    label : string or tuple of strings, optional\n",
+    "        The label applied to each artist. The labels are shown in a\n",
+    "        legend in the top right of the plot. When tuple, must have\n",
+    "        length n_lines. When None, no labels are made. The default\n",
+    "        is None.\n",
+    "    color : matplotlib color string or tuple of color strings, optional\n",
+    "        The color each artist draws in. When tuple, must have length\n",
+    "        n_lines. The default is 'black'.\n",
+    "    line_width : float or tuple of floats, optional\n",
+    "        The line weigth each artist uses. When tuple, must have length\n",
+    "        n_lines. The default is 1.5.\n",
+    "    line_style : line style string or tuple of ls strings, optional\n",
+    "        The line style each artist uses. When tuple, must have length\n",
+    "        n_lines. The default is 'solid'. Select from 'solid', 'dashed',\n",
+    "        'dashdot', or 'dotted'.\n",
+    "\n",
+    "    Raises\n",
+    "    ------\n",
+    "    RuntimeError\n",
+    "        If cannot add another subplot or the animator was already running.\n",
+    "        Can only add up to 16 subplots total.\n",
+    "\n",
+    "    ValueError\n",
+    "        If n_lines is not an int or is less than 1 or greater than 16.\n",
+    "\n",
+    "    Returns\n",
+    "    -------\n",
+    "    lines_ids : hex or tuple of hex\n",
+    "        A unique identifier that allows the user to address each line\n",
+    "        in the lineplot. For example, if n_lines = 3, the tuple will have\n",
+    "        length three; however, if n_lines = 1, the returned value will be\n",
+    "        the hex id of the only line (not a tuple)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "93e1b49a-c555-44e1-95af-64d822689132",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Add a line plot to the animator to track the pendulum angle\n",
+    "plot1 = proj.animator.add_lineplot(n_lines=1, # This argument tells us there is only 1 line on the plot\n",
+    "                                   y_lim=(-30., 30.), # We can set the lower and upper y limits of the plot\n",
+    "                                   title='Pendulum',\n",
+    "                                   x_label='Time [seconds]',\n",
+    "                                   y_label='Angle [degrees]',\n",
+    "                                   h_zero_line=True, # This tells the animator to draw a horizontal line at y=0\n",
+    "                                   color='k', # Set the color of the line\n",
+    "                                   line_width=2.5 # Set the width of the line\n",
+    "                                  )\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "3948d168-d387-4bc8-84e2-a45e08d9b6eb",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Add another line plot to the animator to track the applied inputs\n",
+    "plot2 = proj.animator.add_lineplot(n_lines=2, # This argument tells us there are 2 lines on the plot\n",
+    "                                   title='External Inputs',\n",
+    "                                   x_label='Time [seconds]',\n",
+    "                                   y_label='Inputs',\n",
+    "                                   h_zero_line=True,\n",
+    "                                   color=('r', 'b'),  # We give each line a different color\n",
+    "                                   label=('Torque [N-m]', 'Force [N]'), # This argument tells the legend what each line is\n",
+    "                                   line_width=2.5 # Set the widths of both lines to 2.5\n",
+    "                                  )"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "356caea6-38a1-4615-b568-a62d8f162ba1",
+   "metadata": {},
+   "source": [
+    "Observing the returned values:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "9d428374-09f6-4ea0-9d8b-28e005de6319",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plot1"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "75a7d480-a1f9-4568-8553-934350d1e5ca",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plot2"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "04fa7653-26d9-4ea1-b807-25dc4bb9b2ba",
+   "metadata": {},
+   "source": [
+    "`plot1` is a single hex value used to index the only line on the first line plot while `plot2` is a tuple of 2 hex values. This allows us to index each line in plot 2 separately."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "d7c03a28-215d-4b7c-a41c-062592923084",
+   "metadata": {},
+   "source": [
+    "## Running a Simulation Loop"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "516a7db7-7e24-4522-86f1-27698df7ff98",
+   "metadata": {},
+   "source": [
+    "Similary to Tutorial 0, we start the simulation loop by calling `condynsate.Project.reset`. Note that when the `Project` is initialized with an `Animator`, the `reset` function will automatically open the `Animator` GUI."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "21c0905f-58df-46f3-8fda-924ba75f68de",
+   "metadata": {},
+   "source": [
+    "**Important Note**: The GUI does not refresh regularly. This means it is up to the user to keep the window responsive. The GUI will refresh, and therefore become responsive, when any of the following functions are called:\n",
+    "1. `condynsate.Animator.barchart_set_value`\n",
+    "2. `condynsate.Animator.lineplot_append_point`\n",
+    "3. `condynsate.Animator.lineplot_set_data`\n",
+    "4. `condynsate.Animator.reset`\n",
+    "5. `condynsate.Project.step`\n",
+    "6. `condynsate.Project.refresh_animator`\n",
+    "\n",
+    "It is necessary, then, to call at least one of these functions regularly. For a typical project, we maintain `Animator` responsiveness through regular calls of the `condynsate.Project.step` function in the simulation loop."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d8de6343-31a0-4525-8791-bb7bdb130e49",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "proj.reset() # Returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "2f536c1e-bd87-4454-9348-e343c4adb618",
+   "metadata": {},
+   "source": [
+    "In each step of the loop we take 4 steps\n",
+    "1. Get the pendulum's joint angle\n",
+    "2. Get the pendulum's mass's x-position\n",
+    "3. Apply a torque to the pendulum joint proportional to the joint angle\n",
+    "4. Apply a force to the mass proportional to the mass's x-position\n",
+    "5. Plot the joint angle and inputs\n",
+    "6. Take a single simulation step"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "60b4a905-8f83-4fca-a788-bc7aa72fe322",
+   "metadata": {},
+   "source": [
+    "To append data points to the end of a line in a line plot, we use the `condynsate.Animator.lineplot_append_point` function\n",
+    "\n",
+    "    -----------------------------------------------------------------------------\n",
+    "    | condynsate.Animator.lineplot_append_point                                 |\n",
+    "    -----------------------------------------------------------------------------\n",
+    "    Appends a single y versus x data point to the end of a line.\n",
+    "\n",
+    "    Parameters\n",
+    "    ----------\n",
+    "    line_id : hex string\n",
+    "        The id of the line to which a point is appended.\n",
+    "    x_val : float\n",
+    "        The x coordinate of the data point being appended.\n",
+    "    y_val : float\n",
+    "        The y coordinate of the data point being appended.\n",
+    "\n",
+    "    Returns\n",
+    "    -------\n",
+    "    ret_code : int\n",
+    "        0 if successful, -1 if something went wrong."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "5ccf9fb0-4c0f-41d8-94e7-77e36a7aa8be",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Run a 10 second simulation\n",
+    "while proj.simtime <= 10.:\n",
+    "    \n",
+    "    # Get the pendulum's joint angle\n",
+    "    joint_state = pendulum.joints['chassis_to_arm'].state\n",
+    "    angle = joint_state.angle\n",
+    "\n",
+    "    # Get the pendulum's mass's x position\n",
+    "    link_state = pendulum.links['mass'].state\n",
+    "    x_position = link_state.position[0]\n",
+    "\n",
+    "    # Apply a torque to the pendulum's joint\n",
+    "    torque = -7.0 * angle\n",
+    "    pendulum.joints['chassis_to_arm'].apply_torque(torque, draw_arrow=True, arrow_scale=0.2)\n",
+    "\n",
+    "    # Apply a force to the pendulum's mass\n",
+    "    force = (-10.0 * x_position, 0, 0)\n",
+    "    pendulum.links['mass'].apply_force(force, draw_arrow=True, arrow_scale=0.2)\n",
+    "\n",
+    "    # Append the data points to the plots\n",
+    "    proj.animator.lineplot_append_point(plot1, proj.simtime, angle*180./3.1415926)\n",
+    "    proj.animator.lineplot_append_point(plot2[0], proj.simtime, torque)\n",
+    "    proj.animator.lineplot_append_point(plot2[1], proj.simtime, force[0])\n",
+    "    \n",
+    "    # Take a single simulation step\n",
+    "    proj.step(real_time=True, # Run the simulation in real time\n",
+    "              stable_step=False # Dynamically adjust the refresh rate for best total run time\n",
+    "             )"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "cfab525b-b921-43ee-91d6-44a8a4edf317",
+   "metadata": {},
+   "source": [
+    "Finally, we ensure all children threads exit gracefully. Terminating will also close the `Animator` GUI."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a95f4782-c4bd-4ab1-9b4f-bc3310d079f8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "proj.terminate() # Returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "36d1e2de-e3f4-4dfb-a530-766a4420f876",
+   "metadata": {},
+   "source": [
+    "## Challenge"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5ff6e017-b96d-4668-879d-5ebaf083ae88",
+   "metadata": {},
+   "source": [
+    "This tutorial is now complete. For an additional challenge, think of how you might adjust the first plot to also show the angular velocity as a function of time."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "dd941c2f-59be-4fa2-a80b-8bda02a64ad4",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.13.9"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

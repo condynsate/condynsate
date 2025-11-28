@@ -59,7 +59,7 @@ class Visualizer():
             self.frame_delta = 0.0
 
         # Open a new instance of a meshcat visualizer
-        self._scene = meshcat.Visualizer().open()
+        self._scene = meshcat.Visualizer()
         self._socket = self._scene.window.zmq_socket
 
         # Delete all instances from the visualizer
@@ -83,6 +83,8 @@ class Visualizer():
 
         # Set the default scene settings
         self._set_defaults()
+        self._scene.open()
+        time.sleep(1.0) # Wait for window to load
 
     def __del__(self):
         """

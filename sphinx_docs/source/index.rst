@@ -31,3 +31,5 @@ Contents
    package
 
    examples
+
+   tutorials

@@ -1,0 +1,535 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial 4: The Animator &mdash; condynsate 0.7.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/autoclasstoc.css?v=08871587" />
+      <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fe7df9b0"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="Tutorial 3: Link Forces" href="3_Link_Forces.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            condynsate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../package.html">The condynsate Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="0_Introduction.html">Tutorial 0: Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="1_External_Forces_and_Torques.html">Tutorial 1: External Forces and Torques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2_Joint_Torques.html">Tutorial 2: Joint Torques</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3_Link_Forces.html">Tutorial 3: Link Forces</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Tutorial 4: The Animator</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Tutorial-Description">Tutorial Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Imports">Imports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Initializing-the-Project-Class">Initializing the Project Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Adding-Plots-to-the-Animator">Adding Plots to the Animator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Running-a-Simulation-Loop">Running a Simulation Loop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Challenge">Challenge</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">condynsate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../tutorials.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Tutorial 4: The Animator</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/_collections/tutorials/4_The_Animator.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Tutorial-4:-The-Animator">
+<h1>Tutorial 4: The Animator<a class="headerlink" href="#Tutorial-4:-The-Animator" title="Link to this heading"></a></h1>
+<section id="Tutorial-Description">
+<h2>Tutorial Description<a class="headerlink" href="#Tutorial-Description" title="Link to this heading"></a></h2>
+<p>This tutorial covers creating a <code class="docutils literal notranslate"><span class="pre">condynsate</span></code> <code class="docutils literal notranslate"><span class="pre">Project</span></code> with an <code class="docutils literal notranslate"><span class="pre">Animator</span></code>. We will cover:</p>
+<ol class="arabic simple">
+<li><p>Initializing the <code class="docutils literal notranslate"><span class="pre">Animator</span></code></p></li>
+<li><p>Adding line plots to the <code class="docutils literal notranslate"><span class="pre">Animator</span></code></p></li>
+<li><p>Updating the <code class="docutils literal notranslate"><span class="pre">Animator</span></code> plots during simulation</p></li>
+</ol>
+</section>
+<section id="Imports">
+<h2>Imports<a class="headerlink" href="#Imports" title="Link to this heading"></a></h2>
+<p>To begin, we import the same modules for the same reasons as tutorial 0.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">condynsate</span><span class="w"> </span><span class="kn">import</span> <span class="n">Project</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">condynsate</span><span class="w"> </span><span class="kn">import</span> <span class="n">__assets__</span> <span class="k">as</span> <span class="n">assets</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Initializing-the-Project-Class">
+<h2>Initializing the Project Class<a class="headerlink" href="#Initializing-the-Project-Class" title="Link to this heading"></a></h2>
+<p>Here we initialize the <code class="docutils literal notranslate"><span class="pre">Project</span></code> in the same way as Tutorial 2, however, we set the <code class="docutils literal notranslate"><span class="pre">Animator</span></code> flag to <code class="docutils literal notranslate"><span class="pre">True</span></code>. This tells the <code class="docutils literal notranslate"><span class="pre">Project</span></code> to initialize with an internal <code class="docutils literal notranslate"><span class="pre">Animator</span></code> instance.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the project</span>
+<span class="n">proj</span> <span class="o">=</span> <span class="n">Project</span><span class="p">(</span><span class="n">animator</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+You can open the visualizer by visiting the following URL:
+http://127.0.0.1:7001/static/
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_axes</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load a pendulum object and set its initial position to resting on the ground</span>
+<span class="n">pendulum</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;pendulum.urdf&#39;</span><span class="p">],</span>
+                          <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span>
+                         <span class="p">)</span>
+
+<span class="c1"># The origin of the pendulum is at the center of its chassis, which is a cube 0.1 meters in length</span>
+<span class="c1"># 0.05 meters places bottom of the chassis on the ground grid.</span>
+<span class="n">pendulum</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.05</span><span class="p">))</span> <span class="c1"># Returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set the initial angle of the pendulum arm</span>
+<span class="n">pendulum</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;chassis_to_arm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">angle</span><span class="o">=</span><span class="mf">0.1745</span><span class="p">)</span> <span class="c1"># All angles in condynsate are radians</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Refresh the visualizer to show changes to the pendulums&#39;s position and angle</span>
+<span class="n">proj</span><span class="o">.</span><span class="n">refresh_visualizer</span><span class="p">()</span> <span class="c1"># Returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+</section>
+<section id="Adding-Plots-to-the-Animator">
+<h2>Adding Plots to the Animator<a class="headerlink" href="#Adding-Plots-to-the-Animator" title="Link to this heading"></a></h2>
+<p>We will now add two plots to the <code class="docutils literal notranslate"><span class="pre">Animator</span></code>. The first plot will be used to track the angle of the pendulum and the second plot will be used to track the inputs applied. To add line plots to the <code class="docutils literal notranslate"><span class="pre">Animator</span></code>, we use the <code class="docutils literal notranslate"><span class="pre">condynsate.Animator.add_lineplot</span></code> function.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-----------------------------------------------------------------------------
+| condynsate.Animator.add_lineplot                                          |
+-----------------------------------------------------------------------------
+Adds a lineplot to the animator window. Neither the lineplot nor the
+window appear until the user calls the start function.
+
+Parameters
+----------
+n_lines : int
+    The number of lines that are drawn on the plot. Must be integer
+    between [1, 16].
+**kwargs
+
+Keyword Args
+------------
+x_lim : [float, float], optional
+    The limits to apply to the x axis of the plot. A value of None
+    will apply automatically updating limits to the corresponding
+    bound of the axis. For example [None, 10.] will fix the upper
+    bound to exactly 10, but the lower bound will freely change to
+    show all data.The default is [None, None].
+y_lim : [float, float], optional
+    The limits to apply to the y axis of the plot. A value of None
+    will apply automatically updating limits to the corresponding
+    bound of the axis. For example [None, 10.] will fix the upper
+    bound to exactly 10, but the lower bound will freely change to
+    show all data.The default is [None, None].
+h_zero_line : boolean, optional
+    A boolean flag that indicates whether a horizontal line will be
+    drawn on the y=0 line. The default is false
+v_zero_line : boolean, optional
+    A boolean flag that indicates whether a vertical line will be
+    drawn on the x=0 line. The default is false
+tail : int or tuple of ints optional
+    Specifies how many data points are used to draw a line. Only
+    the most recently added data points are kept. Any data points
+    added more than tail data points ago are discarded and not
+    plotted. When tuple, must have length n_lines. A value less
+    than or equal to 0 means that no data is ever discarded and all
+    data points added to the animator will be drawn. The default
+    is -1.
+title : string, optional
+    The title of the plot. Will be written above the plot when
+    rendered. The default is None.
+x_label : string, optional
+    The label to apply to the x axis. Will be written under the
+    plot when rendered. The default is None.
+y_label : string, optional
+    The label to apply to the y axis. Will be written to the
+    left of the plot when rendered. The default is None.
+label : string or tuple of strings, optional
+    The label applied to each artist. The labels are shown in a
+    legend in the top right of the plot. When tuple, must have
+    length n_lines. When None, no labels are made. The default
+    is None.
+color : matplotlib color string or tuple of color strings, optional
+    The color each artist draws in. When tuple, must have length
+    n_lines. The default is &#39;black&#39;.
+line_width : float or tuple of floats, optional
+    The line weigth each artist uses. When tuple, must have length
+    n_lines. The default is 1.5.
+line_style : line style string or tuple of ls strings, optional
+    The line style each artist uses. When tuple, must have length
+    n_lines. The default is &#39;solid&#39;. Select from &#39;solid&#39;, &#39;dashed&#39;,
+    &#39;dashdot&#39;, or &#39;dotted&#39;.
+
+Raises
+------
+RuntimeError
+    If cannot add another subplot or the animator was already running.
+    Can only add up to 16 subplots total.
+
+ValueError
+    If n_lines is not an int or is less than 1 or greater than 16.
+
+Returns
+-------
+lines_ids : hex or tuple of hex
+    A unique identifier that allows the user to address each line
+    in the lineplot. For example, if n_lines = 3, the tuple will have
+    length three; however, if n_lines = 1, the returned value will be
+    the hex id of the only line (not a tuple).
+</pre></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add a line plot to the animator to track the pendulum angle</span>
+<span class="n">plot1</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">animator</span><span class="o">.</span><span class="n">add_lineplot</span><span class="p">(</span><span class="n">n_lines</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="c1"># This argument tells us there is only 1 line on the plot</span>
+                                   <span class="n">y_lim</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">30.</span><span class="p">,</span> <span class="mf">30.</span><span class="p">),</span> <span class="c1"># We can set the lower and upper y limits of the plot</span>
+                                   <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Pendulum&#39;</span><span class="p">,</span>
+                                   <span class="n">x_label</span><span class="o">=</span><span class="s1">&#39;Time [seconds]&#39;</span><span class="p">,</span>
+                                   <span class="n">y_label</span><span class="o">=</span><span class="s1">&#39;Angle [degrees]&#39;</span><span class="p">,</span>
+                                   <span class="n">h_zero_line</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="c1"># This tells the animator to draw a horizontal line at y=0</span>
+                                   <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="c1"># Set the color of the line</span>
+                                   <span class="n">line_width</span><span class="o">=</span><span class="mf">2.5</span> <span class="c1"># Set the width of the line</span>
+                                  <span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add another line plot to the animator to track the applied inputs</span>
+<span class="n">plot2</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">animator</span><span class="o">.</span><span class="n">add_lineplot</span><span class="p">(</span><span class="n">n_lines</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="c1"># This argument tells us there are 2 lines on the plot</span>
+                                   <span class="n">title</span><span class="o">=</span><span class="s1">&#39;External Inputs&#39;</span><span class="p">,</span>
+                                   <span class="n">x_label</span><span class="o">=</span><span class="s1">&#39;Time [seconds]&#39;</span><span class="p">,</span>
+                                   <span class="n">y_label</span><span class="o">=</span><span class="s1">&#39;Inputs&#39;</span><span class="p">,</span>
+                                   <span class="n">h_zero_line</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                   <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">),</span>  <span class="c1"># We give each line a different color</span>
+                                   <span class="n">label</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Torque [N-m]&#39;</span><span class="p">,</span> <span class="s1">&#39;Force [N]&#39;</span><span class="p">),</span> <span class="c1"># This argument tells the legend what each line is</span>
+                                   <span class="n">line_width</span><span class="o">=</span><span class="mf">2.5</span> <span class="c1"># Set the widths of both lines to 2.5</span>
+                                  <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Observing the returned values:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot1</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;0x0&#39;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot2</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(&#39;0x10&#39;, &#39;0x11&#39;)
+</pre></div></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">plot1</span></code> is a single hex value used to index the only line on the first line plot while <code class="docutils literal notranslate"><span class="pre">plot2</span></code> is a tuple of 2 hex values. This allows us to index each line in plot 2 separately.</p>
+</section>
+<section id="Running-a-Simulation-Loop">
+<h2>Running a Simulation Loop<a class="headerlink" href="#Running-a-Simulation-Loop" title="Link to this heading"></a></h2>
+<p>Similary to Tutorial 0, we start the simulation loop by calling <code class="docutils literal notranslate"><span class="pre">condynsate.Project.reset</span></code>. Note that when the <code class="docutils literal notranslate"><span class="pre">Project</span></code> is initialized with an <code class="docutils literal notranslate"><span class="pre">Animator</span></code>, the <code class="docutils literal notranslate"><span class="pre">reset</span></code> function will automatically open the <code class="docutils literal notranslate"><span class="pre">Animator</span></code> GUI.</p>
+<p><strong>Important Note</strong>: The GUI does not refresh regularly. This means it is up to the user to keep the window responsive. The GUI will refresh, and therefore become responsive, when any of the following functions are called:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">condynsate.Animator.barchart_set_value</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">condynsate.Animator.lineplot_append_point</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">condynsate.Animator.lineplot_set_data</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">condynsate.Animator.reset</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">condynsate.Project.step</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">condynsate.Project.refresh_animator</span></code></p></li>
+</ol>
+<p>It is necessary, then, to call at least one of these functions regularly. For a typical project, we maintain <code class="docutils literal notranslate"><span class="pre">Animator</span></code> responsiveness through regular calls of the <code class="docutils literal notranslate"><span class="pre">condynsate.Project.step</span></code> function in the simulation loop.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span> <span class="c1"># Returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<p>In each step of the loop we take 4 steps</p>
+<ol class="arabic simple">
+<li><p>Get the pendulum’s joint angle</p></li>
+<li><p>Get the pendulum’s mass’s x-position</p></li>
+<li><p>Apply a torque to the pendulum joint proportional to the joint angle</p></li>
+<li><p>Apply a force to the mass proportional to the mass’s x-position</p></li>
+<li><p>Plot the joint angle and inputs</p></li>
+<li><p>Take a single simulation step</p></li>
+</ol>
+<p>To append data points to the end of a line in a line plot, we use the <code class="docutils literal notranslate"><span class="pre">condynsate.Animator.lineplot_append_point</span></code> function</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-----------------------------------------------------------------------------
+| condynsate.Animator.lineplot_append_point                                 |
+-----------------------------------------------------------------------------
+Appends a single y versus x data point to the end of a line.
+
+Parameters
+----------
+line_id : hex string
+    The id of the line to which a point is appended.
+x_val : float
+    The x coordinate of the data point being appended.
+y_val : float
+    The y coordinate of the data point being appended.
+
+Returns
+-------
+ret_code : int
+    0 if successful, -1 if something went wrong.
+</pre></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run a 10 second simulation</span>
+<span class="k">while</span> <span class="n">proj</span><span class="o">.</span><span class="n">simtime</span> <span class="o">&lt;=</span> <span class="mf">10.</span><span class="p">:</span>
+
+    <span class="c1"># Get the pendulum&#39;s joint angle</span>
+    <span class="n">joint_state</span> <span class="o">=</span> <span class="n">pendulum</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;chassis_to_arm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">state</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">joint_state</span><span class="o">.</span><span class="n">angle</span>
+
+    <span class="c1"># Get the pendulum&#39;s mass&#39;s x position</span>
+    <span class="n">link_state</span> <span class="o">=</span> <span class="n">pendulum</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">state</span>
+    <span class="n">x_position</span> <span class="o">=</span> <span class="n">link_state</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Apply a torque to the pendulum&#39;s joint</span>
+    <span class="n">torque</span> <span class="o">=</span> <span class="o">-</span><span class="mf">7.0</span> <span class="o">*</span> <span class="n">angle</span>
+    <span class="n">pendulum</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;chassis_to_arm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply_torque</span><span class="p">(</span><span class="n">torque</span><span class="p">,</span> <span class="n">draw_arrow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">arrow_scale</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+    <span class="c1"># Apply a force to the pendulum&#39;s mass</span>
+    <span class="n">force</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mf">10.0</span> <span class="o">*</span> <span class="n">x_position</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">pendulum</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply_force</span><span class="p">(</span><span class="n">force</span><span class="p">,</span> <span class="n">draw_arrow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">arrow_scale</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+    <span class="c1"># Append the data points to the plots</span>
+    <span class="n">proj</span><span class="o">.</span><span class="n">animator</span><span class="o">.</span><span class="n">lineplot_append_point</span><span class="p">(</span><span class="n">plot1</span><span class="p">,</span> <span class="n">proj</span><span class="o">.</span><span class="n">simtime</span><span class="p">,</span> <span class="n">angle</span><span class="o">*</span><span class="mf">180.</span><span class="o">/</span><span class="mf">3.1415926</span><span class="p">)</span>
+    <span class="n">proj</span><span class="o">.</span><span class="n">animator</span><span class="o">.</span><span class="n">lineplot_append_point</span><span class="p">(</span><span class="n">plot2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">proj</span><span class="o">.</span><span class="n">simtime</span><span class="p">,</span> <span class="n">torque</span><span class="p">)</span>
+    <span class="n">proj</span><span class="o">.</span><span class="n">animator</span><span class="o">.</span><span class="n">lineplot_append_point</span><span class="p">(</span><span class="n">plot2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">proj</span><span class="o">.</span><span class="n">simtime</span><span class="p">,</span> <span class="n">force</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># Take a single simulation step</span>
+    <span class="n">proj</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">real_time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="c1"># Run the simulation in real time</span>
+              <span class="n">stable_step</span><span class="o">=</span><span class="kc">False</span> <span class="c1"># Dynamically adjust the refresh rate for best total run time</span>
+             <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Finally, we ensure all children threads exit gracefully. Terminating will also close the <code class="docutils literal notranslate"><span class="pre">Animator</span></code> GUI.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span> <span class="c1"># Returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+</section>
+<section id="Challenge">
+<h2>Challenge<a class="headerlink" href="#Challenge" title="Link to this heading"></a></h2>
+<p>This tutorial is now complete. For an additional challenge, think of how you might adjust the first plot to also show the angular velocity as a function of time.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="3_Link_Forces.html" class="btn btn-neutral float-left" title="Tutorial 3: Link Forces" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, G. Schaer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
