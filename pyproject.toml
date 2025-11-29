@@ -27,21 +27,21 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Topic :: Education :: Computer Aided Instruction (CAI)",
     "Topic :: Games/Entertainment :: Simulation",
-    "Topic :: Scientific/Engineering :: Visualization"
+    "Topic :: Scientific/Engineering :: Visualization",
 ]
 dependencies = [
-   "ipython",
+   "ipython >= 5",
    "matplotlib",
    "notebook",
-   "numpy",
+   "numpy >= 1.14.0",
    "opencv-python",
-   "pillow",
+   "pillow >= 7.0.0",
    "pybullet",
-   "pyngrok",
+   "pyngrok >= 4.1.6",
    "pynput",
-   "pyzmq",
-   "tornado",
-   "u-msgpack-python",
+   "pyzmq >= 17.0.0",
+   "tornado >= 4.0.0",
+   "u-msgpack-python >= 2.4.1",
 ]
 
 [project.optional-dependencies]
@@ -59,9 +59,9 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/GrayKS3248/condynsate"
-"Bug Reports" = "https://github.com/GrayKS3248/condynsate/issues"
-"Source" = "https://github.com/GrayKS3248/condynsate"
+"Homepage" = "https://condynsate.github.io/condynsate/"
+"Bug Reports" = "https://github.com/condynsate/condynsate/issues"
+"Source" = "https://github.com/condynsate/condynsate"
 
 
 [tool.setuptools.package-data]
