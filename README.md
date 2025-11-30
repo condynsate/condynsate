@@ -1,22 +1,28 @@
-© Copyright, 2025 G. Schaer.
+(C) Copyright, 2025 G. Schaer.
 
-This work is licensed under a [GNU General Public License 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
+This work is licensed under a [GNU General Public License 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) and an MIT License.
 
-SPDX-License-Identifier: GPL-3.0-only
+SPDX-License-Identifier: GPL-3.0-only AND MIT
 
-# condynsate
+# Preamble
+Mechanical systems and controls are fundamental topics in the fields of mechanical, aerospace, and robotics engineering; however, conventional educational approaches rely heavily upon either classroom-constrained theory---directly antithetical to the dynamics these fields study---or laboratory demonstrations which are limited by cost and complexity. In response to these limitations, we developed a Python-based dynamic system simulation and visualization tool called condynsate (**con**trol and **dyn**amics simul**at**or) with the explicit philosophy of not limiting project complexity while simultaneously promoting ease of use.
 
-**condynsate** (**con**trol and **dyn**amics simul**at**or) is a python-based, open-source educational tool built by [G. Schaer](http://bretl.csl.illinois.edu/people) at the University of Illinois at Urbana-Champaign under the Grainger College of Engineering 2023-2025 Strategic Instructional Innovations Program: [Computational Tools for Dynamics and Control grant](https://ae3.grainger.illinois.edu/programs/siip-grants/64459). It is designed to aid the education of control and dynamics to aerospace, mechanical, and robotics engineering students by
+Driven by the identification of computational literacy as a professional skill set highly valued in academia and industry, we focused on the later stage of undergraduate education, where less "recipe-style" and more creative implementations of tools and solutions are presented to students. We designed condynsate to be a flexible tool, built upon foundational programming experience from earlier-stage classes, that frees students to creatively approach real-world engineering problems based on their own initiative and drive for exploration. Our goal was to provide a viable approach to both increase the sophistication and ease of development of lecture demonstrations, assignments, and projects related to fundamental engineering concepts that govern mechanical systems (e.g., pendulum, gyroscope) and control systems (e.g., differential wheeled robot, autonomous quadrotor). 
 
-1. providing a simulation environment in which students can see and interact with controlled and uncontrolled dynamic systems in familiar and [beneficial ways](https://doi.org/10.3390/educsci13070747),
-2. serving as a platform for introductory Python programming, and
-3. equipping instructors with a streamlined method of implementing custom in-class demonstrations and lab demos without the need for physical equipment.
+Students who are computationally literate, not only at the level of running programs but also who "code to learn", are better equipped to exploit the full versatility of a computer to tackle complex problems. By designing condynsate to:
 
-Built on [PyBullet](https://pybullet.org/wordpress/), [MeshCat](https://github.com/meshcat-dev/meshcat-python/), and [Tk](https://www.tcl-lang.org/), it implements nonlinear simulation of [stl](https://en.wikipedia.org/wiki/STL_(file_format)/) or [obj](https://en.wikipedia.org/wiki/Wavefront_.obj_file/) rigid bodies and\or [urdf](http://wiki.ros.org/urd/) articulated bodies. A browser-based 3D viewer visualizes the simulation and the evolution of individual states are plotted, all in real-time. By simultaneously enabling keyboard interactivity, condynsate projects are designed to feel more like video games, familiar and fun, rather than conventional lab demos all while providing similar educational benefits.
+1. provide an environment in which students can interact with dynamic systems in adherence with the simulation and role-play pedagogy,
+2. act as an introduction to programming in Python, and, most significantly, 
+3. facilitate the design and implementation of controls and dynamics design projects without requiring laboratory equipment,
 
+we deliver a computational tool that can be used to set students on the path of confidently utilizing computational resources as matter-of-course tools both at university and in their careers.
 
+# The condynsate Package
+condynsate is a Python-based, open-source educational tool built by G. Schaer at the University of Illinois at Urbana-Champaign under the Grainger College of Engineering 2023-2025 Strategic Instructional Innovations Program: [Computational Tools for Dynamics and Control grant](https://ae3.grainger.illinois.edu/programs/siip-grants/64459).
 
+Built on [PyBullet](https://pybullet.org/wordpress/), [MeshCat](https://github.com/meshcat-dev/meshcat-python/), and [Tk](https://www.tcl-lang.org/), it implements nonlinear simulation of [stl](https://en.wikipedia.org/wiki/STL_(file_format)/) and [obj](https://en.wikipedia.org/wiki/Wavefront_.obj_file/) defined rigid bodies and\or [urdf](http://wiki.ros.org/urd/) articulated bodies. A browser-based 3D viewer visualizes the simulation, and a built-in animator allows for plotting of arbitrary states in a Tk-based GUI, all in real-time. By simultaneously enabling keyboard interactivity, condynsate projects are designed to feel more like video games, familiar and fun, rather than conventional lab demos, all while providing similar educational benefits.
 
+All materials, including the package and example usage, have been made publicly available at [https://github.com/condynsate/condynsate](https://github.com/condynsate/condynsate) and are licensed under the GPL-3.0-only and MIT licenses. 
 
 # Installation
 ## Windows
@@ -59,10 +65,6 @@ To install condynsate:
 ```powershell
 (.venv) C:\Users\username\condynsate> pip install -e .
 ```
-
-
-
-
 
 ## Linux
 We strongly recommend installing condynsate in a virtual environment:
@@ -143,10 +145,5 @@ On Debian/Ubuntu systems, you may need to first install the Python and Linux dev
 (.venv) user@device:~/condynsate$ sudo apt install build-essential python3-dev linux-headers-$(uname -r)
 ```
 
-
-
-
-
 # Documentation
-
 condynsate documentation is found at [https://condynsate.github.io/condynsate/](https://condynsate.github.io/condynsate/).

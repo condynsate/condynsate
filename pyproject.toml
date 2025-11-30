@@ -29,9 +29,7 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Topic :: Education :: Computer Aided Instruction (CAI)",
     "Topic :: Games/Entertainment :: Simulation",
-    "Topic :: Scientific/Engineering :: Visualization",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-]
+    "Topic :: Scientific/Engineering :: Visualization",]
 dependencies = [
    "ipython >= 5",
    "matplotlib",
