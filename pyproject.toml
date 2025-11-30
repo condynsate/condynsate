@@ -9,8 +9,9 @@ dynamic = ["version"]
 description = "condynsate (control and dynamics simulator) is a tool for teaching dynamics, control, and coding in Python."
 readme = "README.md"
 requires-python = ">=3.8"
-license = { text = "GPL-3.0-only",
-            file = "COPYING" }
+license = "GPL-3.0-only AND MIT"
+license-files = ["COPYING",
+                 "condynsate/visualizer/meshcat/LICENSE.txt",]
 keywords = [
     "control and dynamics",
     "visualization",
