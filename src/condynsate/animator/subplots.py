@@ -3,8 +3,10 @@
 The _Subplot classes provide functionality for drawing specifc types of
 subplots to a matplotlib figure to be used and displayed by the Animator
 module.
-
-@author: G. Schaer
+"""
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
 """
 
 ###############################################################################
@@ -77,6 +79,10 @@ class _Subplot():
 
         # Create a structure for the data
         self.data = {}
+        
+        # Create a structures needed for blitting
+        self._extents = ((None, None), (None, None))
+        self.update_bg = False
 
         # The redraw flag tells when something on the axes has been
         # updated and therefore the axes must be redrawn
@@ -341,9 +347,11 @@ class _Subplot():
         x_range : tuple of 2 floats, optional
             The (min, max) value of the x data. If no data, (None, None). The
             default is (None, None).
+            
         Returns
         -------
-        None.
+        x_extents : 2 tuple of floats
+        The set extents.
 
         """
         # Calculate the new x extents to set
@@ -354,6 +362,7 @@ class _Subplot():
         # Aquire mutex lock to set figure axes' extents
         with self._FIG_LOCK:
             self._axes.set_xlim(x_extents[0], x_extents[1])
+        return x_extents
 
     def _update_y_extent(self, y_range = (None, None)):
         """
@@ -364,9 +373,11 @@ class _Subplot():
         y_range : tuple of 2 floats, optional
             The (min, max) value of the y data. If no data, (None, None). The
             default is (None, None).
+            
         Returns
         -------
-        None.
+        y_extents : 2 tuple of floats
+        The set extents.
 
         """
         # Calculate the new x extents to set
@@ -377,6 +388,7 @@ class _Subplot():
         # Aquire mutex lock to set figure axes' extents
         with self._FIG_LOCK:
             self._axes.set_ylim(y_extents[0], y_extents[1])
+        return y_extents
 
     def redraw(self):
         """
@@ -557,15 +569,21 @@ class Lineplot(_Subplot):
 
         Returns
         -------
-        None.
+        None
 
         """
         # Get the data ranges
         ranges = self._get_ranges()
 
         # Update the plot extents
-        self._update_x_extent(ranges['x'])
-        self._update_y_extent(ranges['y'])
+        x_extent = self._update_x_extent(ranges['x'])
+        y_extent = self._update_y_extent(ranges['y'])
+        
+        # Check if the extents have changed. If they have this means the axes
+        # have changed and therefore the blitted background must be updated.
+        if not self._extents == (x_extent, y_extent):
+            with self._FIG_LOCK:
+                self.update_bg = True
 
     def _make_lines(self):
         """
@@ -699,8 +717,10 @@ class Lineplot(_Subplot):
 
         Returns
         -------
-        None.
-
+        update_bg : bool
+        A boolean flag that indicates if the axes have changed and therefore 
+        require a background update.
+        
         """
         # Aquire mutex lock to read flag
         with self._LOCK:
@@ -861,7 +881,13 @@ class Barchart(_Subplot):
         ranges = self._get_ranges()
 
         # Update the plot extents
-        self._update_x_extent(ranges['x'])
+        x_extent = self._update_x_extent(ranges['x'])
+        
+        # Check if the extents have changed. If they have this means the axes
+        # have changed and therefore the blitted background must be updated.
+        if not self._extents == (x_extent, (None, None)):
+            with self._FIG_LOCK:
+                self.update_bg = True
 
     def _make_bars(self):
         """

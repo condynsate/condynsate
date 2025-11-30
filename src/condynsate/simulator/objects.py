@@ -2,8 +2,10 @@
 """
 This module provides the objects that reside in the simulator class which is
 used to run physics simulations using the PyBullet package.
-
-@author: G. Schaer
+"""
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
 """
 
 ###############################################################################

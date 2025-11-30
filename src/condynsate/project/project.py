@@ -2,8 +2,10 @@
 """
 This module provides the Project class which is the primary interface with
 which users interact when using condynsate.
-
-@author: G. Schaer
+"""
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
 """
 
 ###############################################################################

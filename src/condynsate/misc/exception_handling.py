@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+"""
+This modules provides methods and classes used for exception handling.
+"""
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
+"""
+
 from dataclasses import dataclass
 import textwrap
 import traceback

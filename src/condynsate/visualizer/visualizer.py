@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 This module provides the Visualizer class.
-
-@author: G. Schaer
+"""
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
 """
 
 ###############################################################################

@@ -2,6 +2,16 @@
  "cells": [
   {
    "cell_type": "markdown",
+   "id": "61538355-4b00-44bb-82cc-c46b3911acd3",
+   "metadata": {},
+   "source": [
+    "© Copyright, 2025 G. Schaer.\n",
+    "\n",
+    "SPDX-License-Identifier: GPL-3.0-only"
+   ]
+  },
+  {
+   "cell_type": "markdown",
    "id": "82bf0179-33b2-441a-9b3c-73633afc8c79",
    "metadata": {},
    "source": [
@@ -293,7 +303,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.13.9"
+   "version": "3.14.0"
   }
  },
  "nbformat": 4,

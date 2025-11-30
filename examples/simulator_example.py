@@ -3,9 +3,12 @@
 This module provides an example usage case of the Simulator class. Here we
 simulate a cart with an inverted pendulum atop it. Because this is just an
 example for the Simulator, no visualization is included.
-
-@author: G. Schaer
 """
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
+"""
+
 import time
 from condynsate import Simulator
 from condynsate import __assets__ as assets

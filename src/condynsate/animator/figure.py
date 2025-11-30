@@ -2,8 +2,10 @@
 """
 The figure class is used by the animator to generate and draw to a matplotlib
 figure displayed by cv2's GUI.
-
-@author: G. Schaer
+"""
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
 """
 
 ###############################################################################

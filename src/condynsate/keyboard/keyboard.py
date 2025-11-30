@@ -2,8 +2,10 @@
 """
 This module provides the Keyboard class which monitors the keyboard and tells
 users which keys are pressed.
-
-@author: G. Schaer
+"""
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
 """
 
 ###############################################################################

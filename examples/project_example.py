@@ -3,9 +3,12 @@
 This module gives an example use case for the Project class. In this example,
 we create a project that uses the visualizer, the animator, and the keyboard
 simultaneously to render a cart keeping an inverted pendulum atop it upright.
-
-@author: G. Schaer
 """
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
+"""
+
 import time
 from condynsate import Project
 from condynsate import __assets__ as assets

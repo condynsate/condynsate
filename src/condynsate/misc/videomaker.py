@@ -2,8 +2,10 @@
 """
 This module provides utilities functions used to render videos from zlib
 compressed frame data.
-
-@author: G. Schaer
+"""
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
 """
 
 ###############################################################################

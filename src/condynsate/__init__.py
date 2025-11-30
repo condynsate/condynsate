@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
+"""
+
 # Submodules always needs to be imported to ensure registration
 from condynsate.project import Project # NOQA
 from condynsate.simulator import Simulator # NOQA
@@ -12,7 +18,7 @@ __all__ = ["Project",
            "Keyboard",]
 
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 
 import os

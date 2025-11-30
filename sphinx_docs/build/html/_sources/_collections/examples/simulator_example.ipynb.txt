@@ -2,6 +2,16 @@
  "cells": [
   {
    "cell_type": "markdown",
+   "id": "25b7b3cc-7e8b-4584-809c-f40a8e0dd5c3",
+   "metadata": {},
+   "source": [
+    "© Copyright, 2025 G. Schaer.\n",
+    "\n",
+    "SPDX-License-Identifier: GPL-3.0-only"
+   ]
+  },
+  {
+   "cell_type": "markdown",
    "id": "c1833768-99b3-48d6-a330-5cfba7a813a1",
    "metadata": {},
    "source": [
@@ -29,7 +39,7 @@
     "from condynsate import Simulator\n",
     "from condynsate import __assets__ as assets\n",
     "import matplotlib.pyplot as plt\n",
-	"# This is required so that matplotlib plots plot in the notebook\n",
+    "# This is required so that matplotlib plots plot in the notebook\n",
     "%matplotlib inline"
    ]
   },
@@ -258,7 +268,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.13.9"
+   "version": "3.14.0"
   }
  },
  "nbformat": 4,

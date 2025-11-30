@@ -3,9 +3,12 @@
 This module provides an example usage case for the animator. Here we create
 a figure with 2 plots, 1 line plot and 1 bar chart. On the line plot, we plot
 2 lines. On the bar chart, we show 4 bars.
-
-@author: G. Schaer
 """
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
+"""
+
 import time
 from condynsate import Animator
 import numpy as np

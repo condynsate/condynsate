@@ -3,9 +3,12 @@
 This module gives example usage of the Visualizer class. In this, we load a
 cube into the visualizer and update its position and color while tracking it
 with the camera.
-
-@author: G. Schaer
 """
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
+"""
+
 import time
 import condynsate
 from condynsate import __assets__ as assets

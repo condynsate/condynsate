@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 This modules provides transform functions that are used by the simulator.
-
-@author: Grayson
+"""
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
 """
 
 ###############################################################################

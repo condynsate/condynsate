@@ -6,10 +6,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "condynsate"
 dynamic = ["version"]
-description = "Simulates and visualizes articulated systems in real time"
+description = "condynsate (control and dynamics simulator) is a tool for teaching dynamics, control, and coding in Python."
 readme = "README.md"
 requires-python = ">=3.8"
-license = { file = "LICENSE.txt" }
+license = { text = "GPL-3.0-only",
+            file = "COPYING" }
 keywords = [
     "control and dynamics",
     "visualization",
@@ -28,6 +29,7 @@ classifiers = [
     "Topic :: Education :: Computer Aided Instruction (CAI)",
     "Topic :: Games/Entertainment :: Simulation",
     "Topic :: Scientific/Engineering :: Visualization",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 ]
 dependencies = [
    "ipython >= 5",

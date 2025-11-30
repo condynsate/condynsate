@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 This module gives example usage of the keyboard.
-
-@author: G. Schaer
 """
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
+"""
+
 import time
 import condynsate
 

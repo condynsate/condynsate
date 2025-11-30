@@ -2,8 +2,10 @@
 """
 This module provides the Animator class which is used to draw data to a plot
 in real time.
-
-@author: G. Schaer
+"""
+"""
+© Copyright, 2025 G. Schaer.
+SPDX-License-Identifier: GPL-3.0-only
 """
 
 ###############################################################################
