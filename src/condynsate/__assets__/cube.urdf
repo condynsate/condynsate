@@ -1,34 +1,39 @@
 <?xml version="1.0" ?>
-
 <robot name="cube">
-    
-    <material name="industrial-blue">
-        <color rgba="0.113725 0.3450980 0.654901 1" />
+
+
+    <!-- ########### MATERIALS ########### -->
+
+    <material name="industrial">
+        <color rgba="0.114 0.345 0.655 1" />
     </material>
   
+
+    <!-- ########### LINKS ########### -->
+
     <link name="cube">
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="cube.stl" scale="1 1 1"/>
+                <mesh filename="Cube_1x1x1_center_origin.stl" scale="1 1 1"/>
             </geometry>
-            <material name = "industrial-blue"/>
+            <material name = "industrial"/>
         </visual>
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="cube.stl" scale="1 1 1"/>
+                <mesh filename="Cube_1x1x1_center_origin.stl" scale="1 1 1"/>
             </geometry>
         </collision>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
-            <mass value="1.0"/>
-            <inertia ixx="0.167" ixy="0" ixz="0" iyy="0.167" iyz="0" izz="0.167"/>
+            <mass value="1"/>
+            <inertia ixx="0.1667" ixy="0" ixz="0" iyy="0.1667" iyz="0" izz="0.1667"/>
         </inertial>
     </link>
+
 
 </robot>
 
 <!-- © Copyright, 2025 G. Schaer. -->
 <!-- SPDX-License-Identifier: GPL-3.0-only -->
-

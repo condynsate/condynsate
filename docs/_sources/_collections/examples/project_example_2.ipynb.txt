@@ -1,0 +1,423 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "0b81363d-4768-481d-a0d2-3f3d8468fcba",
+   "metadata": {},
+   "source": [
+    "© Copyright, 2025 G. Schaer.\n",
+    "\n",
+    "SPDX-License-Identifier: GPL-3.0-only"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c58045bb-4b36-4caf-9cb6-039bec6c63ef",
+   "metadata": {},
+   "source": [
+    "# Project Example 2: The Gyroscope"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "bac8b42f-4da7-4c1e-a777-8953244829b2",
+   "metadata": {},
+   "source": [
+    "## Set up the Visualizer and Physics Environment"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8874740a-5c75-4115-8ad7-75edd8ef7cd6",
+   "metadata": {},
+   "source": [
+    "Import necessary `condynsate` modules"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "cc40d60b-49c6-4c54-8abf-ba7b801cf370",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from condynsate import Project\n",
+    "from condynsate import __assets__ as assets"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "088afcf1-b682-4de0-ae59-3788e872a9e1",
+   "metadata": {},
+   "source": [
+    "Create a instance of `condynsate.Project` that uses the visualizaer and keyboard but does use the animator."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "00f52642-97ac-43ca-957d-4102c79cba87",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "proj = Project(keyboard = True,\n",
+    "               visualizer = True,\n",
+    "               animator = False)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "64b530be-8f79-4b96-8fb6-2e3cd4d61eed",
+   "metadata": {},
+   "source": [
+    "Load a medium plane into the simulator to represent the ground. Set `fixed = True` so it are fixed in space (0 degerees of freedom) and adjust give it a texture so it is pretty."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "bae9d9be-feca-4c75-a546-ab29f0fa637f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Load a plane with a carpet texture for the ground\n",
+    "ground = proj.load_urdf(assets['plane_medium.urdf'], fixed=True)\n",
+    "ground.links['plane'].set_texture(assets['carpet.png'])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "27ee16f7-0781-4f5b-9ceb-822e469c1278",
+   "metadata": {},
+   "source": [
+    "Load the gyro into the simulator. Set `fixed = True` so that the base link of the gyro has 0 degrees of freedom."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c6bff914-6125-404a-921d-5b76c1e9995e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Load and orient a 2 gimbal gyroscope.\n",
+    "gyro = proj.load_urdf(assets['gyro.urdf'])\n",
+    "gyro.set_initial_state(fixed=True) # This returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6303149d-7ab0-473b-88bf-90c06ba3f95e",
+   "metadata": {},
+   "source": [
+    "Note that the gryo's position update is not yet reflected in the visualizer. To update this manually, we can call the `proj.refresh_visualizer` function. Note, however, this is also done automatically every time `proj.load_urdf`, `proj.reset`, or `proj.step` is called. Therefore, calling this now is purely an aesthetic choice as it will be done automatically when the simulation starts running."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "92dadc3c-20ec-4404-9742-0ea305a52a7d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "proj.refresh_visualizer() # This returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5d78ea2e-871f-4aef-8fc5-c71c8c97d3b5",
+   "metadata": {},
+   "source": [
+    "Now we will adjust the visualizer scene. First we turn off the axes and grid plane visualization."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "9a3b0c40-f891-4c6d-90a8-6f8948cdb93f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Turn off the axes and grid visualization.\n",
+    "proj.visualizer.set_axes(False) # This returns 0 on success\n",
+    "proj.visualizer.set_grid(False) # This returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6859aa7e-794e-4cae-9229-57fd84837575",
+   "metadata": {},
+   "source": [
+    "Then we will move the camera's position up just a slight amount from its default position and then tell it to look directly at the center of mass of the gyro."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "df1c2b24-bea2-4487-b8bf-8e31d09a709f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Set the camera's position\n",
+    "proj.visualizer.set_cam_position((2.0, -4.0, 3.75)) # This returns 0 on success\n",
+    "\n",
+    "# Focus the camera on the gyro\n",
+    "proj.visualizer.set_cam_target(gyro.center_of_mass) # This returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "46d32ae4-bb94-4541-8aa1-4492fe940103",
+   "metadata": {},
+   "source": [
+    "Set the `\"base_to_ring3\"`, `\"ring3_to_ring2\"`, and `\"ring2_to_ring1\"` joint damping (rotational friction) to some small value. This helps with numerical stability. The `\"base_to_ring3\"` joint is the rotational joint between the base of the pendulum and the outer gimbal, `\"ring3_to_ring2\"` joint is the rotational joint between the outer gimbal and the middle gimbal, and `\"ring2_to_ring1\"` joint is the rotational joint between the middle gimbal and the inner gimbal."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ec5f1e20-b51e-47b6-a280-05d10be738bb",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Set joint damping\n",
+    "gyro.joints['base_to_ring3'].set_dynamics(damping=0.025) # This returns 0 on success\n",
+    "gyro.joints['ring3_to_ring2'].set_dynamics(damping=0.025) # This returns 0 on success\n",
+    "gyro.joints['ring2_to_ring1'].set_dynamics(damping=0.025) # This returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "50139d0b-a87c-4755-a800-628278b0d235",
+   "metadata": {},
+   "source": [
+    "Set the damping to 0 and limit the maximum magnitude of the angular velocity of the `\"ring1_to_core\"` joint to 10 rad/sec, then set the its initial angular velocity to to 5 rad/sec. The `\"ring1_to_core\"` joint is the rotational joint between the inner gimbal and the gyroscope's wheel."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "7986bd5b-0ba9-484a-8b18-6e436fe602b3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "gyro.joints['ring1_to_core'].set_dynamics(damping=0.0, # Set friction to 0\n",
+    "                                          max_omega=10.0 # Limit maximum speed to 10 rad/sec\n",
+    "                                         ) # This returns 0 on success\n",
+    "gyro.joints['ring1_to_core'].set_initial_state(omega=5.0) # This returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0f732309-c20f-493d-9599-61bd435b0943",
+   "metadata": {},
+   "source": [
+    "## Define Functions Used in Simulation Loop"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "2b4ba17d-34b0-4d34-b2b3-f4bf0196993c",
+   "metadata": {},
+   "source": [
+    "In this simulation, we want the user to be able to apply torques to each gimbal joint through keypresses. To enable this, we will create a function that listens for keypresses, converts them to gimbal joint torque commands, and sets those torque values"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8b62f0a9-0274-4485-9fc5-70c1d91aaac8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def apply_torques(project, gryoscope):\n",
+    "    # Determine what torques to apply based on key presses\n",
+    "    tau0 = 0.0 # Torque applied to outermost ring\n",
+    "    tau0 -= 0.5 * float(project.keyboard.is_pressed('q')) # Convert bool return value to float (0.0 or 1.0)\n",
+    "    tau0 += 0.5 * float(project.keyboard.is_pressed('e')) \n",
+    "\n",
+    "    tau1 = 0.0 # Torque applied to the middle ring\n",
+    "    tau1 -= 0.5 * float(project.keyboard.is_pressed('w'))\n",
+    "    tau1 += 0.5 * float(project.keyboard.is_pressed('s'))\n",
+    "\n",
+    "    tau2 = 0.0 # Torque applied to the inner ring\n",
+    "    tau2 -= 0.5 * float(project.keyboard.is_pressed('a'))\n",
+    "    tau2 += 0.5 * float(project.keyboard.is_pressed('d'))\n",
+    "\n",
+    "    # Apply the torques\n",
+    "    gryoscope.joints['base_to_ring3'].apply_torque(tau0, # Set the torque value\n",
+    "                                                   draw_arrow=True, # Draw an arrow to visualize the applied torque\n",
+    "                                                   arrow_scale=1.5, # Set the scaling of the arrow \n",
+    "                                                   arrow_offset=0.5, # Move the arrow away from the center of the \n",
+    "                                                  ) # This returns 0 on success\n",
+    "    \n",
+    "    gryoscope.joints['ring3_to_ring2'].apply_torque(tau1, draw_arrow=True, arrow_scale=1.5, arrow_offset=0.8,) \n",
+    "    gryoscope.joints['ring2_to_ring1'].apply_torque(tau2, draw_arrow=True, arrow_scale=1.5, arrow_offset=0.5,) \n",
+    "    "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3a647aef-7d73-48b0-9423-7c356dea60c4",
+   "metadata": {},
+   "source": [
+    "Now we want to color the gyroscope's wheel based on its rotation speed. To do so we define a function that \n",
+    "1. Reads the gyroscope's wheel's angular velocity\n",
+    "2. Changes the color of the wheel based on the velocity"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f1313ea1-7fa9-4f3b-b85c-8bc2fd5b9683",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def set_color(gryoscope, max_omega=10.0):\n",
+    "    # Get the angular velocity of the wheel in its body coordinates\n",
+    "    omega = gyro.links['core'].state.omega_in_body\n",
+    "\n",
+    "    # In the case of the wheel, the +z body axis is the rotational axis, so isolate that\n",
+    "    omega = omega[2]\n",
+    "\n",
+    "    # Get a color based on the rotation rate\n",
+    "    r = min(max(omega / max_omega + 1., 0.), 1.)\n",
+    "    g = 1. - abs(omega) / max_omega\n",
+    "    b = min(max(1. - omega / max_omega, 0.), 1.)\n",
+    "\n",
+    "    # Set the color of the core link\n",
+    "    gyro.links['core'].set_color((r, g, b)) # This returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ea8c8b0b-821f-4ed0-9957-95d3f39df6a6",
+   "metadata": {},
+   "source": [
+    "**Important Note**: When we call `set_color`, this visualizer will not update. We must remember to either manually update the visualizer or call a functional that automatically updates the visualizer (`proj.load_urdf`, `proj.reset`, or `proj.step`) after we call `set_color` to see the color change "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "37b5bbad-0e14-4d3b-9050-8a106b6804e6",
+   "metadata": {},
+   "source": [
+    "Finally, we would also like to allow the user the adjust the wheel joint speed based on keyboard inputs. We do this similarly as in the `apply_torque`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "a9491f6e-07dd-4fbc-9237-be8d50be0822",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def set_omega(project, gryoscope):\n",
+    "    # The amount by which to iterate the wheel speed\n",
+    "    iter_val = 0.0\n",
+    "    iter_val -= 0.1 * float(project.keyboard.is_pressed('f')) # Convert bool return value to float (0.0 or 1.0)\n",
+    "    iter_val += 0.1 * float(project.keyboard.is_pressed('r')) \n",
+    "\n",
+    "    # Read the current wheel joint speed, iterate it, and set the new value\n",
+    "    old_omega = gryoscope.joints['ring1_to_core'].state.omega\n",
+    "    new_omega = old_omega + iter_val\n",
+    "    gryoscope.joints['ring1_to_core'].set_state(omega = new_omega) # This returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a04d5a02-6da4-4542-8da1-74c874fa0470",
+   "metadata": {},
+   "source": [
+    "## Running the Simulation"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "bb722940-b23c-47ec-9013-1871c7fa2172",
+   "metadata": {},
+   "source": [
+    "Before running the simulation, we reset the project. This ensure that everything is started, updated, and in the desired initial state. `proj.reset` should be called before a simulation every time you run one."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "50902142-1f44-40f5-a671-2f8cad02561c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Reset the project to its initial state. This is required to\n",
+    "# reset the simulation, reset the visualizer, and reset/start the\n",
+    "# animator.\n",
+    "proj.reset() # This returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1626abcf-d925-4c9c-875f-c24341bfa7d0",
+   "metadata": {},
+   "source": [
+    "Next we create and run a simulation loop. In this loop, on every step we\n",
+    "1. Set the torques based on keyboard presses\n",
+    "2. Set the wheel speed based on keyboard presses\n",
+    "3. Set the wheel's color based on its speed\n",
+    "4. Take a simulation step in real time"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d1cfe1f9-a181-4c27-89e4-a7463aa59223",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Run a 10 second simulation loop\n",
+    "while proj.simtime <= 10.:\n",
+    "    apply_torques(proj, gyro)\n",
+    "    set_omega(proj, gyro)\n",
+    "    set_color(gyro)\n",
+    "    proj.step(real_time=True, stable_step=False) # This returns 0 on success"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "4a650f1e-a228-45d4-a7fe-cf4aa10e43f1",
+   "metadata": {},
+   "source": [
+    "Finally, we terminate the project. This is required to save any videos that are recorded and gracefully exit all the children threads (including the animator window). `proj.terminate()` should be called when done with any member of the `condynsate.Project` class."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ef6e1f9e-3a5e-4cb9-bdcf-dd151129397a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "proj.terminate() # This returns 0 on success"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.14.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

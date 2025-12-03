@@ -117,7 +117,7 @@ class Body():
 
             # Get the parent and children links and make the joint
             links[child_name] = Link(self, joint_id)
-            joints[joint_name] = Joint(self, joint_id, parent_link)
+            joints[joint_name] = Joint(self, joint_id, links[child_name])
         return body_name, links, joints
 
     @property
@@ -616,8 +616,8 @@ class Joint:
         The member of the Body class to which the joint belongs
     idx : int
         The unique number that identifies the joint in the PyBullet client.
-    parent : condynsate.core.objects.Link
-        The parent link of the joint.
+    child : condynsate.core.objects.Link
+        The child link of the joint.
 
     Attributes
     ----------
@@ -630,11 +630,11 @@ class Joint:
         The axis, in world coordinates, about which the joint operates.
 
     """
-    def __init__(self, sim_obj, idx, parent):
+    def __init__(self, sim_obj, idx, child):
         self._client = sim_obj._client
         self._body_id = sim_obj._id
         self._id = idx
-        self._parent = parent
+        self._child = child
         self._init_state = JointState()
         self._set_defaults()
         self._type = self._client.getJointInfo(self._body_id, self._id)[2]
@@ -678,12 +678,9 @@ class Joint:
     def axis(self):
         """ The axis about which the joint operates """
         info = self._client.getJointInfo(self._body_id, self._id)
-        axis_j = info[13]
-        Rjp = t.Rbw_from_wxyz(t.wxyz_from_xyzw(info[15]))
-        axis_p = t.va_to_vb(Rjp, axis_j)
-        _, Rpw = self._parent.Obw_Rbw
-        axis_w = t.va_to_vb(Rpw, axis_p)
-        return axis_w
+        Ojw, Rcw = self._child.Obw_Rbw
+        axisw = t.va_to_vb(Rcw, info[13])
+        return axisw
 
     def set_dynamics(self, **kwargs):
         """
@@ -836,11 +833,8 @@ class Joint:
         # Add arrow information for rendering
         if kwargs.get('draw_arrow', False):
             info = self._client.getJointInfo(self._body_id, self._id)
-            axisp = t.va_to_vb(t.Rbw_from_wxyz(t.wxyz_from_xyzw(info[15])),
-                               info[13])
-            Opw, Rpw = self._parent.Obw_Rbw
-            axisw = t.va_to_vb(Rpw, axisp)
-            Ojw = t.pa_to_pb(Rpw, Opw, info[14])
+            Ojw, Rcw = self._child.Obw_Rbw
+            axisw = t.va_to_vb(Rcw, info[13])
             offset = kwargs.get('arrow_offset', 0.0)
             position = tuple(o+offset*a for o, a in zip(Ojw, axisw))
             scale = kwargs.get('arrow_scale', 1.0)

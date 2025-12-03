@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The condynsate Package &mdash; condynsate 1.0.2 documentation</title>
+  <title>The condynsate Package &mdash; condynsate 1.0.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/autoclasstoc.css?v=08871587" />
@@ -14,7 +14,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1ed6394b"></script>
+      <script src="_static/documentation_options.js?v=baaebd52"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -1147,7 +1147,7 @@ visual_data buffer from growing indeterminately.</p>
 <h4>The Joint Class<a class="headerlink" href="#the-joint-class" title="Link to this heading"></a></h4>
 <dl class="py class">
 <dt class="sig sig-object py" id="condynsate.simulator.objects.Joint">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">condynsate.simulator.objects.</span></span><span class="sig-name descname"><span class="pre">Joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Joint" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">condynsate.simulator.objects.</span></span><span class="sig-name descname"><span class="pre">Joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">child</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Joint" title="Link to this definition"></a></dt>
 <dd><p>The class stores information about and allows interaction with a joint
 on a body in the simulation.</p>
 <dl class="field-list simple">
@@ -1155,7 +1155,7 @@ on a body in the simulation.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>sim_obj</strong> (<em>condynsate.core.objects.Body</em>) – The member of the Body class to which the joint belongs</p></li>
 <li><p><strong>idx</strong> (<em>int</em>) – The unique number that identifies the joint in the PyBullet client.</p></li>
-<li><p><strong>parent</strong> (<em>condynsate.core.objects.Link</em>) – The parent link of the joint.</p></li>
+<li><p><strong>child</strong> (<em>condynsate.core.objects.Link</em>) – The child link of the joint.</p></li>
 </ul>
 </dd>
 </dl>

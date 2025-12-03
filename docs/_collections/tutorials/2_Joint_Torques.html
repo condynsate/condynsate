@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial 2: Joint Torques &mdash; condynsate 1.0.2 documentation</title>
+  <title>Tutorial 2: Joint Torques &mdash; condynsate 1.0.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/autoclasstoc.css?v=08871587" />
@@ -15,7 +15,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=1ed6394b"></script>
+      <script src="../../_static/documentation_options.js?v=baaebd52"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -122,7 +122,7 @@
 <h2>Initializing the Project Class<a class="headerlink" href="#Initializing-the-Project-Class" title="Link to this heading"></a></h2>
 <p>Here we initialize the <code class="docutils literal notranslate"><span class="pre">Project</span></code> in the same way as Tutorial 0, but instead of loading a cube object, we load a pendulum. Additionally, we leave the ground grid on and do not load a ground plane.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the project</span>
@@ -136,11 +136,11 @@
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 You can open the visualizer by visiting the following URL:
-http://127.0.0.1:7001/static/
+http://127.0.0.1:7032/static/
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_axes</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Returns 0 on success</span>
@@ -148,7 +148,7 @@ http://127.0.0.1:7001/static/
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -157,32 +157,19 @@ http://127.0.0.1:7001/static/
 </pre></div></div>
 </div>
 <p>This time, we make the pendulum fixed. This ensures the base of the pendulum has 0 degrees of freedom. Setting the <code class="docutils literal notranslate"><span class="pre">fixed</span></code> flag doe not affect the degrees of freedom of the joints of the pendulum.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load a pendulum object and set its initial position to resting on the ground</span>
 <span class="n">pendulum</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;pendulum.urdf&#39;</span><span class="p">],</span>
                           <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span>
                          <span class="p">)</span>
-
-<span class="c1"># The origin of the pendulum is at the center of its chassis, which is a cube 0.1 meters in length</span>
-<span class="c1"># 0.05 meters places bottom of the chassis on the ground grid.</span>
-<span class="n">pendulum</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.05</span><span class="p">))</span> <span class="c1"># Returns 0 on success</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-0
-</pre></div></div>
 </div>
 <p>Additionally to setting the initial state of the body as a whole, we can also set the initial state of each joint of articulated bodies. Here we will set the initial angle of the pendulum arm to 10 degrees. To access the joints of a body, we use the <code class="docutils literal notranslate"><span class="pre">joints</span></code> attribute. The <code class="docutils literal notranslate"><span class="pre">joints</span></code> attribute is a dictionary that indexes joint names (as defined in the .urdf files from which bodies are loaded) to members of the <code class="docutils literal notranslate"><span class="pre">condynsate.simulator.objects.Joint</span></code> class.</p>
-<p>The name of the pendulum joint is <code class="docutils literal notranslate"><span class="pre">chassis_to_arm</span></code>. This name is defined in the pendulum.urdf file.</p>
+<p>The name of the pendulum joint is <code class="docutils literal notranslate"><span class="pre">base_to_arm</span></code>. This name is defined in the pendulum.urdf file.</p>
 <p>We can then call the <code class="docutils literal notranslate"><span class="pre">condynsate.simulator.objects.Joint.set_initial_state</span></code> function to set the initial state of the arm.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-----------------------------------------------------------------------------
 | condynsate.simulator.objects.Joint.set_initial_state                      |
@@ -209,16 +196,16 @@ ret_code : int
 </pre></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set the initial angle of the pendulum arm</span>
-<span class="n">pendulum</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;chassis_to_arm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">angle</span><span class="o">=</span><span class="mf">0.1745</span><span class="p">)</span> <span class="c1"># All angles in condynsate are radians</span>
+<span class="n">pendulum</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;base_to_arm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">angle</span><span class="o">=</span><span class="mf">0.1745</span><span class="p">)</span> <span class="c1"># All angles in condynsate are radians</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -227,7 +214,7 @@ ret_code : int
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Refresh the visualizer to show changes to the pendulums&#39;s position and angle</span>
@@ -236,7 +223,7 @@ ret_code : int
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -249,7 +236,7 @@ ret_code : int
 <h2>Running a Simulation Loop<a class="headerlink" href="#Running-a-Simulation-Loop" title="Link to this heading"></a></h2>
 <p>Similary to Tutorial 0, we start the simulation loop by calling <code class="docutils literal notranslate"><span class="pre">condynsate.Project.reset</span></code>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span> <span class="c1"># Returns 0 on success</span>
@@ -257,12 +244,12 @@ ret_code : int
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
--1
+0
 </pre></div></div>
 </div>
 <p>In each step of the loop we take 3 steps</p>
@@ -315,19 +302,19 @@ ret_code : int
 </pre></div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run a 10 second simulation</span>
 <span class="k">while</span> <span class="n">proj</span><span class="o">.</span><span class="n">simtime</span> <span class="o">&lt;=</span> <span class="mf">10.</span><span class="p">:</span>
 
     <span class="c1"># Get the pendulum&#39;s joint angle</span>
-    <span class="n">joint_state</span> <span class="o">=</span> <span class="n">pendulum</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;chassis_to_arm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">state</span>
+    <span class="n">joint_state</span> <span class="o">=</span> <span class="n">pendulum</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;base_to_arm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">state</span>
     <span class="n">angle</span> <span class="o">=</span> <span class="n">joint_state</span><span class="o">.</span><span class="n">angle</span>
 
     <span class="c1"># Apply a torque to the pendulum&#39;s joint</span>
     <span class="n">torque</span> <span class="o">=</span> <span class="o">-</span><span class="mf">14.0</span> <span class="o">*</span> <span class="n">angle</span>
-    <span class="n">pendulum</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;chassis_to_arm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply_torque</span><span class="p">(</span><span class="n">torque</span><span class="p">,</span> <span class="n">draw_arrow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">arrow_scale</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
+    <span class="n">pendulum</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;base_to_arm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply_torque</span><span class="p">(</span><span class="n">torque</span><span class="p">,</span> <span class="n">draw_arrow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">arrow_scale</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
 
     <span class="c1"># Take a single simulation step</span>
     <span class="n">proj</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">real_time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="c1"># Run the simulation in real time</span>
@@ -338,22 +325,13 @@ ret_code : int
 </div>
 <p>Note that exactly like the previous tutorial, after <code class="docutils literal notranslate"><span class="pre">condynsate.Project.step</span></code> is called, the torques applied in the previous simulation step will not be applied in the next step. Therefore, we must call <code class="docutils literal notranslate"><span class="pre">apply_torque</span></code> function before every time step in which we want to apply joint torques.</p>
 <p>Finally, we ensure all children threads exit gracefully.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span> <span class="c1"># Returns 0 on success</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-0
-</pre></div></div>
 </div>
 </section>
 <section id="Challenge">

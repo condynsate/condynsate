@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial 0: Introduction &mdash; condynsate 1.0.2 documentation</title>
+  <title>Tutorial 0: Introduction &mdash; condynsate 1.0.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/autoclasstoc.css?v=08871587" />
@@ -15,7 +15,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=1ed6394b"></script>
+      <script src="../../_static/documentation_options.js?v=baaebd52"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -134,7 +134,7 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-dict_keys([&#39;arrow_ccw.stl&#39;, &#39;arrow_lin.stl&#39;, &#39;bricks.png&#39;, &#39;carpet.png&#39;, &#39;cart.urdf&#39;, &#39;classroom_wall.png&#39;, &#39;concrete.png&#39;, &#39;cube.stl&#39;, &#39;cube.urdf&#39;, &#39;cylinder.stl&#39;, &#39;cylinder_lower_origin.stl&#39;, &#39;door_wall.png&#39;, &#39;double_pendulum.urdf&#39;, &#39;gate_med.stl&#39;, &#39;gate_short.stl&#39;, &#39;gate_tall.stl&#39;, &#39;gyro.urdf&#39;, &#39;gyro_core.stl&#39;, &#39;gyro_outer.stl&#39;, &#39;gyro_ring.stl&#39;, &#39;half_plane_medium.urdf&#39;, &#39;missing_tex.png&#39;, &#39;pendulum.urdf&#39;, &#39;plane.obj&#39;, &#39;plane_big.urdf&#39;, &#39;plane_medium.urdf&#39;, &#39;plane_small.urdf&#39;, &#39;pyramid.stl&#39;, &#39;sphere.stl&#39;, &#39;sphere.urdf&#39;, &#39;target_arrow.urdf&#39;, &#39;wheel.urdf&#39;, &#39;white_wall.png&#39;, &#39;window_wall.png&#39;])
+dict_keys([&#39;arrow_ccw.stl&#39;, &#39;arrow_lin.stl&#39;, &#39;bricks.png&#39;, &#39;carpet.png&#39;, &#39;cart.urdf&#39;, &#39;classroom_wall.png&#39;, &#39;concrete.png&#39;, &#39;cone_1x1_center_origin.stl&#39;, &#39;cone_1x1_lower_origin.stl&#39;, &#39;cube.urdf&#39;, &#39;cube_1x1x1_center_origin.stl&#39;, &#39;cube_1x1x1_lower_origin.stl&#39;, &#39;cylinder_1x1_center_origin.stl&#39;, &#39;cylinder_1x1_lower_origin.stl&#39;, &#39;door_wall.png&#39;, &#39;gyro.urdf&#39;, &#39;gyrocore.stl&#39;, &#39;gyroouter_1-odx0.9id_lower_origin.stl&#39;, &#39;gyroring_0.6-odx0.3-id_center_origin.stl&#39;, &#39;gyroring_0.9-odx0.6-id_center_origin.stl&#39;, &#39;half_plane_medium.urdf&#39;, &#39;missing_tex.png&#39;, &#39;plane.obj&#39;, &#39;plane_big.urdf&#39;, &#39;plane_medium.urdf&#39;, &#39;plane_small.urdf&#39;, &#39;pyramid_1x1x1_center_origin.stl&#39;, &#39;pyramid_1x1x1_lower_origin.stl&#39;, &#39;sphere_1_center_origin.stl&#39;, &#39;sphere_1_lower_origin.stl&#39;, &#39;white_wall.png&#39;, &#39;window_wall.png&#39;])
 </pre></div></div>
 </div>
 </section>
@@ -227,7 +227,7 @@ simtime : float
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 You can open the visualizer by visiting the following URL:
-http://127.0.0.1:7001/static/
+http://127.0.0.1:7027/static/
 </pre></div></div>
 </div>
 <p>You should now see the default empty environment opened in your default web browser.</p>
@@ -331,8 +331,8 @@ ret_code : int
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load a cube object and set its initial position to 1 meter above the ground</span>
 <span class="n">cube</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;cube.urdf&#39;</span><span class="p">])</span>
 
-<span class="c1"># The origin of the cube is at its center, and the cube is 1 meter length.</span>
-<span class="c1"># 1.5 meters places bottom of cube 1 meter above the ground.</span>
+<span class="c1"># The origin of the cube is at its center so</span>
+<span class="c1"># Setting its initial state to (0,0,1.5) places the bottom face 1 meter above the ground</span>
 <span class="n">cube</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">1.5</span><span class="p">))</span> <span class="c1"># Returns 0 on success</span>
 </pre></div>
 </div>
@@ -409,7 +409,7 @@ ret_code : int
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
--1
+0
 </pre></div></div>
 </div>
 <p>Now everything is set up and we are ready to run a simulation loop. To do so, we use the <code class="docutils literal notranslate"><span class="pre">condynsate.Project.step</span></code> function. This function takes a single physics step and updates the <code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> to reflect changes in the <code class="docutils literal notranslate"><span class="pre">Simulator</span></code> state. We will call the <code class="docutils literal notranslate"><span class="pre">step</span></code> function in a loop until the simulation time is 2.0 seconds. Doing so will run a 2.0 second simulation.</p>

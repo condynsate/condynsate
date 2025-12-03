@@ -1,83 +1,29 @@
 <?xml version="1.0" ?>
 <robot name="gyro">
 
+
+    <!-- ########### MATERIALS ########### -->
+
     <material name="industrial">
-        <color rgba="0.1137254 0.345098039 0.654901960 1" />
+        <color rgba="0.114 0.345 0.655 1" />
     </material>
     
     <material name="arches">
-        <color rgba="0.0 0.623529411 0.831372 1" />
+        <color rgba="0 0.624 0.831 1" />
     </material>
     
     <material name = "heritage">
-        <color rgba = "0.96078431 0.50980392 0.11764706 1" />
+        <color rgba = "0.961 0.510 0.118 1" />
     </material>
-    
-    <link name="core">
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="gyro_core.stl" scale="0.1 0.1 0.1"/>
-            </geometry>
-            <material name = "heritage"/>
-        </visual>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <mass value="1.0"/>
-            <inertia ixx="0.134" ixy="0" ixz="0" iyy="0.134" iyz="0" izz="0.101"/>
-        </inertial>
-    </link>
-        
-    <link name="r1" concave="yes">
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="gyro_ring.stl" scale="0.1 0.1 0.1"/>
-            </geometry>
-            <material name = "arches"/>
-        </visual>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <mass value="0.001"/>
-            <inertia ixx="0.0018" ixy="0" ixz="0" iyy="0.0018" iyz="0" izz="0.0036"/>
-        </inertial>
-    </link>
+  
 
-    <link name="r2" concave="yes">
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="gyro_ring.stl" scale="0.14 0.14 0.14"/>
-            </geometry>
-            <material name = "arches"/>
-        </visual>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0 0 0"/>
-            <mass value="0.014"/>
-            <inertia ixx="0.0050" ixy="0" ixz="0" iyy="0.0050" iyz="0" izz="0.0099"/>
-        </inertial>
-    </link>
-
-    <link name="outer" concave="yes">
-        <visual>
-            <origin rpy="0 1.571 0" xyz="0 0 0"/>
-            <geometry>
-                <mesh filename="gyro_outer.stl" scale="0.1 0.1 0.1"/>
-            </geometry>
-            <material name = "arches"/>
-        </visual>
-        <inertial>
-            <origin rpy="0 1.571 0" xyz="0 0 0"/>
-            <mass value="0.020"/>
-            <inertia ixx="0.0233" ixy="0" ixz="0" iyy="0.0117" iyz="0" izz="0.0117"/>
-        </inertial>
-    </link>
+    <!-- ########### LINKS ########### -->
 
     <link name="base">
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="cylinder.stl" scale="1 1 0.1"/>
+                <mesh filename="Cylinder_1x1_lower_origin.stl" scale="1 1 0.1"/>
             </geometry>
             <material name = "industrial"/>
         </visual>
@@ -87,34 +33,98 @@
             <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
         </inertial>
     </link>
+    <link name="ring3" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="gyroouter_1-ODx0.9ID_lower_origin.stl" scale="2 2 2"/>
+            </geometry>
+            <material name = "arches"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0.16"/>
+            <inertia ixx="0.08" ixy="0" ixz="0" iyy="0.16" iyz="0" izz="0.08"/>
+        </inertial>
+    </link>
 
-    <joint name="base_to_outer" type="continuous">
+    <link name="ring2" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="gyroring_0.9-ODx0.6-ID_center_origin.stl" scale="2 2 2"/>
+            </geometry>
+            <material name = "arches"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0.16"/>
+            <inertia ixx="0.0392" ixy="0" ixz="0" iyy="0.0392" iyz="0" izz="0.0784"/>
+        </inertial>
+    </link>
+
+    <link name="ring1" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="gyroring_0.6-ODx0.3-ID_center_origin.stl" scale="2 2 2"/>
+            </geometry>
+            <material name = "arches"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0.16"/>
+            <inertia ixx="0.0256" ixy="0" ixz="0" iyy="0.0512" iyz="0" izz="0.0256"/>
+        </inertial>
+    </link>
+
+    <link name="core">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="gyrocore.stl" scale="2 2 2"/>
+            </geometry>
+            <material name = "heritage"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="8"/>
+            <inertia ixx="0.25" ixy="0" ixz="0" iyy="0.25" iyz="0" izz="0.5"/>
+        </inertial>
+    </link>
+
+
+    <!-- ########### JOINTS ########### -->
+
+    <joint name="base_to_ring3" type="continuous">
         <parent link = "base" />
-        <child link = "outer" />
-        <origin rpy="0 -1.5708 1.5708" xyz = "0 0 1.6" />
+        <child link = "ring3" />
+        <origin rpy="0 0 0" xyz = "0 0 0.1" />
         <axis xyz = "0 0 1" />
     </joint>
 
-    <joint name="outer_to_r2" type="continuous">
-        <parent link = "outer" />
-        <child link = "r2" />
-        <origin rpy="0 1.5708 0" xyz = "0 0 0" />
+    <joint name="ring3_to_ring2" type="continuous">
+        <parent link = "ring3" />
+        <child link = "ring2" />
+        <origin rpy="0 0 0" xyz = "0 0 2" />
+        <axis xyz = "1 0 0" />
+    </joint>
+
+    <joint name="ring2_to_ring1" type="continuous">
+        <parent link = "ring2" />
+        <child link = "ring1" />
+        <origin rpy="0 0 0" xyz = "0 0 0" />
         <axis xyz = "0 1 0" />
     </joint>
 
-    <joint name="r2_to_r1" type="continuous">
-        <parent link = "r2" />
-        <child link = "r1" />
-        <origin rpy="0 1.571 1.571" xyz = "0 0 0" />
-        <axis xyz = "0 1 0" />
-    </joint>
-
-    <joint name="r1_to_core" type="continuous">
-        <parent link = "r1" />
+    <joint name="ring1_to_core" type="continuous">
+        <parent link = "ring1" />
         <child link = "core" />
-        <origin rpy="0 1.571 0" xyz = "0 0 0" />
+        <origin rpy="0 0 0" xyz = "0 0 0" />
         <axis xyz = "0 0 1" />
     </joint>
+
+
 
 </robot>
 

@@ -1,28 +1,36 @@
 <?xml version="1.0" ?>
-
 <robot name="pendulum">
     
-    <material name="industrial-blue">
-        <color rgba="0.113725 0.3450980 0.654901 1" />
+
+    <!-- ########### MATERIALS ########### -->
+
+    <material name="industrial">
+        <color rgba="0.114 0.345 0.655 1" />
     </material>
     
-    <material name = "heritage-orange">
-        <color rgba = "0.96078 0.50980 0.11764 1" />
+    <material name="arches">
+        <color rgba="0 0.624 0.831 1" />
+    </material>
+    
+    <material name = "heritage">
+        <color rgba = "0.961 0.510 0.118 1" />
     </material>
     
         
-    <link name="chassis">
+    <!-- ########### LINKS ########### -->
+
+    <link name="base">
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                  <mesh filename="cube.stl" scale="0.1 0.1 0.1"/>
+                  <mesh filename="Cube_1x1x1_lower_origin.stl" scale="0.1 0.1 0.1"/>
             </geometry>
-            <material name = "industrial-blue"/>
+            <material name = "heritage"/>
         </visual>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
-            <mass value="1000.0"/>
-            <inertia ixx="1000.0" ixy="0" ixz="0" iyy="1000.0" iyz="0" izz="1000.0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
         </inertial>
     </link>
     
@@ -30,13 +38,13 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="cylinder_lower_origin.stl" scale="0.05 0.05 1.0"/>
+                <mesh filename="Cylinder_1x1_lower_origin.stl" scale="0.05 0.05 1.0"/>
             </geometry>
-            <material name = "heritage-orange"/>
+            <material name = "arches"/>
         </visual>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
-            <mass value="0.0"/>
+            <mass value="0"/>
             <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
         </inertial>
     </link>
@@ -45,19 +53,22 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="sphere.stl" scale="0.2 0.2 0.2"/>
+                <mesh filename="Sphere_1_center_origin.stl" scale="0.2 0.2 0.2"/>
             </geometry>
-            <material name = "heritage-orange"/>
+            <material name = "industrial"/>
         </visual>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
-            <mass value="1.0"/>
+            <mass value="1"/>
             <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
         </inertial>
     </link>
     
-    <joint name="chassis_to_arm" type="continuous">
-        <parent link = "chassis" />
+
+    <!-- ########### JOINTS ########### -->
+
+    <joint name="base_to_arm" type="continuous">
+        <parent link = "base" />
         <child link = "arm" />
         <origin rpy="0 0 0" xyz = "0 0 0" />
         <axis xyz = "0 -1 0" />
@@ -68,6 +79,7 @@
         <child link = "mass" />
         <origin rpy="0 0 0" xyz = "0 0 1.0" />
     </joint>
+
 
 </robot>
 

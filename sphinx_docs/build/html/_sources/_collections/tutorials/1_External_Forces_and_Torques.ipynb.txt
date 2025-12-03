@@ -54,7 +54,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 1,
    "id": "b2b6dc1e-8420-4242-91a3-e73422ce713e",
    "metadata": {},
    "outputs": [],
@@ -81,10 +81,19 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 2,
    "id": "c80e5845-e2f6-40df-be51-d13b49a1bac8",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "You can open the visualizer by visiting the following URL:\n",
+      "http://127.0.0.1:7028/static/\n"
+     ]
+    }
+   ],
    "source": [
     "# Create the project\n",
     "proj = Project()"
@@ -92,10 +101,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 3,
    "id": "4bcd701f-d09a-4ba5-b805-8c6511cf628c",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "# Turn off the grid and axes\n",
     "proj.visualizer.set_axes(False) # Returns 0 on success\n",
@@ -104,7 +124,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 4,
    "id": "5288ec30-bebf-4adc-a1f9-8e23e5ad7d7e",
    "metadata": {},
    "outputs": [],
@@ -115,25 +135,44 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 5,
    "id": "f9f24b1a-0258-451d-b3d9-d4cd20462f0a",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
-    "# Load a cube object and set its initial position to resting on the ground\n",
+    "# Load a cube object that is resting on the ground plane\n",
     "cube = proj.load_urdf(assets['cube.urdf'])\n",
-    "\n",
-    "# The origin of the cube is at its center, and the cube is 1 meter length. \n",
-    "# 0.5 meters places bottom of cube on the ground.\n",
-    "cube.set_initial_state(position=(0,0,0.5)) # Returns 0 on success"
+    "cube.set_initial_state(position=(0, 0, 0.5))"
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 6,
    "id": "57eb0633-4e59-430b-a5cd-1ace9254970d",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "# Refresh the visualizer to show changes to the cube's position\n",
     "proj.refresh_visualizer() # Returns 0 on success"
@@ -157,10 +196,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 7,
    "id": "7712fce5-69c9-44f0-859c-7a7a4e37ba7b",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "proj.reset() # Returns 0 on success"
    ]
@@ -285,7 +335,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 8,
    "id": "5de2c636-cf08-4007-8f67-3d8e40605f36",
    "metadata": {},
    "outputs": [],
@@ -328,10 +378,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 9,
    "id": "9bdff44b-aaab-4fe6-bff8-dcf85e1eb55d",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "proj.terminate() # Returns 0 on success"
    ]

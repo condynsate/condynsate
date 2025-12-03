@@ -18,21 +18,22 @@ __all__ = ["Project",
            "Keyboard",]
 
 
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 
 
 import os
 _root = os.path.split(__file__)[0]
 _dirpath = os.path.join(_root, "__assets__")
-vals = [os.path.join(_dirpath, f) for f in os.listdir(_dirpath)]
-keys = []
-accepted = ('.urdf', '.png', '.obj', '.stl', '.dae')
-for v in vals:
-    if v.lower().endswith(accepted):
-        keys.append(os.path.basename(v.lower()))
-__assets__ = dict(zip(keys, vals))
+_vals = [os.path.join(_dirpath, f) for f in os.listdir(_dirpath)]
+_pairs = []
+_accepted = ('.urdf', '.png', '.obj', '.stl', '.dae')
+for _v in _vals:
+    if _v.lower().endswith(_accepted):
+        _pairs.append((os.path.basename(_v.lower()), _v))
+__assets__ = dict(_pairs)
 del(_root)
 del(_dirpath)
-del(vals)
-del(v)
-del(keys)
+del(_vals)
+del(_pairs)
+del(_accepted)
+del(_v)

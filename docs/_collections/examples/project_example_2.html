@@ -1,0 +1,439 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Example 2: The Gyroscope &mdash; condynsate 1.0.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/autoclasstoc.css?v=08871587" />
+      <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=baaebd52"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Simulator Example" href="simulator_example.html" />
+    <link rel="prev" title="Project Example 1: The Cart" href="project_example_1.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            condynsate
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../package.html">The condynsate Package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="project_example_1.html">Project Example 1: The Cart</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Project Example 2: The Gyroscope</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Set-up-the-Visualizer-and-Physics-Environment">Set up the Visualizer and Physics Environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Define-Functions-Used-in-Simulation-Loop">Define Functions Used in Simulation Loop</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Running-the-Simulation">Running the Simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="simulator_example.html">Simulator Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualizer_example.html">Visualizer Example Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="animator_example.html">Animator Example Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="keyboard_example.html">Keyboard Example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">condynsate</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Project Example 2: The Gyroscope</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/_collections/examples/project_example_2.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p>© Copyright, 2025 G. Schaer.</p>
+<p>SPDX-License-Identifier: GPL-3.0-only</p>
+<section id="Project-Example-2:-The-Gyroscope">
+<h1>Project Example 2: The Gyroscope<a class="headerlink" href="#Project-Example-2:-The-Gyroscope" title="Link to this heading"></a></h1>
+<section id="Set-up-the-Visualizer-and-Physics-Environment">
+<h2>Set up the Visualizer and Physics Environment<a class="headerlink" href="#Set-up-the-Visualizer-and-Physics-Environment" title="Link to this heading"></a></h2>
+<p>Import necessary <code class="docutils literal notranslate"><span class="pre">condynsate</span></code> modules</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">condynsate</span><span class="w"> </span><span class="kn">import</span> <span class="n">Project</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">condynsate</span><span class="w"> </span><span class="kn">import</span> <span class="n">__assets__</span> <span class="k">as</span> <span class="n">assets</span>
+</pre></div>
+</div>
+</div>
+<p>Create a instance of <code class="docutils literal notranslate"><span class="pre">condynsate.Project</span></code> that uses the visualizaer and keyboard but does use the animator.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span> <span class="o">=</span> <span class="n">Project</span><span class="p">(</span><span class="n">keyboard</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+               <span class="n">visualizer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+               <span class="n">animator</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+You can open the visualizer by visiting the following URL:
+http://127.0.0.1:7032/static/
+</pre></div></div>
+</div>
+<p>Load a medium plane into the simulator to represent the ground. Set <code class="docutils literal notranslate"><span class="pre">fixed</span> <span class="pre">=</span> <span class="pre">True</span></code> so it are fixed in space (0 degerees of freedom) and adjust give it a texture so it is pretty.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load a plane with a carpet texture for the ground</span>
+<span class="n">ground</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;plane_medium.urdf&#39;</span><span class="p">],</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ground</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;plane&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_texture</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;carpet.png&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<p>Load the gyro into the simulator. Set <code class="docutils literal notranslate"><span class="pre">fixed</span> <span class="pre">=</span> <span class="pre">True</span></code> so that the base link of the gyro has 0 degrees of freedom.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load and orient a 2 gimbal gyroscope.</span>
+<span class="n">gyro</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;gyro.urdf&#39;</span><span class="p">])</span>
+<span class="n">gyro</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<p>Note that the gryo’s position update is not yet reflected in the visualizer. To update this manually, we can call the <code class="docutils literal notranslate"><span class="pre">proj.refresh_visualizer</span></code> function. Note, however, this is also done automatically every time <code class="docutils literal notranslate"><span class="pre">proj.load_urdf</span></code>, <code class="docutils literal notranslate"><span class="pre">proj.reset</span></code>, or <code class="docutils literal notranslate"><span class="pre">proj.step</span></code> is called. Therefore, calling this now is purely an aesthetic choice as it will be done automatically when the simulation starts running.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">refresh_visualizer</span><span class="p">()</span> <span class="c1"># This returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<p>Now we will adjust the visualizer scene. First we turn off the axes and grid plane visualization.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Turn off the axes and grid visualization.</span>
+<span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_axes</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+<span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<p>Then we will move the camera’s position up just a slight amount from its default position and then tell it to look directly at the center of mass of the gyro.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set the camera&#39;s position</span>
+<span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_cam_position</span><span class="p">((</span><span class="mf">2.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">3.75</span><span class="p">))</span> <span class="c1"># This returns 0 on success</span>
+
+<span class="c1"># Focus the camera on the gyro</span>
+<span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_cam_target</span><span class="p">(</span><span class="n">gyro</span><span class="o">.</span><span class="n">center_of_mass</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<p>Set the <code class="docutils literal notranslate"><span class="pre">&quot;base_to_ring3&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;ring3_to_ring2&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&quot;ring2_to_ring1&quot;</span></code> joint damping (rotational friction) to some small value. This helps with numerical stability. The <code class="docutils literal notranslate"><span class="pre">&quot;base_to_ring3&quot;</span></code> joint is the rotational joint between the base of the pendulum and the outer gimbal, <code class="docutils literal notranslate"><span class="pre">&quot;ring3_to_ring2&quot;</span></code> joint is the rotational joint between the outer gimbal and the middle gimbal, and <code class="docutils literal notranslate"><span class="pre">&quot;ring2_to_ring1&quot;</span></code> joint is the rotational joint between the middle gimbal and the inner gimbal.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set joint damping</span>
+<span class="n">gyro</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;base_to_ring3&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_dynamics</span><span class="p">(</span><span class="n">damping</span><span class="o">=</span><span class="mf">0.025</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+<span class="n">gyro</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;ring3_to_ring2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_dynamics</span><span class="p">(</span><span class="n">damping</span><span class="o">=</span><span class="mf">0.025</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+<span class="n">gyro</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;ring2_to_ring1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_dynamics</span><span class="p">(</span><span class="n">damping</span><span class="o">=</span><span class="mf">0.025</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<p>Set the damping to 0 and limit the maximum magnitude of the angular velocity of the <code class="docutils literal notranslate"><span class="pre">&quot;ring1_to_core&quot;</span></code> joint to 10 rad/sec, then set the its initial angular velocity to to 5 rad/sec. The <code class="docutils literal notranslate"><span class="pre">&quot;ring1_to_core&quot;</span></code> joint is the rotational joint between the inner gimbal and the gyroscope’s wheel.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gyro</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;ring1_to_core&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_dynamics</span><span class="p">(</span><span class="n">damping</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="c1"># Set friction to 0</span>
+                                          <span class="n">max_omega</span><span class="o">=</span><span class="mf">10.0</span> <span class="c1"># Limit maximum speed to 10 rad/sec</span>
+                                         <span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+<span class="n">gyro</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;ring1_to_core&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">omega</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+</section>
+<section id="Define-Functions-Used-in-Simulation-Loop">
+<h2>Define Functions Used in Simulation Loop<a class="headerlink" href="#Define-Functions-Used-in-Simulation-Loop" title="Link to this heading"></a></h2>
+<p>In this simulation, we want the user to be able to apply torques to each gimbal joint through keypresses. To enable this, we will create a function that listens for keypresses, converts them to gimbal joint torque commands, and sets those torque values</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">apply_torques</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">gryoscope</span><span class="p">):</span>
+    <span class="c1"># Determine what torques to apply based on key presses</span>
+    <span class="n">tau0</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="c1"># Torque applied to outermost ring</span>
+    <span class="n">tau0</span> <span class="o">-=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">is_pressed</span><span class="p">(</span><span class="s1">&#39;q&#39;</span><span class="p">))</span> <span class="c1"># Convert bool return value to float (0.0 or 1.0)</span>
+    <span class="n">tau0</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">is_pressed</span><span class="p">(</span><span class="s1">&#39;e&#39;</span><span class="p">))</span>
+
+    <span class="n">tau1</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="c1"># Torque applied to the middle ring</span>
+    <span class="n">tau1</span> <span class="o">-=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">is_pressed</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">))</span>
+    <span class="n">tau1</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">is_pressed</span><span class="p">(</span><span class="s1">&#39;s&#39;</span><span class="p">))</span>
+
+    <span class="n">tau2</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="c1"># Torque applied to the inner ring</span>
+    <span class="n">tau2</span> <span class="o">-=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">is_pressed</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">))</span>
+    <span class="n">tau2</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">is_pressed</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Apply the torques</span>
+    <span class="n">gryoscope</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;base_to_ring3&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply_torque</span><span class="p">(</span><span class="n">tau0</span><span class="p">,</span> <span class="c1"># Set the torque value</span>
+                                                   <span class="n">draw_arrow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="c1"># Draw an arrow to visualize the applied torque</span>
+                                                   <span class="n">arrow_scale</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="c1"># Set the scaling of the arrow</span>
+                                                   <span class="n">arrow_offset</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="c1"># Move the arrow away from the center of the</span>
+                                                  <span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+
+    <span class="n">gryoscope</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;ring3_to_ring2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply_torque</span><span class="p">(</span><span class="n">tau1</span><span class="p">,</span> <span class="n">draw_arrow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">arrow_scale</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">arrow_offset</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,)</span>
+    <span class="n">gryoscope</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;ring2_to_ring1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply_torque</span><span class="p">(</span><span class="n">tau2</span><span class="p">,</span> <span class="n">draw_arrow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">arrow_scale</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">arrow_offset</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,)</span>
+</pre></div>
+</div>
+</div>
+<p>Now we want to color the gyroscope’s wheel based on its rotation speed. To do so we define a function that</p>
+<ol class="arabic simple">
+<li><p>Reads the gyroscope’s wheel’s angular velocity</p></li>
+<li><p>Changes the color of the wheel based on the velocity</p></li>
+</ol>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">set_color</span><span class="p">(</span><span class="n">gryoscope</span><span class="p">,</span> <span class="n">max_omega</span><span class="o">=</span><span class="mf">10.0</span><span class="p">):</span>
+    <span class="c1"># Get the angular velocity of the wheel in its body coordinates</span>
+    <span class="n">omega</span> <span class="o">=</span> <span class="n">gyro</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;core&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">omega_in_body</span>
+
+    <span class="c1"># In the case of the wheel, the +z body axis is the rotational axis, so isolate that</span>
+    <span class="n">omega</span> <span class="o">=</span> <span class="n">omega</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># Get a color based on the rotation rate</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">omega</span> <span class="o">/</span> <span class="n">max_omega</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">)</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">omega</span><span class="p">)</span> <span class="o">/</span> <span class="n">max_omega</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">omega</span> <span class="o">/</span> <span class="n">max_omega</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">)</span>
+
+    <span class="c1"># Set the color of the core link</span>
+    <span class="n">gyro</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;core&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span> <span class="c1"># This returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<p><strong>Important Note</strong>: When we call <code class="docutils literal notranslate"><span class="pre">set_color</span></code>, this visualizer will not update. We must remember to either manually update the visualizer or call a functional that automatically updates the visualizer (<code class="docutils literal notranslate"><span class="pre">proj.load_urdf</span></code>, <code class="docutils literal notranslate"><span class="pre">proj.reset</span></code>, or <code class="docutils literal notranslate"><span class="pre">proj.step</span></code>) after we call <code class="docutils literal notranslate"><span class="pre">set_color</span></code> to see the color change</p>
+<p>Finally, we would also like to allow the user the adjust the wheel joint speed based on keyboard inputs. We do this similarly as in the <code class="docutils literal notranslate"><span class="pre">apply_torque</span></code>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">set_omega</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">gryoscope</span><span class="p">):</span>
+    <span class="c1"># The amount by which to iterate the wheel speed</span>
+    <span class="n">iter_val</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">iter_val</span> <span class="o">-=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">is_pressed</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">))</span> <span class="c1"># Convert bool return value to float (0.0 or 1.0)</span>
+    <span class="n">iter_val</span> <span class="o">+=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">is_pressed</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Read the current wheel joint speed, iterate it, and set the new value</span>
+    <span class="n">old_omega</span> <span class="o">=</span> <span class="n">gryoscope</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;ring1_to_core&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">omega</span>
+    <span class="n">new_omega</span> <span class="o">=</span> <span class="n">old_omega</span> <span class="o">+</span> <span class="n">iter_val</span>
+    <span class="n">gryoscope</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;ring1_to_core&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">omega</span> <span class="o">=</span> <span class="n">new_omega</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Running-the-Simulation">
+<h2>Running the Simulation<a class="headerlink" href="#Running-the-Simulation" title="Link to this heading"></a></h2>
+<p>Before running the simulation, we reset the project. This ensure that everything is started, updated, and in the desired initial state. <code class="docutils literal notranslate"><span class="pre">proj.reset</span></code> should be called before a simulation every time you run one.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reset the project to its initial state. This is required to</span>
+<span class="c1"># reset the simulation, reset the visualizer, and reset/start the</span>
+<span class="c1"># animator.</span>
+<span class="n">proj</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span> <span class="c1"># This returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<p>Next we create and run a simulation loop. In this loop, on every step we</p>
+<ol class="arabic simple">
+<li><p>Set the torques based on keyboard presses</p></li>
+<li><p>Set the wheel speed based on keyboard presses</p></li>
+<li><p>Set the wheel’s color based on its speed</p></li>
+<li><p>Take a simulation step in real time</p></li>
+</ol>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run a 10 second simulation loop</span>
+<span class="k">while</span> <span class="n">proj</span><span class="o">.</span><span class="n">simtime</span> <span class="o">&lt;=</span> <span class="mf">10.</span><span class="p">:</span>
+    <span class="n">apply_torques</span><span class="p">(</span><span class="n">proj</span><span class="p">,</span> <span class="n">gyro</span><span class="p">)</span>
+    <span class="n">set_omega</span><span class="p">(</span><span class="n">proj</span><span class="p">,</span> <span class="n">gyro</span><span class="p">)</span>
+    <span class="n">set_color</span><span class="p">(</span><span class="n">gyro</span><span class="p">)</span>
+    <span class="n">proj</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">real_time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stable_step</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<p>Finally, we terminate the project. This is required to save any videos that are recorded and gracefully exit all the children threads (including the animator window). <code class="docutils literal notranslate"><span class="pre">proj.terminate()</span></code> should be called when done with any member of the <code class="docutils literal notranslate"><span class="pre">condynsate.Project</span></code> class.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span> <span class="c1"># This returns 0 on success</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="project_example_1.html" class="btn btn-neutral float-left" title="Project Example 1: The Cart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="simulator_example.html" class="btn btn-neutral float-right" title="Simulator Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, G. Schaer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

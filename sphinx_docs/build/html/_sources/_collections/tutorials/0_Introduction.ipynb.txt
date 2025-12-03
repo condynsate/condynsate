@@ -58,7 +58,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 1,
    "id": "b2b6dc1e-8420-4242-91a3-e73422ce713e",
    "metadata": {},
    "outputs": [],
@@ -77,10 +77,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 2,
    "id": "2683e90e-88af-4340-92ab-65f901732817",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "dict_keys(['arrow_ccw.stl', 'arrow_lin.stl', 'bricks.png', 'carpet.png', 'cart.urdf', 'classroom_wall.png', 'concrete.png', 'cone_1x1_center_origin.stl', 'cone_1x1_lower_origin.stl', 'cube.urdf', 'cube_1x1x1_center_origin.stl', 'cube_1x1x1_lower_origin.stl', 'cylinder_1x1_center_origin.stl', 'cylinder_1x1_lower_origin.stl', 'door_wall.png', 'gyro.urdf', 'gyrocore.stl', 'gyroouter_1-odx0.9id_lower_origin.stl', 'gyroring_0.6-odx0.3-id_center_origin.stl', 'gyroring_0.9-odx0.6-id_center_origin.stl', 'half_plane_medium.urdf', 'missing_tex.png', 'plane.obj', 'plane_big.urdf', 'plane_medium.urdf', 'plane_small.urdf', 'pyramid_1x1x1_center_origin.stl', 'pyramid_1x1x1_lower_origin.stl', 'sphere_1_center_origin.stl', 'sphere_1_lower_origin.stl', 'white_wall.png', 'window_wall.png'])"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "assets.keys()"
    ]
@@ -173,10 +184,19 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 3,
    "id": "d493c716-fd12-4537-8836-ebc787cdba99",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "You can open the visualizer by visiting the following URL:\n",
+      "http://127.0.0.1:7027/static/\n"
+     ]
+    }
+   ],
    "source": [
     "# Create the project\n",
     "proj = Project()"
@@ -200,10 +220,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 4,
    "id": "39bacc3c-76c1-4c84-b5d2-f7d853dd8d2a",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "proj.visualizer.set_axes(False) # Returns 0 on success\n",
     "proj.visualizer.set_grid(False) # Returns 0 on success"
@@ -243,7 +274,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 5,
    "id": "573152b4-5b78-4aec-b3d9-f409e0a1ce0d",
    "metadata": {},
    "outputs": [],
@@ -300,16 +331,27 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 6,
    "id": "129a9625-b65e-42ab-b735-cc38877fe920",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "# Load a cube object and set its initial position to 1 meter above the ground\n",
     "cube = proj.load_urdf(assets['cube.urdf'])\n",
     "\n",
-    "# The origin of the cube is at its center, and the cube is 1 meter length. \n",
-    "# 1.5 meters places bottom of cube 1 meter above the ground.\n",
+    "# The origin of the cube is at its center so\n",
+    "# Setting its initial state to (0,0,1.5) places the bottom face 1 meter above the ground\n",
     "cube.set_initial_state(position=(0,0,1.5)) # Returns 0 on success"
    ]
   },
@@ -336,10 +378,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 7,
    "id": "0bbb5dc3-9cbe-472e-a266-f9bf0e28880e",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "proj.refresh_visualizer() # Returns 0 on success"
    ]
@@ -374,10 +427,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 8,
    "id": "85dd5c3a-760b-4c6b-ab5c-bfdbba345f79",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "proj.reset() # Returns 0 on success"
    ]
@@ -430,7 +494,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 9,
    "id": "abb5f9bd-4031-42bd-a6b4-89b5e2b13e6b",
    "metadata": {},
    "outputs": [],
@@ -461,10 +525,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 10,
    "id": "17c9a62e-9fa7-4248-9379-4f60d51cde9e",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "proj.terminate() # Returns 0 on success"
    ]

@@ -46,9 +46,9 @@ if __name__ == "__main__":
     # Load and orient a cart carrying an inverted pendulum. Set the initial
     # angle of the pendulum to a non-zero angle.
     cart = proj.load_urdf(assets['cart.urdf'])
-    cart.set_initial_state(position=(0,0,0.251))
-    cart.joints['chassis_to_arm'].set_initial_state(angle=0.355)
-
+    cart.set_initial_state(position=(0,0,0.126))
+    cart.joints['chassis_to_arm'].set_initial_state(angle=0.175)
+    
     # Focus the camera on the cart
     proj.visualizer.set_cam_target(cart.center_of_mass)
 
@@ -74,7 +74,7 @@ if __name__ == "__main__":
                          'chassis_to_wheel_3', 'chassis_to_wheel_4',)
 
     # Set control constants to keep the pendulum upright
-    k = np.array([[ -16.6, -0.6, -100.0, -0.16]])
+    k = np.array([[ 1.5, -0.05, 6.0, -0.075]])
     m_e = np.zeros(4)
     n_e = np.zeros(1)
 
@@ -120,10 +120,10 @@ if __name__ == "__main__":
                 # the wheels so we can see them. It is required to be
                 # different between the front wheels (1 and 2) and the rear
                 # wheels (3 and 4) because they are oriented 180 degrees apart
-                offset = ('3' in joint_name or '4' in joint_name)*0.05-0.025
+                offset = ('3' in joint_name or '4' in joint_name)*0.1-0.05
                 cart.joints[joint_name].apply_torque(torque,
                                                      draw_arrow=True,
-                                                     arrow_scale=0.33,
+                                                     arrow_scale=0.67,
                                                      arrow_offset=offset)
 
             # Plot the pendulum angle against the current simulation time

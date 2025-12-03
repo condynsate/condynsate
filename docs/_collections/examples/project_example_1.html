@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project Example Usage &mdash; condynsate 1.0.2 documentation</title>
+  <title>Project Example 1: The Cart &mdash; condynsate 1.0.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/autoclasstoc.css?v=08871587" />
@@ -15,7 +15,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=1ed6394b"></script>
+      <script src="../../_static/documentation_options.js?v=baaebd52"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -24,7 +24,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Simulator Example" href="simulator_example.html" />
+    <link rel="next" title="Project Example 2: The Gyroscope" href="project_example_2.html" />
     <link rel="prev" title="Examples" href="../../examples.html" /> 
 </head>
 
@@ -51,7 +51,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../package.html">The condynsate Package</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../examples.html">Examples</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Project Example Usage</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Project Example 1: The Cart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="project_example_2.html">Project Example 2: The Gyroscope</a></li>
 <li class="toctree-l2"><a class="reference internal" href="simulator_example.html">Simulator Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="visualizer_example.html">Visualizer Example Usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="animator_example.html">Animator Example Usage</a></li>
@@ -76,9 +77,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../examples.html">Examples</a></li>
-      <li class="breadcrumb-item active">Project Example Usage</li>
+      <li class="breadcrumb-item active">Project Example 1: The Cart</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/_collections/examples/project_example.ipynb.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/_collections/examples/project_example_1.ipynb.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -88,8 +89,8 @@
              
   <p>© Copyright, 2025 G. Schaer.</p>
 <p>SPDX-License-Identifier: GPL-3.0-only</p>
-<section id="Project-Example-Usage">
-<h1>Project Example Usage<a class="headerlink" href="#Project-Example-Usage" title="Link to this heading"></a></h1>
+<section id="Project-Example-1:-The-Cart">
+<h1>Project Example 1: The Cart<a class="headerlink" href="#Project-Example-1:-The-Cart" title="Link to this heading"></a></h1>
 <p>Import necessary <code class="docutils literal notranslate"><span class="pre">condynsate</span></code> modules. Also import <code class="docutils literal notranslate"><span class="pre">numpy</span></code> for array management.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -119,7 +120,7 @@
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 You can open the visualizer by visiting the following URL:
-http://127.0.0.1:7001/static/
+http://127.0.0.1:7027/static/
 </pre></div></div>
 </div>
 <p>Load four medium planes into the simulator to represent the ground and walls. Set <code class="docutils literal notranslate"><span class="pre">fixed</span> <span class="pre">=</span> <span class="pre">True</span></code> so that they are fixed in space and adjust their initial states so they are oriented properly.</p>
@@ -193,7 +194,7 @@ http://127.0.0.1:7001/static/
 0
 </pre></div></div>
 </div>
-<p>Load the cart into the simulator. Additionally, set the initial position to <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">0.0,</span> <span class="pre">0.251]</span></code> so that its wheels are just above the ground plane. Finally, set the initial angle of the pendulum to a non zero value</p>
+<p>Load the cart into the simulator. Additionally, set the initial position to <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">0.0,</span> <span class="pre">0.126]</span></code> so that its wheels are just above the ground plane. Finally, set the initial angle of the pendulum to a non zero value</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
@@ -201,8 +202,8 @@ http://127.0.0.1:7001/static/
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load and orient a cart carrying an inverted pendulum. Set the initial</span>
 <span class="c1"># angle of the pendulum to a non-zero angle.</span>
 <span class="n">cart</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;cart.urdf&#39;</span><span class="p">])</span>
-<span class="n">cart</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.251</span><span class="p">))</span> <span class="c1"># This returns 0 on success</span>
-<span class="n">cart</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;chassis_to_arm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">angle</span><span class="o">=</span><span class="mf">0.355</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+<span class="n">cart</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">0.126</span><span class="p">))</span> <span class="c1"># This returns 0 on success</span>
+<span class="n">cart</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="s1">&#39;chassis_to_arm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">angle</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
 </pre></div>
 </div>
 </div>
@@ -243,7 +244,7 @@ http://127.0.0.1:7001/static/
                      <span class="s1">&#39;chassis_to_wheel_3&#39;</span><span class="p">,</span> <span class="s1">&#39;chassis_to_wheel_4&#39;</span><span class="p">,)</span>
 
 <span class="c1"># Set control constants to keep the pendulum upright</span>
-<span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span> <span class="o">-</span><span class="mf">16.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.16</span><span class="p">]])</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span> <span class="mf">0.664</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.024</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.0064</span><span class="p">]])</span>
 <span class="n">m_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
 <span class="n">n_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
@@ -375,7 +376,7 @@ http://127.0.0.1:7001/static/
         <span class="c1"># the wheels so we can see them. It is required to be</span>
         <span class="c1"># different between the front wheels (1 and 2) and the rear</span>
         <span class="c1"># wheels (3 and 4) because they are oriented 180 degrees apart</span>
-        <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;3&#39;</span> <span class="ow">in</span> <span class="n">joint_name</span> <span class="ow">or</span> <span class="s1">&#39;4&#39;</span> <span class="ow">in</span> <span class="n">joint_name</span><span class="p">)</span><span class="o">*</span><span class="mf">0.05</span><span class="o">-</span><span class="mf">0.025</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;3&#39;</span> <span class="ow">in</span> <span class="n">joint_name</span> <span class="ow">or</span> <span class="s1">&#39;4&#39;</span> <span class="ow">in</span> <span class="n">joint_name</span><span class="p">)</span><span class="o">*</span><span class="mf">0.1</span><span class="o">-</span><span class="mf">0.05</span>
         <span class="n">cart</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="n">joint_name</span><span class="p">]</span><span class="o">.</span><span class="n">apply_torque</span><span class="p">(</span><span class="n">torque</span><span class="p">,</span>
                                              <span class="n">draw_arrow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                              <span class="n">arrow_scale</span><span class="o">=</span><span class="mf">0.33</span><span class="p">,</span>
@@ -402,7 +403,7 @@ http://127.0.0.1:7001/static/
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Simuation took 10.02 seconds.
+Simuation took 10.04 seconds.
 </pre></div></div>
 </div>
 <p>Finally, we terminate the project. This is required to save any videos that are recorded and gracefully exit all the children threads (including the animator window). <code class="docutils literal notranslate"><span class="pre">proj.terminate()</span></code> should be called when done with any member of the <code class="docutils literal notranslate"><span class="pre">condynsate.Project</span></code> class.</p>
@@ -430,7 +431,7 @@ Simuation took 10.02 seconds.
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../../examples.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="simulator_example.html" class="btn btn-neutral float-right" title="Simulator Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="project_example_2.html" class="btn btn-neutral float-right" title="Project Example 2: The Gyroscope" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

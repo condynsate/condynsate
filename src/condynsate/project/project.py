@@ -230,15 +230,15 @@ class Project:
         """
         ret_code = self._simulator.reset()
         if not self._visualizer is None:
-            self._visualizer.reset()
+            ret_code += self._visualizer.reset()
+            ret_code += self.refresh_visualizer()
         if not self._animator is None:
             if not self._animator.is_running:
                 ret_code += self._animator.start()
             else:
                 ret_code += self._animator.reset()
+            ret_code += self.refresh_animator()
         time.sleep(0.1)
-        ret_code += self.refresh_visualizer()
-        ret_code += self.refresh_animator()
         return max(-1, ret_code)
 
     def step(self, real_time=True, stable_step=True):
