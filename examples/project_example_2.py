@@ -133,8 +133,7 @@ if __name__ == "__main__":
     ground.links['plane'].set_texture(assets['carpet.png'])
 
     # Load and orient a 2 gimbal gyroscope.
-    gyro = proj.load_urdf(assets['gyro.urdf'])
-    gyro.set_initial_state(fixed=True)
+    gyro = proj.load_urdf(assets['gyro.urdf'], fixed=True)
 
     # Set the camera's position and focus on gyro
     proj.visualizer.set_cam_position((2.0, -4.0, 3.75))

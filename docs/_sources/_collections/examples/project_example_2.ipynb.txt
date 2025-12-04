@@ -36,7 +36,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 1,
    "id": "cc40d60b-49c6-4c54-8abf-ba7b801cf370",
    "metadata": {},
    "outputs": [],
@@ -55,10 +55,19 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 2,
    "id": "00f52642-97ac-43ca-957d-4102c79cba87",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "You can open the visualizer by visiting the following URL:\n",
+      "http://127.0.0.1:7000/static/\n"
+     ]
+    }
+   ],
    "source": [
     "proj = Project(keyboard = True,\n",
     "               visualizer = True,\n",
@@ -75,7 +84,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 3,
    "id": "bae9d9be-feca-4c75-a546-ab29f0fa637f",
    "metadata": {},
    "outputs": [],
@@ -95,14 +104,13 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 4,
    "id": "c6bff914-6125-404a-921d-5b76c1e9995e",
    "metadata": {},
    "outputs": [],
    "source": [
     "# Load and orient a 2 gimbal gyroscope.\n",
-    "gyro = proj.load_urdf(assets['gyro.urdf'])\n",
-    "gyro.set_initial_state(fixed=True) # This returns 0 on success"
+    "gyro = proj.load_urdf(assets['gyro.urdf'], fixed=True)"
    ]
   },
   {
@@ -115,10 +123,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 5,
    "id": "92dadc3c-20ec-4404-9742-0ea305a52a7d",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "proj.refresh_visualizer() # This returns 0 on success"
    ]
@@ -133,10 +152,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 6,
    "id": "9a3b0c40-f891-4c6d-90a8-6f8948cdb93f",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "# Turn off the axes and grid visualization.\n",
     "proj.visualizer.set_axes(False) # This returns 0 on success\n",
@@ -153,10 +183,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 7,
    "id": "df1c2b24-bea2-4487-b8bf-8e31d09a709f",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "# Set the camera's position\n",
     "proj.visualizer.set_cam_position((2.0, -4.0, 3.75)) # This returns 0 on success\n",
@@ -175,10 +216,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 8,
    "id": "ec5f1e20-b51e-47b6-a280-05d10be738bb",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "# Set joint damping\n",
     "gyro.joints['base_to_ring3'].set_dynamics(damping=0.025) # This returns 0 on success\n",
@@ -196,10 +248,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 9,
    "id": "7986bd5b-0ba9-484a-8b18-6e436fe602b3",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "gyro.joints['ring1_to_core'].set_dynamics(damping=0.0, # Set friction to 0\n",
     "                                          max_omega=10.0 # Limit maximum speed to 10 rad/sec\n",
@@ -225,7 +288,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 10,
    "id": "8b62f0a9-0274-4485-9fc5-70c1d91aaac8",
    "metadata": {},
    "outputs": [],
@@ -268,14 +331,14 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 11,
    "id": "f1313ea1-7fa9-4f3b-b85c-8bc2fd5b9683",
    "metadata": {},
    "outputs": [],
    "source": [
     "def set_color(gryoscope, max_omega=10.0):\n",
     "    # Get the angular velocity of the wheel in its body coordinates\n",
-    "    omega = gyro.links['core'].state.omega_in_body\n",
+    "    omega = gryoscope.links['core'].state.omega_in_body\n",
     "\n",
     "    # In the case of the wheel, the +z body axis is the rotational axis, so isolate that\n",
     "    omega = omega[2]\n",
@@ -286,7 +349,7 @@
     "    b = min(max(1. - omega / max_omega, 0.), 1.)\n",
     "\n",
     "    # Set the color of the core link\n",
-    "    gyro.links['core'].set_color((r, g, b)) # This returns 0 on success"
+    "    gryoscope.links['core'].set_color((r, g, b)) # This returns 0 on success"
    ]
   },
   {
@@ -307,7 +370,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 12,
    "id": "a9491f6e-07dd-4fbc-9237-be8d50be0822",
    "metadata": {},
    "outputs": [],
@@ -342,10 +405,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 13,
    "id": "50902142-1f44-40f5-a671-2f8cad02561c",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "# Reset the project to its initial state. This is required to\n",
     "# reset the simulation, reset the visualizer, and reset/start the\n",
@@ -367,7 +441,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 14,
    "id": "d1cfe1f9-a181-4c27-89e4-a7463aa59223",
    "metadata": {},
    "outputs": [],
@@ -390,10 +464,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 15,
    "id": "ef6e1f9e-3a5e-4cb9-bdcf-dd151129397a",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
    "source": [
     "proj.terminate() # This returns 0 on success"
    ]
