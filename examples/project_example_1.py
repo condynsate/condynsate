@@ -16,8 +16,7 @@ import numpy as np
 
 if __name__ == "__main__":
     # Create the project
-    proj = Project(visualizer=True, animator=True, keyboard=True,
-                   visualizer_record=False, animator_record=False)
+    proj = Project(keyboard = True, visualizer = True, animator = True)
 
     # Turn off the axes and grid visualization. Turn on the spotlight
     proj.visualizer.set_axes(False)
@@ -48,7 +47,7 @@ if __name__ == "__main__":
     cart = proj.load_urdf(assets['cart.urdf'])
     cart.set_initial_state(position=(0,0,0.126))
     cart.joints['chassis_to_arm'].set_initial_state(angle=0.175)
-    
+
     # Focus the camera on the cart
     proj.visualizer.set_cam_target(cart.center_of_mass)
 
@@ -74,7 +73,7 @@ if __name__ == "__main__":
                          'chassis_to_wheel_3', 'chassis_to_wheel_4',)
 
     # Set control constants to keep the pendulum upright
-    k = np.array([[ 1.5, -0.05, 6.0, -0.075]])
+    k = np.array([[ 0.664, -0.024, 4.0, -0.0064]])
     m_e = np.zeros(4)
     n_e = np.zeros(1)
 
