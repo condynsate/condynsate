@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This module provides utilities functions used to render videos from zlib
+This module provides utilities functions used to render videos from zstd3333
 compressed frame data.
 """
 """
@@ -12,7 +12,7 @@ SPDX-License-Identifier: GPL-3.0-only
 #DEPENDENCIES
 ###############################################################################
 import os
-import zlib
+from compression import zstd
 import cv2
 import numpy as np
 from condynsate.exceptions import InvalidNameException
@@ -126,9 +126,9 @@ def _get_fps_and_frames(frames, frame_times):
     Parameters
     ----------
     frames: list of tuples of (image bytes, image.shape)
-        The zlib compressed frame data. Each frame should a tuple of the zlib
-        compressed m x n x 3 numpy array of dtype np.uint8 and its shape in
-        the form (m, n, 3).
+        The zstd compressed frame data. Each frame should a tuple of the
+        zstd compressed m x n x 3 numpy array of dtype np.uint8 and
+        its shape in the form (m, n, 3).
     frame_times : list of floats
         The times in seconds at which each frame was recorded.
 
@@ -137,7 +137,7 @@ def _get_fps_and_frames(frames, frame_times):
     vid_fps : float
         The fps at which the frames are to be played back.
     vid_frames : list of tuples of form (bytes, (int, int, int))
-        The zlib compressed video frames and their shapes.
+        The zstd compressed video frames and their shapes.
 
     """
     # Get the fps for the video
@@ -176,7 +176,7 @@ def _make_video(vid_fps, vid_frames, name):
     vid_fps : float
         The fps at which the frames are to be played back.
     vid_frames : list of tuples of form (bytes, (int, int, int))
-        The zlib compressed video frames and their shapes.
+        The zstd compressed video frames and their shapes.
     name : string
         The name of the file to save to.
 
@@ -200,10 +200,10 @@ def _make_video(vid_fps, vid_frames, name):
     fname = _get_valid_name(name, 'mp4')
 
     # Make the video
-    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(fname, fourcc, vid_fps, vid_size)
     for f in vid_frames:
-        dat = zlib.decompress(f[0])
+        dat = zstd.decompress(f[0])
         img = np.frombuffer(dat, np.uint8).reshape(f[1])
         img = img[:, :, ::-1] # Convert RGB image to BGR
 
@@ -235,9 +235,9 @@ def save_recording(frames, frame_times, name='recording'):
     Parameters
     ----------
     frames: list of tuples of (image bytes, image.shape)
-        The zlib compressed frame data. Each frame should a tuple of the zlib
-        compressed m x n x 3 numpy array of dtype np.uint8 and its shape in
-        the form (m, n, 3).
+        The zstd compressed frame data. Each frame should a tuple of the
+        zstd compressed m x n x 3 numpy array of dtype np.uint8 and its
+        shape in the form (m, n, 3).
     frame_times : list of floats
         The times in seconds at which each frame was recorded.
     name : string

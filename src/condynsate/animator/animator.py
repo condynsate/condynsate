@@ -13,7 +13,7 @@ SPDX-License-Identifier: GPL-3.0-only
 ###############################################################################
 from warnings import warn
 from copy import copy
-import zlib
+from compression import zstd
 import tkinter as tk
 import cv2
 import numpy as np
@@ -389,7 +389,7 @@ class Animator():
 
         # If recording, save the current image
         if self.record:
-            self._frames.append((zlib.compress(image), image.shape))
+            self._frames.append((zstd.compress(image, level=1), image.shape))
             self._frame_ticks.append(self._last_refresh)
 
         return 0

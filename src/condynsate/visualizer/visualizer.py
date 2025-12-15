@@ -18,7 +18,7 @@ sys.path.append(meshcat_path)
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
-import zlib
+from compression import zstd
 import time
 from warnings import warn
 from threading import (Thread, Lock)
@@ -27,6 +27,7 @@ import meshcat
 import meshcat.geometry as geo
 import umsgpack
 import cv2
+from PIL import Image
 from condynsate.misc import save_recording
 from condynsate.visualizer.utilities import (is_instance, is_num, is_nvector,
                                              path_valid, name_valid)
@@ -174,9 +175,9 @@ class Visualizer():
             # If recording, save the current image
             if self.record:
                 image = self._scene.get_image(w=800, h=600)
-                image = np.asarray(image, dtype=np.uint8)[:,:,:-1]
-                image = image.copy()
-                self._frames.append((zlib.compress(image), image.shape))
+                image = np.array(image, dtype=np.uint8)[:, :, :-1].copy()
+                self._frames.append((zstd.compress(image, level=1),
+                                     image.shape))
                 self._frame_ticks.append(self._last_refresh)
 
     def _fnc_priority(self, fnc):

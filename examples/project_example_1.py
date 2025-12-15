@@ -46,24 +46,24 @@ if __name__ == "__main__":
     # angle of the pendulum to a non-zero angle.
     cart = proj.load_urdf(assets['cart.urdf'])
     cart.set_initial_state(position=(0,0,0.126))
-    cart.joints['chassis_to_arm'].set_initial_state(angle=0.175)
+    cart.joints['chassis_to_arm'].set_initial_state(angle=0.35)
 
     # Focus the camera on the cart
     proj.visualizer.set_cam_target(cart.center_of_mass)
 
     # Add a line plot to the animator to track the pendulum angle
     plot1 = proj.animator.add_lineplot(1, y_lim=(-30., 30.), title='Pendulum',
-                                       x_label='Time [seconds]',
-                                       y_label='Angle [degrees]',
-                                       h_zero_line=True,
-                                       color='b', line_width=2.5)
+                                      x_label='Time [seconds]',
+                                      y_label='Angle [degrees]',
+                                      h_zero_line=True,
+                                      color='b', line_width=2.5)
 
     # Add another line plot to the animator to track the cart x position
     plot2 = proj.animator.add_lineplot(1, y_lim=(-5., 5.), title='Cart',
-                                   x_label='Time [seconds]',
-                                   y_label='Position [meters]',
-                                   h_zero_line=True,
-                                   color='r', line_width=2.5)
+                                  x_label='Time [seconds]',
+                                  y_label='Position [meters]',
+                                  h_zero_line=True,
+                                  color='r', line_width=2.5)
 
     # Wait for just long enough for all the GUIs to update
     time.sleep(0.5)
