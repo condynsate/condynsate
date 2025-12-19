@@ -1,22 +1,22 @@
 ---
-title: condynsate: A Python-Based Controls and Dynamics Simulation Package
+title: 'condynsate: A Python-Based Controls and Dynamics Simulation Package'
 tags:
   - Python
   - control
   - dynamics
 authors: 
-  - name: G. Schaer
+  - name: Schaer G. 
     orcid: 0000-0002-0915-8627
     affiliation: 1
-  - name: W. Chang
+  - name: Chang W.
     affiliation: 1
-  - name: S. Eggl
+  - name: Eggl S.
     orcid: 0000-0002-1398-6302
     affiliation: 1
-  - name: T. Bretl
+  - name: Bretl T.
     orcid: 0000-0001-7883-7300
     affiliation: 1
-  - name: S. Hilgenfeldt
+  - name: Hilgenfeldt S.
     orcid: 0000-0002-6799-2118
     affiliation: 2
 affiliations:
@@ -26,8 +26,6 @@ affiliations:
    index: 2
 bibliography: paper.bib
 ---
-
-
 
 # Summary
 
@@ -43,8 +41,6 @@ python3 -m pip install condynsate
 
 in a Python-enabled terminal.
 
-
-
 # Statement of Need
 
 Dynamics, mechanical systems, and controls are fundamental topics in the fields of mechanical, aerospace, and robotics engineering [@Greenwood:1988; @Franklin:1986; @Angeles:2014]; however, conventional dynamics and control educational approaches rely heavily upon either classroom-constrained lecture or laboratory demonstrations, both of which can be limited by format, materials, or cost. Informed by the viability of virtual-supplemented education in robotics [@Jaakkola:2008; @Jaakkola:2011; @Berland:2015], and in response to these limitations, we identified a primary need for a classroom-deployable educational tool that promotes student engagement with mechanical systems through simulation, visualization, and interactivity. 
@@ -57,8 +53,6 @@ Finally, given the broad scope of dynamics, mechanical systems, and controls, an
 
 Combining the three identified needs of 1) in-classroom exposure to mechanical systems, 2) continuing computation-based education, and 3) a method of development of novel projects, we designed a Python-based dynamic system simulation and visualization tool called ``condynsate`` with the explicit philosophy of not limiting project complexity while simultaneously promoting ease of use.
 
-
-
 # The condynsate Package
 
 With a physics engine provided by ``PyBullet`` [@PyBullet] and 3D visualization provided by ``MeshCat`` [@MeshCat], ``condynsate`` implements real-time simulation of .stl and .obj defined rigid bodies and .urdf defined articulated bodies. It allows users to interact with simulation results through a browser-based 3D viewer to visualize simulations, a built-in animator to plot arbitrary simulation states, and a keyboard module that allows detection of key press events. These features equip ``condynsate`` with a broad scope of applicability by guaranteeing that any dynamic system that can be described by a .urdf file, a file format created by Open Robotics for the Robot Operating System software [@ROS], is supported.
@@ -69,13 +63,9 @@ Documentation, tutorials, and examples were generated with the intent of educati
 
 To date, projects built with ``condynsate`` have been successfully deployed in an undergraduate aerospace controls course during the Spring 2024 and Fall 2024 semesters at the University of Illinois Urbana-Champaign.  Post-semester student survey results showed that 69% of students felt better prepared to solve control problems using computational tools, and 86% stated they felt their Python skills improved.  We conclude that the deployment and continued development of computation-based curricula provide an enhanced approach for dynamics and control education. Computationally literate students are better equipped to exploit the full versatility of a computer to tackle complex problems, and we propose that ``condynsate`` can set students on the path of utilizing computational resources as a matter-of-course tool both at university and in their careers.
 
-
-
 # Acknowledgements
 
 The development of ``condynsate`` was funded by the [Computational Tools for Dynamics and Control grant](https://ae3.grainger.illinois.edu/programs/siip-grants/64459) through the University of Illinois Urbana-Champaign Grainger College of Engineering Academy for Excellence in Engineering Education (AE3) Strategic Instructional Innovations Program (SIIP).
-
-
 
 # References
 
