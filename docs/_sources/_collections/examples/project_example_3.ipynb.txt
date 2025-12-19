@@ -36,7 +36,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 13,
+   "execution_count": null,
    "id": "cc40d60b-49c6-4c54-8abf-ba7b801cf370",
    "metadata": {},
    "outputs": [],
@@ -55,19 +55,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 14,
+   "execution_count": null,
    "id": "00f52642-97ac-43ca-957d-4102c79cba87",
    "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "You can open the visualizer by visiting the following URL:\n",
-      "http://127.0.0.1:7002/static/\n"
-     ]
-    }
-   ],
+   "outputs": [],
    "source": [
     "proj = Project(visualizer = True, animator = True, simulator_dt = 0.003)"
    ]
@@ -82,21 +73,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 15,
+   "execution_count": null,
    "id": "c6bff914-6125-404a-921d-5b76c1e9995e",
    "metadata": {},
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "0"
-      ]
-     },
-     "execution_count": 15,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "outputs": [],
    "source": [
     "# Load and orient a double pendulum.\n",
     "dp = proj.load_urdf(assets['double_pendulum.urdf'], fixed=True)\n",
@@ -115,21 +95,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 16,
+   "execution_count": null,
    "id": "9a3b0c40-f891-4c6d-90a8-6f8948cdb93f",
    "metadata": {},
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "0"
-      ]
-     },
-     "execution_count": 16,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "outputs": [],
    "source": [
     "# Turn off the axes and grid visualization.\n",
     "proj.visualizer.set_axes(False) # This returns 0 on success"
@@ -145,21 +114,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 17,
+   "execution_count": null,
    "id": "df1c2b24-bea2-4487-b8bf-8e31d09a709f",
    "metadata": {},
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "0"
-      ]
-     },
-     "execution_count": 17,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "outputs": [],
    "source": [
     "# Set the camera's position\n",
     "proj.visualizer.set_cam_position((0, -4, 2.5)) # This returns 0 on success\n",
@@ -178,7 +136,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 18,
+   "execution_count": null,
    "id": "d3024cf5-72a4-44e5-9871-7488ebd87473",
    "metadata": {},
    "outputs": [],
@@ -202,7 +160,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 20,
+   "execution_count": null,
    "id": "85f562cd-0e30-409b-b35b-e49f477c38e9",
    "metadata": {},
    "outputs": [],
@@ -254,21 +212,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 21,
+   "execution_count": null,
    "id": "50902142-1f44-40f5-a671-2f8cad02561c",
    "metadata": {},
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "0"
-      ]
-     },
-     "execution_count": 21,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "outputs": [],
    "source": [
     "# Reset the project to its initial state. This is required to\n",
     "# reset the simulation, reset the visualizer, and reset/start the\n",
@@ -296,7 +243,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 22,
+   "execution_count": null,
    "id": "d1cfe1f9-a181-4c27-89e4-a7463aa59223",
    "metadata": {},
    "outputs": [],
@@ -330,21 +277,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 23,
+   "execution_count": null,
    "id": "ef6e1f9e-3a5e-4cb9-bdcf-dd151129397a",
    "metadata": {},
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "0"
-      ]
-     },
-     "execution_count": 23,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "outputs": [],
    "source": [
     "proj.terminate() # This returns 0 on success"
    ]

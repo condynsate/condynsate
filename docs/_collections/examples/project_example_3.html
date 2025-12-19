@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project Example 3: The Double Pendulum &mdash; condynsate 1.0.4 documentation</title>
+  <title>Project Example 3: The Double Pendulum &mdash; condynsate 1.0.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/autoclasstoc.css?v=08871587" />
@@ -15,7 +15,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=71272d9f"></script>
+      <script src="../../_static/documentation_options.js?v=d55fa986"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -100,7 +100,7 @@
 <h2>Set up the Visualizer, Animator, and Physics Environment<a class="headerlink" href="#Set-up-the-Visualizer,-Animator,-and-Physics-Environment" title="Link to this heading"></a></h2>
 <p>Import necessary <code class="docutils literal notranslate"><span class="pre">condynsate</span></code> modules</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">condynsate</span><span class="w"> </span><span class="kn">import</span> <span class="n">Project</span>
@@ -110,7 +110,7 @@
 </div>
 <p>Create a instance of <code class="docutils literal notranslate"><span class="pre">condynsate.Project</span></code> that uses the visualizer and animator. Also, set <code class="docutils literal notranslate"><span class="pre">simulator_dt</span></code> to 0.003 seconds so that the simulation fidelty is higher. Note, this will result in increased run time.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span> <span class="o">=</span> <span class="n">Project</span><span class="p">(</span><span class="n">visualizer</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">animator</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">simulator_dt</span> <span class="o">=</span> <span class="mf">0.003</span><span class="p">)</span>
@@ -123,12 +123,12 @@
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 You can open the visualizer by visiting the following URL:
-http://127.0.0.1:7002/static/
+http://127.0.0.1:7000/static/
 </pre></div></div>
 </div>
 <p>Load the double pendulum into the simulator. Set <code class="docutils literal notranslate"><span class="pre">fixed</span> <span class="pre">=</span> <span class="pre">True</span></code> so that the base link of the pendulum has 0 degrees of freedom. Also, set the initial angular velocity of one of the joints to some non-zero value.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load and orient a double pendulum.</span>
@@ -140,7 +140,7 @@ http://127.0.0.1:7002/static/
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -150,7 +150,7 @@ http://127.0.0.1:7002/static/
 </div>
 <p>Now we will adjust the visualizer scene. First we turn off the axes visualization.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Turn off the axes and grid visualization.</span>
@@ -159,7 +159,7 @@ http://127.0.0.1:7002/static/
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -169,7 +169,7 @@ http://127.0.0.1:7002/static/
 </div>
 <p>Then we will move the camera’s position up just a slight amount from its default position and then tell it to look directly at the center of mass of the pendulum.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set the camera&#39;s position</span>
@@ -181,7 +181,7 @@ http://127.0.0.1:7002/static/
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -191,7 +191,7 @@ http://127.0.0.1:7002/static/
 </div>
 <p>Now we will remove all friction from the double pendulum. To do so, we need to set the damping of each joint to 0 and the air resistance of each link to 0</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set the damping of all joints to 0</span>
@@ -206,7 +206,7 @@ http://127.0.0.1:7002/static/
 </div>
 <p>Add a line plot to the animator to plot the double pendulum’s state in phase space.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The return value of add_lineplot is either a list of or single</span>
@@ -238,7 +238,7 @@ http://127.0.0.1:7002/static/
 <h2>Running the Simulation<a class="headerlink" href="#Running-the-Simulation" title="Link to this heading"></a></h2>
 <p>Before running the simulation, we reset the project. This ensure that everything is started, updated, and in the desired initial state. <code class="docutils literal notranslate"><span class="pre">proj.reset</span></code> should be called before a simulation every time you run one.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reset the project to its initial state. This is required to</span>
@@ -249,7 +249,7 @@ http://127.0.0.1:7002/static/
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -264,7 +264,7 @@ http://127.0.0.1:7002/static/
 <li><p>Take a simulation step in real time</p></li>
 </ol>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run a 20 second simulation loop</span>
@@ -289,7 +289,7 @@ http://127.0.0.1:7002/static/
 </div>
 <p>Finally, we terminate the project. This is required to save any videos that are recorded and gracefully exit all the children threads (including the animator window). <code class="docutils literal notranslate"><span class="pre">proj.terminate()</span></code> should be called when done with any member of the <code class="docutils literal notranslate"><span class="pre">condynsate.Project</span></code> class.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span> <span class="c1"># This returns 0 on success</span>
@@ -297,7 +297,7 @@ http://127.0.0.1:7002/static/
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="output_area docutils container">

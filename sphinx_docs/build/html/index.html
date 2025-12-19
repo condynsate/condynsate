@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>condynsate &mdash; condynsate 1.0.4 documentation</title>
+  <title>condynsate &mdash; condynsate 1.0.5 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/autoclasstoc.css?v=08871587" />
@@ -14,7 +14,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=71272d9f"></script>
+      <script src="_static/documentation_options.js?v=d55fa986"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -76,13 +76,16 @@
              
   <section id="condynsate">
 <h1>condynsate<a class="headerlink" href="#condynsate" title="Link to this heading"></a></h1>
-<p><strong>condynsate</strong> (<strong>con</strong>trol and <strong>dyn</strong>amics simul<strong>at</strong>or) is a python-based, open-source educational tool built by <a class="reference external" href="http://bretl.csl.illinois.edu/people">G. Schaer</a> at the University of Illinois at Urbana-Champaign under the Grainger College of Engineering 2023-2025 Strategic Instructional Innovations Program: <a class="reference external" href="https://ae3.grainger.illinois.edu/programs/siip-grants/64459">Computational Tools for Dynamics and Control grant</a>. It is designed to aid the education of control and dynamics to aerospace, mechanical, and robotics engineering students by</p>
-<ol class="arabic simple">
-<li><p>providing a simulation environment in which students can see and interact with controlled and uncontrolled dynamic systems in familiar and <a class="reference external" href="https://doi.org/10.3390/educsci13070747">beneficial ways</a>,</p></li>
-<li><p>serving as a platform for introductory Python programming, and</p></li>
-<li><p>equipping instructors with a streamlined method of implementing custom in-class demonstrations and lab demos without the need for physical equipment.</p></li>
-</ol>
-<p>Built on <a class="reference external" href="https://pybullet.org/wordpress/">PyBullet</a>, <a class="reference external" href="https://github.com/meshcat-dev/meshcat-python/">MeshCat</a>, and <a class="reference external" href="https://www.tcl-lang.org/">Tk</a>, it implements nonlinear simulation of <a class="reference external" href="https://en.wikipedia.org/wiki/STL_(file_format)/">stl</a> or <a class="reference external" href="https://en.wikipedia.org/wiki/Wavefront_.obj_file/">obj</a> rigid bodies andor <a class="reference external" href="http://wiki.ros.org/urd/">urdf</a> articulated bodies. A browser-based 3D viewer visualizes the simulation and the evolution of individual states are plotted, all in real-time. By simultaneously enabling keyboard interactivity, condynsate projects are designed to feel more like video games, familiar and fun, rather than conventional lab demos all while providing similar educational benefits.</p>
+<p>We present a Python-based, open-source software package called <code class="docutils literal notranslate"><span class="pre">condynsate</span></code> (<strong>con</strong>trol and <strong>dyn</strong>amics simul<strong>at</strong>or) designed to ease the creation of computation-based dynamics and control demonstrations, assignments, and projects. Guided by a simulation and role-play pedagogy, projects built with <code class="docutils literal notranslate"><span class="pre">condynsate</span></code> mimic the experience of simulation-based games to enhance learning and retention.</p>
+<p>With a physics engine provided by <a class="reference external" href="https://pybullet.org/wordpress/">PyBullet</a> and 3D visualization provided by <a class="reference external" href="https://github.com/meshcat-dev/meshcat-python/">MeshCat</a>, <code class="docutils literal notranslate"><span class="pre">condynsate</span></code> implements real-time simulation of <a class="reference external" href="https://en.wikipedia.org/wiki/STL_(file_format)/">stl</a> and <a class="reference external" href="https://en.wikipedia.org/wiki/Wavefront_.obj_file/">obj</a> defined rigid bodies and <a class="reference external" href="http://wiki.ros.org/urd/">urdf</a> defined articulated bodies. It allows users to interact with simulation results through a browser-based 3D viewer to visualize simulations, a built-in animator to plot arbitrary simulation states, and a keyboard module that allows detection of key press events. These features equip <code class="docutils literal notranslate"><span class="pre">condynsate</span></code> with a broad scope of applicability by guaranteeing that any dynamic system that can be described by a urdf file, a file format created by <a class="reference external" href="https://www.openrobotics.org/">Open Robotics</a> for the <a class="reference external" href="https://www.ros.org/">Robot Operating System</a> software, is supported.</p>
+<p>Documentation, tutorials, and examples were generated with the intent of educating instructors on the usage of <code class="docutils literal notranslate"><span class="pre">condynsate</span></code> to develop teaching demonstrations. The five included tutorials walk through the development of <code class="docutils literal notranslate"><span class="pre">condynsate</span></code>-based projects, including the simulation environment, design and implementation of mechanical systems, application of internal and external forces and torques to the mechanical systems, real-time visualization and animation, keyboard interactivity, and methods of data collection.</p>
+<p>In addition, at least one example of usage is included for each of the five major modules: the <code class="docutils literal notranslate"><span class="pre">Keyboard</span></code> module, which provides keyboard interactivity; the <code class="docutils literal notranslate"><span class="pre">Visualizer</span></code> module, which provides 3D visualization; the <code class="docutils literal notranslate"><span class="pre">Animator</span></code> module, which provides GUI-based plotting; the <code class="docutils literal notranslate"><span class="pre">Simulator</span></code> module, which provides the physics simulation environment; and the <code class="docutils literal notranslate"><span class="pre">Project</span></code> module, which provides automatic interfacing with all other modules for easy project development.</p>
+<p><code class="docutils literal notranslate"><span class="pre">condynsate</span></code> was built by <a class="reference external" href="https://www.linkedin.com/in/grayson-schaer/">G. Schaer</a> and funded by the <a class="reference external" href="https://ae3.grainger.illinois.edu/programs/siip-grants/64459">Computational Tools for Dynamics and Control grant</a> through the University of Illinois Urbana-Champaign Grainger College of Engineering Academy for Excellence in Engineering Education (AE3) Strategic Instructional Innovations Program (SIIP).</p>
+<p>All materials, including the package and example usage, have been made publicly available at <a class="reference external" href="https://github.com/condynsate/condynsate">https://github.com/condynsate/condynsate</a> and are licensed under the GPL-3.0-only and MIT licenses. To install, type</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>condynsate
+</pre></div>
+</div>
+<p>in a Python-enabled terminal.</p>
 <section id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Link to this heading"></a></h2>
 <div class="toctree-wrapper compound">

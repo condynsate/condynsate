@@ -28,7 +28,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 1,
+   "execution_count": null,
    "id": "a93a1982-107a-4a85-a825-99d1cbb7d443",
    "metadata": {},
    "outputs": [],
@@ -49,19 +49,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 2,
+   "execution_count": null,
    "id": "11c00a7e-876d-4285-8a8c-c7ce62de283a",
    "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "You can open the visualizer by visiting the following URL:\n",
-      "http://127.0.0.1:7027/static/\n"
-     ]
-    }
-   ],
+   "outputs": [],
    "source": [
     "proj = Project(keyboard = False,\n",
     "               visualizer = True,\n",
@@ -78,7 +69,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 3,
+   "execution_count": null,
    "id": "036c9a01-2b8c-43ca-9891-a560677d6805",
    "metadata": {},
    "outputs": [],
@@ -90,21 +81,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 4,
+   "execution_count": null,
    "id": "6402c2f6-67ab-44bc-ae19-ecedf972935b",
    "metadata": {},
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "0"
-      ]
-     },
-     "execution_count": 4,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "outputs": [],
    "source": [
     "# Load and orient a plane with a windowed wall texture for the left wall\n",
     "left_wall = proj.load_urdf(assets['half_plane_medium.urdf'], fixed=True)\n",
@@ -114,21 +94,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 5,
+   "execution_count": null,
    "id": "ef51031e-e703-4532-a66d-28fc60a64ab0",
    "metadata": {},
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "0"
-      ]
-     },
-     "execution_count": 5,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "outputs": [],
    "source": [
     "# Load and orient a plane with a doored wall texture for the right wall\n",
     "right_wall = proj.load_urdf(assets['half_plane_medium.urdf'], fixed=True)\n",
@@ -138,21 +107,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 6,
+   "execution_count": null,
    "id": "aba23e37-7b5f-45e4-a11a-e1683ed8fe01",
    "metadata": {},
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "0"
-      ]
-     },
-     "execution_count": 6,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "outputs": [],
    "source": [
     "# Load and orient a plane with a classroom wall texture for the back wall\n",
     "back_wall = proj.load_urdf(assets['half_plane_medium.urdf'], fixed=True)\n",
@@ -170,21 +128,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 7,
+   "execution_count": null,
    "id": "a1c75c92-214f-4dd1-933c-1d67c50eaf5d",
    "metadata": {},
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "0"
-      ]
-     },
-     "execution_count": 7,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "outputs": [],
    "source": [
     "# Load and orient a cart carrying an inverted pendulum. Set the initial\n",
     "# angle of the pendulum to a non-zero angle.\n",
@@ -203,21 +150,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 8,
+   "execution_count": null,
    "id": "9eca3eb9-c9d0-4412-9cd6-30ee7cc0d6bb",
    "metadata": {},
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "0"
-      ]
-     },
-     "execution_count": 8,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "outputs": [],
    "source": [
     "proj.refresh_visualizer() # This returns 0 on success"
    ]
@@ -232,7 +168,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 9,
+   "execution_count": null,
    "id": "f55ce7ad-f81e-4280-8dff-8c205b86af54",
    "metadata": {},
    "outputs": [],
@@ -249,21 +185,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 10,
+   "execution_count": null,
    "id": "588b288a-5117-4967-a339-1d32b8aa3e73",
    "metadata": {},
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "0"
-      ]
-     },
-     "execution_count": 10,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "outputs": [],
    "source": [
     "# Turn off the axes and grid visualization. Turn on the spotlight\n",
     "proj.visualizer.set_axes(False) # This returns 0 on success\n",
@@ -288,7 +213,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 11,
+   "execution_count": null,
    "id": "50781c20-8163-4aeb-b669-44962c88a628",
    "metadata": {},
    "outputs": [],
@@ -309,7 +234,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 12,
+   "execution_count": null,
    "id": "0f0cf1e1-ecb0-4b8f-a591-a7497aa96c00",
    "metadata": {},
    "outputs": [],
@@ -335,21 +260,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 13,
+   "execution_count": null,
    "id": "396571f6-ccf4-4010-b927-eb8baef058e2",
    "metadata": {},
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "0"
-      ]
-     },
-     "execution_count": 13,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "outputs": [],
    "source": [
     "# Reset the project to its initial state. This is required to\n",
     "# reset the simulation, reset the visualizer, and reset/start the\n",
@@ -381,18 +295,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 14,
+   "execution_count": null,
    "id": "915b6a32-8465-443f-898e-c94ebfe9d07b",
    "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Simuation took 10.04 seconds.\n"
-     ]
-    }
-   ],
+   "outputs": [],
    "source": [
     "# Run a 10 second simulation loop\n",
     "start = time.time()\n",
@@ -452,21 +358,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 15,
+   "execution_count": null,
    "id": "bf7c73ba-f228-4665-810a-fe200aa604f0",
    "metadata": {},
-   "outputs": [
-    {
-     "data": {
-      "text/plain": [
-       "0"
-      ]
-     },
-     "execution_count": 15,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "outputs": [],
    "source": [
     "proj.terminate() # This returns 0 on success"
    ]
