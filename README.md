@@ -5,26 +5,26 @@ This work is licensed under a [GNU General Public License 3.0](https://www.gnu.o
 SPDX-License-Identifier: GPL-3.0-only AND MIT
 
 # Preamble
-Mechanical systems and controls are fundamental topics in the fields of mechanical, aerospace, and robotics engineering; however, conventional educational approaches rely heavily upon either classroom-constrained theory---directly antithetical to the dynamics these fields study---or laboratory demonstrations which are limited by cost and complexity. In response to these limitations, we developed a Python-based dynamic system simulation and visualization tool called condynsate (**con**trol and **dyn**amics simul**at**or) with the explicit philosophy of not limiting project complexity while simultaneously promoting ease of use.
+We present a Python-based, open-source software package called ``condynsate`` (**con**trol and **dyn**amics simulator) designed to ease the creation of computation-based dynamics and control demonstrations, assignments, and projects. Guided by a simulation and role-play pedagogy, projects built with ``condynsate`` mimics the experience of simulation-based games to enhance learning and retention. 
 
-Driven by the identification of computational literacy as a professional skill set highly valued in academia and industry, we focused on the later stage of undergraduate education, where less "recipe-style" and more creative implementations of tools and solutions are presented to students. We designed condynsate to be a flexible tool, built upon foundational programming experience from earlier-stage classes, that frees students to creatively approach real-world engineering problems based on their own initiative and drive for exploration. Our goal was to provide a viable approach to both increase the sophistication and ease of development of lecture demonstrations, assignments, and projects related to fundamental engineering concepts that govern mechanical systems (e.g., pendulum, gyroscope) and control systems (e.g., differential wheeled robot, autonomous quadrotor). 
+Users can import rigid and articulated bodies into a simulation environment, visualize the simulation environment in 3D, tweak the appearance of the visualization, create and display live-updating plots, read the state, apply arbitrary forces, and tweak the physics and appearance of all joints and links in each body, run full physics simulations, interact with the environment through keypresses, and record the visual outputs of ``condynsate``, all in real time.
 
-Students who are computationally literate, not only at the level of running programs but also who "code to learn", are better equipped to exploit the full versatility of a computer to tackle complex problems. By designing condynsate to:
+All materials, including the package and example usage, have been made publicly available at [https://github.com/condynsate/condynsate](https://github.com/condynsate/condynsate) and are licensed under the GPL-3.0-only and MIT licenses. To install, type
 
-1. provide an environment in which students can interact with dynamic systems in adherence with the simulation and role-play pedagogy,
-2. act as an introduction to programming in Python, and, most significantly, 
-3. facilitate the design and implementation of controls and dynamics design projects without requiring laboratory equipment,
+```bash
+python3 -m pip install condynsate
+```
 
-we deliver a computational tool that can be used to set students on the path of confidently utilizing computational resources as matter-of-course tools both at university and in their careers.
+in a Python-enabled terminal.
 
 # The condynsate Package
-condynsate is a Python-based, open-source educational tool built by G. Schaer at the University of Illinois at Urbana-Champaign under the Grainger College of Engineering 2023-2025 Strategic Instructional Innovations Program: [Computational Tools for Dynamics and Control grant](https://ae3.grainger.illinois.edu/programs/siip-grants/64459).
+With a physics engine provided by ``PyBullet`` and 3D visualization provided by ``MeshCat``, ``condynsate`` implements real-time simulation of .stl and .obj defined rigid bodies and .urdf defined articulated bodies. It allows users to interact with simulation results through a browser-based 3D viewer to visualize simulations, a built-in animator to plot arbitrary simulation states, and a keyboard module that allows detection of key press events. These features equip ``condynsate`` with a broad scope of applicability by guaranteeing that any dynamic system that can be described by a .urdf file, a file format created by Open Robotics for the Robot Operating System software, is supported.
 
-Built on [PyBullet](https://pybullet.org/wordpress/), [MeshCat](https://github.com/meshcat-dev/meshcat-python/), and [Tk](https://www.tcl-lang.org/), it implements nonlinear simulation of [stl](https://en.wikipedia.org/wiki/STL_(file_format)/) and [obj](https://en.wikipedia.org/wiki/Wavefront_.obj_file/) defined rigid bodies and\or [urdf](http://wiki.ros.org/urd/) articulated bodies. A browser-based 3D viewer visualizes the simulation, and a built-in animator allows for plotting of arbitrary states in a Tk-based GUI, all in real-time. By simultaneously enabling keyboard interactivity, condynsate projects are designed to feel more like video games, familiar and fun, rather than conventional lab demos, all while providing similar educational benefits.
+Documentation, tutorials, and examples were generated with the intent of educating instructors on the usage of ``condynsate`` to develop teaching demonstrations. The five included tutorials walk through the development of ``condynsate``-based projects, including the simulation environment, design and implementation of mechanical systems, application of internal and external forces and torques to the mechanical systems, real-time visualization and animation, keyboard interactivity, and methods of data collection.
 
-All materials, including the package and example usage, have been made publicly available at [https://github.com/condynsate/condynsate](https://github.com/condynsate/condynsate) and are licensed under the GPL-3.0-only and MIT licenses. 
+ In addition, at least one example of usage is included for each of the five major modules: the ``Keyboard`` module, which provides keyboard interactivity; the ``Visualizer`` module, which provides 3D visualization; the ``Animator`` module, which provides GUI-based plotting; the ``Simulator`` module, which provides the physics simulation environment; and the ``Project`` module, which provides automatic interfacing with all other modules for easy project development. The ``Project`` module examples best demonstrate how educators may use ``condynsate`` to construct assignments and demonstrations. As such, the provided examples are common mechanical systems used in dynamics and control education: an inverted pendulum autonomously balanced on a 4-wheeled cart, a three-axis gyroscope with keyboard interactivity, and a double pendulum with real-time phase space plotting.
 
-# Installation
+# Detailed Installation Instruction
 ## Windows
 A C++ compiler for C++ 2003 is needed. On Windows, we recommend using the Desktop development with C++ workload for [Microsoft C++ Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
 
@@ -147,3 +147,6 @@ On Debian/Ubuntu systems, you may need to first install the Python and Linux dev
 
 # Documentation
 condynsate documentation is found at [https://condynsate.github.io/condynsate/](https://condynsate.github.io/condynsate/).
+
+# Final Remarks
+To date, projects built with the condynsate have been successfully deployed to aerospace controls students during the Spring 2024 and Fall 2024 semesters at the University of Illinois Urbana-Champaign. Therein, as a result of the class, 69% of students indicated they felt better prepared to solve control problems using computational tools, and 86% stated they felt their Python skills improved.  We conclude that the deployment and continued development of computation-based curricula provide an enhanced approach for dynamics and control education. Computationally literate students are better equipped to exploit the full versatility of a computer to tackle complex problems, and we propose that condynsate can set students on the path of utilizing computational resources as matter of course tools both at university and in their careers.
