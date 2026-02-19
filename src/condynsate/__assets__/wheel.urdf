@@ -1,0 +1,135 @@
+<?xml version="1.0" ?>
+<robot name="wheel">
+
+
+    <!-- ########### MATERIALS ########### -->
+
+    <material name="industrial">
+        <color rgba="0.114 0.345 0.655 1" />
+    </material>
+    
+    <material name="arches">
+        <color rgba="0 0.624 0.831 1" />
+    </material>
+    
+    <material name = "heritage">
+        <color rgba = "0.961 0.510 0.118 1" />
+    </material>
+	
+	<material name = "storm">
+        <color rgba = "0.439 0.451 0.447 1" />
+    </material>
+	112, 115, 114
+  
+
+    <!-- ########### LINKS ########### -->
+
+    <link name="axle" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="Cylinder_1x1_lower_origin.stl" scale="0.1 0.1 0.15"/>
+            </geometry>
+            <material name = "industrial"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="1.10"/>
+            <inertia ixx="0.00275" ixy="0" ixz="0" iyy="0.00275" iyz="0" izz="0.00138"/>
+        </inertial>
+    </link>
+
+    <link name="wheel" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="Cylinder_1x1_lower_origin.stl" scale="0.5 0.5 0.05"/>
+            </geometry>
+            <material name = "arches"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="9.13"/>
+            <inertia ixx="0.145" ixy="0" ixz="0" iyy="0.145" iyz="0" izz="0.285"/>
+        </inertial>
+    </link>
+	
+	<link name="arrow" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="arrow_lin.stl" scale="0.5 0.01 0.25"/>
+            </geometry>
+            <material name = "storm"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+    </link>
+	
+	<link name="cap" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="Cone_1x1_lower_origin.stl" scale="0.04 0.04 0.02"/>
+            </geometry>
+            <material name = "arches"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+    </link>
+	
+	<link name="target" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="arrow_lin.stl" scale="0.5 0.01 0.25"/>
+            </geometry>
+            <material name = "heritage"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+    </link>
+
+
+    <!-- ########### JOINTS ########### -->
+
+    <joint name="axle_to_wheel" type="continuous">
+        <parent link = "axle" />
+        <child link = "wheel" />
+        <origin rpy="0 0 0" xyz = "0 0 0.15" />
+        <axis xyz = "0 0 1" />
+    </joint>
+
+    <joint name="wheel_to_arrow" type="fixed">
+        <parent link = "wheel" />
+        <child link = "arrow" />
+        <origin rpy="1.5708 0 0" xyz = "0 0 0.051" />
+    </joint>
+	
+	<joint name="wheel_to_cap" type="fixed">
+        <parent link = "wheel" />
+        <child link = "cap" />
+        <origin rpy="0 0 0" xyz = "0 0 0.05" />
+    </joint>
+	
+	<joint name="axle_to_target" type="continuous">
+        <parent link = "axle" />
+        <child link = "target" />
+        <origin rpy="1.5708 0 0" xyz = "0 0 0.2" />
+		<axis xyz = "0 0 1" />
+    </joint>
+
+
+</robot>
+
+<!-- © Copyright, 2025 G. Schaer. -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
