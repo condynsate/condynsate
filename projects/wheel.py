@@ -92,18 +92,22 @@ def _update_target(proj, wheel):
     except AttributeError:
         pass
 
-def _sim_loop(proj, wheel, get_torque, time):
+def _sim_loop(proj, wheel, get_torque, disturbance, time):
     # Reset the project to its initial state. This is required to
     # reset the simulation, reset the visualizer, and reset/start the
     # animator
     proj.reset()
 
-    # Run a simulation loop
+    # Make structure to hold simulation data
     data = {'time':np.array([]),
             'angle':np.array([]),
             'angular_rate':np.array([]),
             'target':np.array([]),
             'torque':np.array([])}
+    if disturbance != 0.0:
+        data['disturbance'] = np.array([])
+    
+    # Run a simulation loop
     while proj.simtime <= time:
         # Update the target angle via keypresses (if available)
         _update_target(proj, wheel)
@@ -116,12 +120,17 @@ def _sim_loop(proj, wheel, get_torque, time):
                                                    arrow_scale=1.0,
                                                    arrow_offset=0.075)
 
+        # Apply the disturbance torque
+        wheel.joints['axle_to_wheel'].apply_torque(disturbance)
+
         # Update the data
         data['time'] = np.append(data['time'], proj.simtime)
         data['angle'] = np.append(data['angle'], state[0])
         data['angular_rate'] = np.append(data['angular_rate'], state[1])
         data['target'] = np.append(data['target'], state[2])
         data['torque'] = np.append(data['torque'], torque)
+        if 'disturbance' in data:
+            data['disturbance'] = np.append(data['disturbance'], disturbance)
 
         # Take a simulation step
         proj.step(real_time=True, stable_step=False)
@@ -129,10 +138,10 @@ def _sim_loop(proj, wheel, get_torque, time):
     # Return the collected data
     return data
 
-def run(target, controller, time=10.0):
+def run(target, controller, disturbance=0.0, time=10.0):
     # Build the project, run the simulation loop, terminate the project
     proj, wheel = _make(target)
     _stall(proj)
-    data = _sim_loop(proj, wheel, controller, time)
+    data = _sim_loop(proj, wheel, controller, disturbance, time)
     proj.terminate()
     return data
