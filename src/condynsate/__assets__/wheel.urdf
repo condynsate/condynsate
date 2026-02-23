@@ -24,13 +24,13 @@
 
     <!-- ########### LINKS ########### -->
 
-    <link name="axle" concave="yes">
+    <link name="axle">
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
                 <mesh filename="Cylinder_1x1_lower_origin.stl" scale="0.1 0.1 0.15"/>
             </geometry>
-            <material name = "industrial"/>
+            <material name = "arches"/>
         </visual>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -39,13 +39,13 @@
         </inertial>
     </link>
 
-    <link name="wheel" concave="yes">
+    <link name="wheel">
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="Cylinder_1x1_lower_origin.stl" scale="0.5 0.5 0.05"/>
+                <mesh filename="hubbed_wheel_1x0.1_lower_origin.stl" scale="0.5 0.5 0.5"/>
             </geometry>
-            <material name = "arches"/>
+            <material name = "industrial"/>
         </visual>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -69,7 +69,7 @@
         </inertial>
     </link>
 	
-	<link name="cap" concave="yes">
+	<link name="cap">
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
@@ -125,7 +125,7 @@
         <parent link = "axle" />
         <child link = "target" />
         <origin rpy="1.5708 0 0" xyz = "0 0 0.2" />
-		<axis xyz = "0 0 1" />
+		<axis xyz = "0 1 0" />
     </joint>
 
 
