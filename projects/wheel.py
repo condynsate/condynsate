@@ -42,7 +42,7 @@ def _make(target):
     proj.refresh_visualizer()
 
     # Set the camera's position and focus on wheel
-    proj.visualizer.set_cam_position((1.0, -2.0, 1.75))
+    proj.visualizer.set_cam_position((0.5, -0.75, 1.0))
     proj.visualizer.set_cam_target(wheel.center_of_mass)
 
     # Remove axle friction to 0
@@ -101,20 +101,30 @@ def _sim_loop(proj, wheel, get_torque, disturbance, time):
     # Make structure to hold simulation data
     data = {'time':np.array([]),
             'angle':np.array([]),
+            'angle_integral':np.array([]),
             'angular_rate':np.array([]),
             'target':np.array([]),
-            'torque':np.array([])}
-    if disturbance != 0.0:
-        data['disturbance'] = np.array([])
-    
+            'target_integral':np.array([]),
+            'torque':np.array([]),
+            'disturbance':np.array([])}
+
     # Run a simulation loop
+    ang_int = 0.0
+    tag_int = 0.0
     while proj.simtime <= time:
         # Update the target angle via keypresses (if available)
         _update_target(proj, wheel)
 
         # Get and apply the controller torque
         state = _wheel_state(wheel)
-        torque = get_torque(*state)
+        ang_int += state[0]*proj.simulator.dt
+        tag_int += state[2]*proj.simulator.dt
+        state = {'angle':state[0],
+                 'angle_integral':ang_int,
+                 'angular_rate':state[1],
+                 'target':state[2],
+                 'target_integral':tag_int}
+        torque = get_torque(state)
         wheel.joints['axle_to_wheel'].apply_torque(torque,
                                                    draw_arrow=True,
                                                    arrow_scale=1.0,
@@ -125,12 +135,14 @@ def _sim_loop(proj, wheel, get_torque, disturbance, time):
 
         # Update the data
         data['time'] = np.append(data['time'], proj.simtime)
-        data['angle'] = np.append(data['angle'], state[0])
-        data['angular_rate'] = np.append(data['angular_rate'], state[1])
-        data['target'] = np.append(data['target'], state[2])
+        data['angle'] = np.append(data['angle'], state['angle'])
+        data['angle_integral'] = np.append(data['angle_integral'], ang_int)
+        data['angular_rate'] = np.append(data['angular_rate'],
+                                         state['angular_rate'])
+        data['target'] = np.append(data['target'], state['target'])
+        data['target_integral'] = np.append(data['target_integral'], tag_int)
         data['torque'] = np.append(data['torque'], torque)
-        if 'disturbance' in data:
-            data['disturbance'] = np.append(data['disturbance'], disturbance)
+        data['disturbance'] = np.append(data['disturbance'], disturbance)
 
         # Take a simulation step
         proj.step(real_time=True, stable_step=False)
@@ -138,7 +150,7 @@ def _sim_loop(proj, wheel, get_torque, disturbance, time):
     # Return the collected data
     return data
 
-def run(target, controller, disturbance=0.0, time=10.0):
+def run(target, controller, disturbance=0.0, time=15.0):
     # Build the project, run the simulation loop, terminate the project
     proj, wheel = _make(target)
     _stall(proj)
