@@ -38,15 +38,11 @@ def _make(initial_angle, visualization):
 
     # Load and orient a cart carrying an inverted pendulum. Set initial state
     cart = proj.load_urdf(assets['cart.urdf'])
-    cart.set_initial_state(position=(0,0,0.12501))
+    cart.set_initial_state(position=(0,0,0.125)) # Place cart on the ground
     cart.joints['chassis_to_arm'].set_initial_state(angle=initial_angle)
 
     # After the initial state is set, refresh the visualizer to show the change
     proj.refresh_visualizer()
-
-    # Focus the camera on the cart
-    if visualization:
-        proj.visualizer.set_cam_target(cart.center_of_mass)
 
     # Remove all joint friction and link air resistance
     for joint in cart.joints.values():
