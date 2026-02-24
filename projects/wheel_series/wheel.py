@@ -5,7 +5,7 @@ project, we apply torque to a wheel on an freely rotating axle to
 enforce a target angle.
 """
 """
-© Copyright, 2025 G. Schaer.
+© Copyright, 2026 G. Schaer.
 SPDX-License-Identifier: GPL-3.0-only
 """
 
@@ -16,9 +16,7 @@ import numpy as np
 
 def _make(target):
     # Make an instance of project
-    proj = Project(keyboard = False,
-                   visualizer = True,
-                   animator = False)
+    proj = Project(keyboard = False, visualizer = True, animator = False)
 
     # Turn off the axes and grid visualization.
     proj.visualizer.set_axes(False)
@@ -151,6 +149,65 @@ def _sim_loop(proj, wheel, get_torque, disturbance, time):
     return data
 
 def run(target, controller, disturbance=0.0, time=15.0):
+    """
+    Makes and runs a condynsate-based simulation of a wheel on an axle.
+    The goal of the simulation is to apply torques to the wheel such that
+    it points in a desired direction. These torques are provided by controller.
+    At every time step, calls controller to get the torque applied to the wheel
+    based on the state of the wheel.
+
+    Parameters
+    ----------
+    target : float
+        The target angle of the wheel in radians.
+    controller : function
+        The controller function. Takes as argument a dictionary called state
+        with the keys
+            angle : float
+                The current angle the wheel is facing in radians
+            angle_integral : float
+                The integral of the wheel's angle from the start of the
+                simulation to now
+            angular_rate : float
+                The current angular rate of the wheel in radians / second
+            target : float
+                The current target angle in radians
+            target_integral : float
+                The integral of the target angle from the start of the
+                simulation to now
+        Returns a float which is the torque applied to the wheel in Nm.
+    disturbance : float, optional
+        The disturbance torque to apply to the wheel in Nm. The default is 0.0.
+    time : float, optional
+        The duration of the simulation. The default is 15.0.
+
+    Returns
+    -------
+    data : dictionary of array-likes with length n
+        The data collected during the simulation. Has the keys:
+            time : list of n floats
+                The time, in seconds, at which each data point is collected
+            angle : list of n floats
+                The angle of the wheel, in radians, at each of the n data
+                collection points.
+            angle_integral : list of n floats
+                The integral of the wheel's angle, in radian-seconds, from the
+                start of the simulation to each of the n data collection points
+                in radian-seconds
+            angular_rate: list of n floats
+                The angular rate of the wheel, in radians per second, at each
+                of the n data collection points.
+            target : list of n floats
+                The target angle, in radians, at each of the n data collection
+                points.
+            target_integral : list of n floats
+                The integral of the target angle, in radian-seconds, from the
+                start of the simulation to each of the n data collection points
+            torque : list of n floats
+                The torque applied to the wheel, in Newton-meters, at each of
+                the n data collection points.
+
+    """
     # Build the project, run the simulation loop, terminate the project
     proj, wheel = _make(target)
     _stall(proj)

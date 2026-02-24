@@ -73,7 +73,7 @@ if __name__ == "__main__":
                          'chassis_to_wheel_3', 'chassis_to_wheel_4',)
 
     # Set control constants to keep the pendulum upright
-    k = np.array([[ 0.664, -0.024, 4.0, -0.0064]])
+    k=np.array([[12.99198626,  -0.47038328, 42.11150628,  -0.23519164]])
     m_e = np.zeros(4)
     n_e = np.zeros(1)
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
                           np.mean([s.omega for s in wheel_states]),
                           pen_state.angle,
                           np.mean([s.angle for s in wheel_states])])
-            torque = float(np.clip((-k@(m - m_e) + n_e)[0], -0.75, 0.75))
+            torque = np.clip(float((-k@(m - m_e) + n_e)[0]), -7.5, 7.5)
 
             # Apply the torque we calculated to each wheel
             for joint_name in wheel_joint_names:
@@ -122,7 +122,7 @@ if __name__ == "__main__":
                 offset = ('3' in joint_name or '4' in joint_name)*0.1-0.05
                 cart.joints[joint_name].apply_torque(torque,
                                                      draw_arrow=True,
-                                                     arrow_scale=0.67,
+                                                     arrow_scale=0.067,
                                                      arrow_offset=offset)
 
             # Plot the pendulum angle against the current simulation time
