@@ -1,0 +1,132 @@
+<?xml version="1.0" ?>
+<robot name="gyro">
+
+
+    <!-- ########### MATERIALS ########### -->
+
+    <material name="industrial">
+        <color rgba="0.114 0.345 0.655 1" />
+    </material>
+    
+    <material name="arches">
+        <color rgba="0 0.624 0.831 1" />
+    </material>
+    
+    <material name = "heritage">
+        <color rgba = "0.961 0.510 0.118 1" />
+    </material>
+  
+
+    <!-- ########### LINKS ########### -->
+	<link name="base">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="Cylinder_1x1_lower_origin.stl" scale="1 1 0.1"/>
+            </geometry>
+            <material name = "industrial"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+    </link>
+	
+    <link name="chassis" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="gyroouter_1-ODx0.9ID_lower_origin.stl" scale="2 2 2"/>
+            </geometry>
+            <material name = "arches"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0.322"/>
+            <inertia ixx="0.00147" ixy="0" ixz="0" iyy="0.00291" iyz="0" izz="0.00147"/>
+        </inertial>
+    </link>
+
+    <link name="outer_gimbal" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="gyroring_0.9-ODx0.6-ID_center_origin.stl" scale="2 2 2"/>
+            </geometry>
+            <material name = "arches"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0.221"/>
+            <inertia ixx="0.000478" ixy="0" ixz="0" iyy="0.000478" iyz="0" izz="0.000939"/>
+        </inertial>
+    </link>
+
+    <link name="inner_gimbal" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="gyroring_0.6-ODx0.3-ID_center_origin.stl" scale="2 2 2"/>
+            </geometry>
+            <material name = "arches"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0.119"/>
+            <inertia ixx="0.0000783" ixy="0" ixz="0" iyy="0.000149" iyz="0" izz="0.0000783"/>
+        </inertial>
+    </link>
+
+    <link name="core">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="gyrocore.stl" scale="2 2 2"/>
+            </geometry>
+            <material name = "heritage"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0.343"/>
+            <inertia ixx="0.000107" ixy="0" ixz="0" iyy="0.0000650" iyz="0" izz="0.0000650"/>
+        </inertial>
+    </link>
+
+
+    <!-- ########### JOINTS ########### -->
+
+    <joint name="base_to_chassis" type="continuous">
+        <parent link = "base" />
+        <child link = "chassis" />
+        <origin rpy="0 0 0" xyz = "0 0 0.1" />
+        <axis xyz = "0 0 1" />
+    </joint>
+
+    <joint name="chassis_to_outer" type="continuous">
+        <parent link = "chassis" />
+        <child link = "outer_gimbal" />
+        <origin rpy="0 0 0" xyz = "0 0 2" />
+        <axis xyz = "-1 0 0" />
+    </joint>
+
+    <joint name="outer_to_inner" type="continuous">
+        <parent link = "outer_gimbal" />
+        <child link = "inner_gimbal" />
+        <origin rpy="0 0 0" xyz = "0 0 0" />
+        <axis xyz = "0 1 0" />
+    </joint>
+
+    <joint name="inner_to_core" type="continuous">
+        <parent link = "inner_gimbal" />
+        <child link = "core" />
+        <origin rpy="0 0 0" xyz = "0 0 0" />
+        <axis xyz = "1 0 0" />
+    </joint>
+
+
+
+</robot>
+
+<!-- © Copyright, 2025 G. Schaer. -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
