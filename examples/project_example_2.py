@@ -116,7 +116,6 @@ def set_omega(project, gryoscope):
 
     # Read the current wheel joint speed, iterate it, and set the new value
     old_omega = gryoscope.joints['inner_to_core'].state.omega
-    print(old_omega)
     new_omega = old_omega + iter_val
     gryoscope.joints['inner_to_core'].set_state(omega = new_omega)
 
