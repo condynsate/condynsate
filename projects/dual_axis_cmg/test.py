@@ -20,21 +20,21 @@ def _make(visualization):
 
     # Turn off the axes and grid visualization.
     if visualization:
-        proj.visualizer.set_axes(True)
-        proj.visualizer.set_grid(True)
-        proj.visualizer.set_background(top=(0.075, 0.075, 0.11),
-                                       bottom=(0.05, 0.05, 0.05))
+        proj.visualizer.set_axes(False)
+        proj.visualizer.set_grid(False)
 
-    # Turn off gravity
-    proj.simulator.set_gravity((0., 0., 0.))
+    # Load a ground plane
+    ground = proj.load_urdf(assets['plane_medium.urdf'], fixed=True)
+    ground.links['plane'].set_texture(assets['tile_floor.png'])
 
     # Load the cmg
-    cmg = proj.load_urdf(assets['dual_axis_cmg.urdf'], fixed=False)
+    cmg = proj.load_urdf(assets['dual_axis_cmg.urdf'], fixed=True)
 
     # Set joint friction to small value and eliminate link air resistance
     cmg.joints['chassis_to_outer'].set_dynamics(damping=0.00025)
     cmg.joints['outer_to_inner'].set_dynamics(damping=0.00025)
     cmg.joints['inner_to_core'].set_dynamics(damping=0.0)
+    cmg.joints['baserod_to_chassis'].set_dynamics(damping=0.0)
     for link in cmg.links.values():
         link.set_dynamics(linear_air_resistance=0.0,
                           angular_air_resistance=0.0)

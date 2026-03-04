@@ -39,6 +39,9 @@ class Body():
     fixed : boolean, optional
         A flag that indicates if the body is fixed (has 0 DoF) or free
         (has 6 DoF).
+    self_collision : boolean, optional
+        A flag that indicates if the physics client will detect self collisions
+        within the Body.
 
     Attributes
     ----------
@@ -73,7 +76,11 @@ class Body():
         # Specifies to the engine to use the inertia from the urdf file
         f1 = self._client.URDF_USE_IMPLICIT_CYLINDER
         f2 = self._client.URDF_USE_INERTIA_FROM_FILE
-        flags = f1 | f2
+        f3 = self._client.URDF_USE_SELF_COLLISION
+        if kwargs.get('self_collision', False):
+            flags = f1 | f2 | f3
+        else:
+            flags = f1 | f2
 
         # Get the default initial state
         self._init_state = BodyState()
@@ -647,7 +654,7 @@ class Joint:
     def _set_defaults(self):
         # Set the default dynamics
         default_dyanamics = {'damping' : 0.005,
-                             'max_omega' : 1000.0}
+                             'max_omega' : 1000.0,}
         self.set_dynamics(**default_dyanamics)
 
         # Set the joint's control forces to 0.0
@@ -699,6 +706,10 @@ class Joint:
         max_omega : float, optional
             The maximum allowed angular velocity of the joint about the
             joint axis. The default value is 1000.0
+        limits : tuple of two floats, optional
+            Sets the lower and upper limits of a joint. In the form
+            (lower_limit, upper_limit). When not set, the default behavior
+            is no limits. Angles in radians.
 
         Returns
         -------
@@ -712,6 +723,9 @@ class Joint:
                 args['jointDamping'] = float(kwargs['damping'])
             if 'max_omega' in kwargs:
                 args['maxJointVelocity'] = float(kwargs['max_omega'])
+            if 'limits' in kwargs:
+                args['jointLowerLimit'] = float(kwargs['limits'][0])
+                args['jointUpperLimit'] = float(kwargs['limits'][1])
         except (TypeError, ValueError):
             warn('Unable to set dynamics, erroneous kwargs.')
             return -1

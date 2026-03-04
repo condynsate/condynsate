@@ -204,6 +204,9 @@ class Project:
         fixed : boolean, optional
             A flag that indicates if the body is fixed (has 0 DoF) or free
             (has 6 DoF).
+        self_collision : boolean, optional
+                A flag that indicates if the physics client will detect self
+                collisions within the URDF.
 
         Returns
         -------

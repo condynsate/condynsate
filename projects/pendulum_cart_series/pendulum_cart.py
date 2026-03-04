@@ -39,7 +39,7 @@ def _make(initial_angle, visualization):
     # Load and orient a cart carrying an inverted pendulum. Set initial state
     cart = proj.load_urdf(assets['cart.urdf'])
     cart.set_initial_state(position=(0,0,0.125)) # Place cart on the ground
-    cart.joints['chassis_to_arm'].set_initial_state(angle=initial_angle)
+    cart.joints['chassis_to_arm'].set_initial_state(angle=-initial_angle)
 
     # After the initial state is set, refresh the visualizer to show the change
     proj.refresh_visualizer()
@@ -68,11 +68,9 @@ def _state(cart):
     # Read the mean angle and mean rate of the wheels
     p_st = cart.joints['chassis_to_arm'].state
     c_st = cart.links['chassis'].state
-    x = c_st.position[0]
-    x_dot = c_st.velocity[0]
-    w_ang = -x / c_st.position[2]
-    w_omg = -x_dot / c_st.position[2]
-    return (p_st.angle, p_st.omega, w_ang, w_omg)
+    w_ang = c_st.position[0] / c_st.position[2]
+    w_omg = c_st.velocity[0] / c_st.position[2]
+    return (-p_st.angle, -p_st.omega, w_ang, w_omg)
 
 def _sim_loop(proj, cart, get_torque, time, real_time):
     # Reset the project to its initial state.
