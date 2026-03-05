@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-This module implements the backend for the pendulum cart project. In this
-project, we apply torques to the wheels of a cart to balance an inverted
-pendulum atop the cart.
+This module implements the backend for the single axis CMG project. In this
+project, we use a single axis CMG to balance an inverted pendulum.
 """
 """
 © Copyright, 2026 G. Schaer.
