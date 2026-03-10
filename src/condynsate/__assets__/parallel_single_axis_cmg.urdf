@@ -1,0 +1,131 @@
+<?xml version="1.0" ?>
+<robot name="gyro">
+
+
+    <!-- ########### MATERIALS ########### -->
+    <material name="Spacecraft">
+        <color rgba="0.588 0.862 0.972 1" />
+    </material>
+    
+    <material name="AltBlue">
+        <color rgba="0.380 0.796 0.956 1" />
+    </material>
+    
+    <material name = "Gimbals">
+        <color rgba = "0.031 0.309 0.415 1" />
+    </material>
+  
+    <material name = "Wheels">
+        <color rgba = "0.913 0.443 0.196 1" />
+    </material>
+
+    <!-- ########### LINKS ########### -->
+	<link name="S" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="dual_CMG_spacecraft_19-ODx18-ID_cen-orig.stl" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "Spacecraft"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="1.45"/>
+            <inertia ixx="0.00828" ixy="0" ixz="0" iyy="0.00828" iyz="0" izz="0.00828"/>
+        </inertial>
+    </link>
+	
+    <link name="A" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="gyroring_XZ-Z_18-Wx14-ODx12-IDx2-T_cen_orig.stl" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "Gimbals"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0.221"/>
+            <inertia ixx="0.000476" ixy="0" ixz="0" iyy="0.000937" iyz="0" izz="0.000476"/>
+        </inertial>
+    </link>
+
+    <link name="B" concave="yes">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="gyroring_XZ-Z_18-Wx14-ODx12-IDx2-T_cen_orig.stl" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "Gimbals"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0.221"/>
+            <inertia ixx="0.000476" ixy="0" ixz="0" iyy="0.000937" iyz="0" izz="0.000476"/>
+        </inertial>
+    </link>
+
+    <link name="Fa">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="gyrocore_YZ-Y_12-Wx11-ODx3-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "Wheels"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0.770"/>
+            <inertia ixx="0.00116" ixy="0" ixz="0" iyy="0.000640" iyz="0" izz="0.000640"/>
+        </inertial>
+    </link>
+
+    <link name="Fb">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="gyrocore_YZ-Y_12-Wx11-ODx3-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "Wheels"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0.770"/>
+            <inertia ixx="0.00116" ixy="0" ixz="0" iyy="0.000640" iyz="0" izz="0.000640"/>
+        </inertial>
+    </link>
+
+    <!-- ########### JOINTS ########### -->
+	<joint name="S_to_A" type="continuous">
+        <parent link = "S" />
+        <child link = "A" />
+        <origin rpy="0 0 0" xyz = "-0.95 0 0" />
+        <axis xyz = "0 0 1" />
+    </joint>
+	
+    <joint name="A_to_Fa" type="continuous">
+        <parent link = "A" />
+        <child link = "Fa" />
+        <origin rpy="0 0 0" xyz = "0 0 0" />
+        <axis xyz = "1 0 0" />
+    </joint>
+
+	<joint name="S_to_B" type="continuous">
+        <parent link = "S" />
+        <child link = "B" />
+        <origin rpy="0 0 0" xyz = "0.95 0 0" />
+        <axis xyz = "0 0 1" />
+    </joint>
+	
+    <joint name="B_to_Fb" type="continuous">
+        <parent link = "B" />
+        <child link = "Fb" />
+        <origin rpy="0 0 0" xyz = "0 0 0" />
+        <axis xyz = "1 0 0" />
+    </joint>
+
+
+</robot>
+
+<!-- © Copyright, 2026 G. Schaer. -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
