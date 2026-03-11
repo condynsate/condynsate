@@ -72,6 +72,10 @@ class Project:
         function call, these frames are saved with h.264 and outputs in
         an MP4 container. The saved file name has the form
         animator.mp4. The default is False.
+    keyboard : bool, optional
+        A boolean flag that indicates if the project should include a
+        keyboard module. This keyboard module provides keyboard interactivity
+        by starting a keyboard listener. The default is False.
 
     Attributes
     ----------
@@ -244,7 +248,7 @@ class Project:
         time.sleep(0.1)
         return max(-1, ret_code)
 
-    def step(self, real_time=True, stable_step=True):
+    def step(self, real_time=True, stable_step=False):
         """
         Takes a single simulation step and updates the visualizer to reflect
         the new simulator state.

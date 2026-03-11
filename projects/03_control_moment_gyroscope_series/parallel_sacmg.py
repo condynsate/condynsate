@@ -9,21 +9,24 @@ SPDX-License-Identifier: GPL-3.0-only
 """
 
 from time import sleep
+from time import time as now
+from collections import deque
 from condynsate import Project
 from condynsate import __assets__ as assets
 import numpy as np
 
 def _make(initial_alpha, visualization):
     # Create the project
-    proj = Project(keyboard=False, visualizer=visualization, animator=False)
-    proj.simulator.set_gravity((0., 0., 0.))
+    proj = Project(visualizer = visualization,
+                   simulator_dt = 1.0/300.0,
+                   simulator_gravity = (0.,0.,0.))
 
     # Load the cmg
     cmg = proj.load_urdf(assets['parallel_single_axis_cmg.urdf'], fixed=False)
 
     # Set joint friction to small value and eliminate link air resistance
-    cmg.joints['S_to_A'].set_dynamics(damping=0.017) # Req for sim stability
-    cmg.joints['S_to_B'].set_dynamics(damping=0.017) # Req for sim stability
+    cmg.joints['S_to_A'].set_dynamics(damping=0.006) # Req for sim stability
+    cmg.joints['S_to_B'].set_dynamics(damping=0.006) # Req for sim stability
     cmg.joints['A_to_Fa'].set_dynamics(damping=0.0)
     cmg.joints['B_to_Fb'].set_dynamics(damping=0.0)
     for link in cmg.links.values():
@@ -108,7 +111,7 @@ def _get_des(program_number, sim_time):
         des = 16.0*np.pi/180.0*np.sin(np.pi*sim_time/(2.0*10.0))
 
     # Unrecognized program
-    des = np.clip(des, -0.99*np.pi, 0.99*np.pi)
+    des = max(min(des, 0.49*np.pi), -0.49*np.pi)
     return des
 
 def _sim_loop(proj, cmg, program, get_torque, time, real_time):
@@ -116,15 +119,16 @@ def _sim_loop(proj, cmg, program, get_torque, time, real_time):
     proj.reset()
 
     # Make structure to hold simulation data
-    data = {'time':np.array([]),
-            'omega_theta':np.array([]),
-            'omega_gamma':np.array([]),
-            'theta':np.array([]),
-            'gamma':np.array([]),
-            'tau_gamma':np.array([]),
-            'theta_des':np.array([]),}
+    data = {'time':deque(),
+            'omega_theta':deque(),
+            'omega_gamma':deque(),
+            'theta':deque(),
+            'gamma':deque(),
+            'tau_gamma':deque(),
+            'theta_des':deque(),}
 
     # Run a simulation loop
+    start = now()
     while proj.simtime <= time:
         # Get the state of the system
         state = _state(cmg)
@@ -134,7 +138,7 @@ def _sim_loop(proj, cmg, program, get_torque, time, real_time):
 
         # Get the controller torque
         torque = get_torque(state, theta_des)
-        torque = np.clip(torque, -0.004, 0.004)
+        torque = max(min(torque, 0.004), -0.004)
 
         # Apply the controller
         cmg.joints['S_to_A'].apply_torque(torque,
@@ -147,21 +151,37 @@ def _sim_loop(proj, cmg, program, get_torque, time, real_time):
                                           arrow_offset=0.7,)
 
         # Update the data
-        data['time'] = np.append(data['time'], proj.simtime)
-        data['omega_theta']=np.append(data['omega_theta'],state['omega_theta'])
-        data['omega_gamma']=np.append(data['omega_gamma'],state['omega_gamma'])
-        data['theta'] = np.append(data['theta'], state['theta'])
-        data['gamma'] = np.append(data['gamma'], state['gamma'])
-        data['tau_gamma'] = np.append(data['tau_gamma'], torque)
-        data['theta_des'] = np.append(data['theta_des'], theta_des)
+        if int(round(1000*proj.simtime)) % 10 == 0.0:
+            data['time'].append(proj.simtime)
+            data['omega_theta'].append(state['omega_theta'])
+            data['omega_gamma'].append(state['omega_gamma'])
+            data['theta'].append(state['theta'])
+            data['gamma'].append(state['gamma'])
+            data['tau_gamma'].append(torque)
+            data['theta_des'].append(theta_des)
 
         # Take a simulation step
-        proj.step(real_time=real_time, stable_step=False)
+        proj.step(real_time=real_time)
+
+    # Get the last time step
+    state = _state(cmg)
+    theta_des = _get_des(program, proj.simtime)
+    data['time'].append(proj.simtime)
+    data['omega_theta'].append(state['omega_theta'])
+    data['omega_gamma'].append(state['omega_gamma'])
+    data['theta'].append(state['theta'])
+    data['gamma'].append(state['gamma'])
+    data['tau_gamma'].append(0.0)
+    data['theta_des'].append(theta_des)
 
     # Return the collected data
+    duration = now() - start
+    print(f"Simulation took {duration:.2f} seconds.")
+    for key, value in data.items():
+        data[key] = np.array(value)
     return data
 
-def run(program, controller, initial_alpha=np.pi/4, time=45, real_time=True):
+def run(program, controller, initial_alpha=np.pi/4, time=45., real_time=True):
     """
     Makes and runs a condynsate-based simulation of a dual axis CMG.
     The goal of the simulation is to apply torques to the gimbals such
@@ -208,58 +228,62 @@ def run(program, controller, initial_alpha=np.pi/4, time=45, real_time=True):
     proj.terminate()
     return data
 
-# def controller(state, theta_des):
-#     K = np.array([[-6.25727963e-05,  5.03773953e-03,  1.91818797e-02]])
-#     T = np.array([[ 0.9957061 ,  0.        ,  0.        , -0.09257087],
-#                   [ 0.        ,  0.0304825 , -0.9995353 ,  0.        ],
-#                   [ 0.        ,  0.9995353 ,  0.0304825 ,  0.        ],
-#                   [-0.09257087,  0.        ,  0.        , -0.9957061 ]])
+def controller(state, theta_des):
+    K = np.array([[-6.25727963e-05,  5.03773953e-03,  1.91818797e-02]])
+    T = np.array([[ 0.9957061 ,  0.        ,  0.        , -0.09257087],
+                  [ 0.        ,  0.0304825 , -0.9995353 ,  0.        ],
+                  [ 0.        ,  0.9995353 ,  0.0304825 ,  0.        ],
+                  [-0.09257087,  0.        ,  0.        , -0.9957061 ]])
 
-#     m_e = np.array([0, 0, 0, 0.5*np.pi]) # The equilibrium nonlinear state vector
-#     n_e = np.array([0]) # The equilibrium nonlinear input vector
+    m_e = np.array([0, 0, 0, 0.5*np.pi]) # The equilibrium nonlinear state vector
+    n_e = np.array([0]) # The equilibrium nonlinear input vector
 
-#     # Define a desired alpha angle
-#     x_des = np.array([0, theta_des, 0, 0]) - m_e
+    # Define a desired alpha angle
+    x_des = np.array([0, theta_des, 0, 0]) - m_e
 
-#     # Build the nonlinear state vector
-#     m = np.array([state['omega_theta'],
-#                   state['theta'],
-#                   state['omega_gamma'],
-#                   state['gamma'],])
+    # Build the nonlinear state vector
+    m = np.array([state['omega_theta'],
+                  state['theta'],
+                  state['omega_gamma'],
+                  state['gamma'],])
 
-#     # Build the linear state vector
-#     x = m - m_e
+    # Build the linear state vector
+    x = m - m_e
 
-#     # Build the reference tracking linear state vector
-#     z = x - x_des
+    # Build the reference tracking linear state vector
+    z = x - x_des
 
-#     # Transform into controllable coordinates
-#     z_tilda = T.T @ z
-#     z_c = z_tilda[0:3]
+    # Transform into controllable coordinates
+    z_tilda = T.T @ z
+    z_c = z_tilda[0:3]
 
-#     # Apply the feedback control law with our selected gain matrix to get the linear input vector
-#     u = -K@z_c
+    # Apply the feedback control law with our selected gain matrix to get the linear input vector
+    u = -K@z_c
 
-#     # Convert the linear input vector into the nonlinear input vector
-#     n = u + n_e
+    # Convert the linear input vector into the nonlinear input vector
+    n = u + n_e
 
-#     # Return the nonlinear torques as scalars
-#     tau_gamma = n[0]
-#     return tau_gamma
+    # Return the nonlinear torques as scalars
+    tau_gamma = n[0]
+    return tau_gamma
 
-# if __name__ == "__main__":
-#     # Run a simulation
-#     data = run(1, controller, time=45.0, real_time=False)
+if __name__ == "__main__":
+    # Import plotting tool
+    import matplotlib
+    import matplotlib.pyplot as plt
 
-#     # Import plotting tool
-#     import matplotlib.pyplot as plt
-#     %matplotlib inline
+    # Run a simulation
+    data = run(1, controller, time=45.0, real_time=False)
 
-#     # Plot the pitch, desired pitch, and input torque as functions of time
-#     plt.plot(data['time'], data['theta']*180/3.14, label='Pitch [deg]', lw=2.0, c='r')
-#     plt.plot(data['time'], data['theta_des']*180/3.14, label='Desired Pitch [deg]', lw=2.0, c='r', ls='--')
-#     plt.plot(data['time'], 1000*data['tau_gamma'], label='Torque [mN-m]', lw=2.0, c='b')
-#     plt.legend()
-#     plt.xlabel('Time [seconds]')
-#     plt.axhline(c='k', lw=0.5)
-#     plt.show()
+    # Plot the pitch, desired pitch, and input torque as functions of time
+    matplotlib.use('Inline')
+    fig, ax = plt.subplots(1)
+    ax.plot(data['time'], data['theta']*180/3.14,
+            label='Pitch [deg]', lw=2.0, c='r')
+    ax.plot(data['time'], data['theta_des']*180/3.14,
+            label='Desired Pitch [deg]', lw=2.0, c='r', ls='--')
+    ax.plot(data['time'], 1000*data['tau_gamma'],
+            label='Torque [mN-m]', lw=2.0, c='b')
+    ax.legend()
+    ax.set_xlabel('Time [seconds]')
+    ax.axhline(c='k', lw=0.5)
