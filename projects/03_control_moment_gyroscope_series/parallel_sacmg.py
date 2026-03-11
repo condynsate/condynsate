@@ -13,7 +13,7 @@ from condynsate import Project
 from condynsate import __assets__ as assets
 import numpy as np
 
-def _make(initial_alpha, initial_beta, visualization):
+def _make(initial_alpha, visualization):
     # Create the project
     proj = Project(keyboard=False, visualizer=visualization, animator=False)
     proj.simulator.set_gravity((0., 0., 0.))
@@ -22,8 +22,8 @@ def _make(initial_alpha, initial_beta, visualization):
     cmg = proj.load_urdf(assets['parallel_single_axis_cmg.urdf'], fixed=False)
 
     # Set joint friction to small value and eliminate link air resistance
-    cmg.joints['S_to_A'].set_dynamics(damping=0.001)
-    cmg.joints['S_to_B'].set_dynamics(damping=0.001)
+    cmg.joints['S_to_A'].set_dynamics(damping=0.017) # Req for sim stability
+    cmg.joints['S_to_B'].set_dynamics(damping=0.017) # Req for sim stability
     cmg.joints['A_to_Fa'].set_dynamics(damping=0.0)
     cmg.joints['B_to_Fb'].set_dynamics(damping=0.0)
     for link in cmg.links.values():
@@ -31,12 +31,12 @@ def _make(initial_alpha, initial_beta, visualization):
                           angular_air_resistance=0.0)
 
     # Set the speed of the cores to ~10 rps
-    cmg.joints['A_to_Fa'].set_initial_state(omega=78.5)
-    cmg.joints['B_to_Fb'].set_initial_state(omega=78.5)
+    cmg.joints['A_to_Fa'].set_initial_state(omega=62.8)
+    cmg.joints['B_to_Fb'].set_initial_state(omega=62.8)
 
     # Set the initial angle of the cmg pendulum
     cmg.joints['S_to_A'].set_initial_state(angle=initial_alpha)
-    cmg.joints['S_to_B'].set_initial_state(angle=initial_beta)
+    cmg.joints['S_to_B'].set_initial_state(angle=-initial_alpha)
 
     # Set some visualizer options
     if visualization:
@@ -66,15 +66,10 @@ def _stall(proj):
 def _state(cmg):
     s = cmg.state
     a = cmg.joints['S_to_A'].state
-    b = cmg.joints['S_to_B'].state
-    state = {'omega_theta':s.omega_in_body[1],
-             'omega_phi':s.omega_in_body[0],
-             'omega_alpha':a.omega,
-             'omega_beta':b.omega,
-             'theta':s.ypr[1],
-             'phi':s.ypr[2],
-             'alpha':a.angle,
-             'beta':b.angle,}
+    state = {'omega_theta':-s.omega_in_body[1],
+             'omega_gamma':a.omega,
+             'theta':-s.ypr[1],
+             'gamma':a.angle,}
     return state
 
 def _get_des(program_number, sim_time):
@@ -84,33 +79,33 @@ def _get_des(program_number, sim_time):
     if program_number==1:
         des = 5.0*np.pi/180.0 if sim_time > 2.0 else 0.0
     elif program_number==2:
-        des = -15.0*np.pi/180.0 if sim_time > 2.0 else 0.0
+        des = -10.0*np.pi/180.0 if sim_time > 2.0 else 0.0
     elif program_number==3:
-        des = 30.0*np.pi/180.0 if sim_time > 2.0 else 0.0
+        des = 15.0*np.pi/180.0 if sim_time > 2.0 else 0.0
 
     # Sequential step programs
     elif program_number==4:
-        des = np.clip((sim_time//2.0) * 1.0*np.pi/180.0)
+        des = np.clip((sim_time//5.0) * 1.0*np.pi/180.0)
     elif program_number==5:
-        des = -(sim_time//2.0) * 5.0*np.pi/180.0
+        des = -(sim_time//5.0) * 2.5*np.pi/180.0
     elif program_number==6:
-        des = (sim_time//2.0) * 10.0*np.pi/180.0
+        des = (sim_time//2.5) * 3.5*np.pi/180.0
 
     # Linear programs
     elif program_number==7:
-        des = -sim_time*np.pi/180.0
+        des = -sim_time*0.25*np.pi/180.0
     elif program_number==8:
-        des = sim_time*4.5*np.pi/180.0
+        des = sim_time*0.75*np.pi/180.0
     elif program_number==9:
-        des = -sim_time*9.0*np.pi/180.0
+        des = -sim_time*2*np.pi/180.0
 
     # Sinusoidal programs
     elif program_number==10:
-        des = 15.0*np.pi/180.0*np.sin(np.pi*sim_time/(2.0*10.0))
+        des = 4.0*np.pi/180.0*np.sin(np.pi*sim_time/(2.0*10.0))
     elif program_number==11:
-        des = -30.0*np.pi/180.0*np.sin(np.pi*sim_time/(2.0*10.0))
+        des = -8.0*np.pi/180.0*np.sin(np.pi*sim_time/(2.0*10.0))
     elif program_number==12:
-        des = 30.0*np.pi/180.0*np.sin(np.pi*sim_time/(2.0*5.0))
+        des = 16.0*np.pi/180.0*np.sin(np.pi*sim_time/(2.0*10.0))
 
     # Unrecognized program
     des = np.clip(des, -0.99*np.pi, 0.99*np.pi)
@@ -123,58 +118,42 @@ def _sim_loop(proj, cmg, program, get_torque, time, real_time):
     # Make structure to hold simulation data
     data = {'time':np.array([]),
             'omega_theta':np.array([]),
-            'omega_phi':np.array([]),
-            'omega_alpha':np.array([]),
-            'omega_beta':np.array([]),
+            'omega_gamma':np.array([]),
             'theta':np.array([]),
-            'phi':np.array([]),
-            'alpha':np.array([]),
-            'beta':np.array([]),
-            'tau_alpha':np.array([]),
-            'tau_beta':np.array([]),
-            'theta_des':np.array([]),
-            'phi_des':np.array([]),}
+            'gamma':np.array([]),
+            'tau_gamma':np.array([]),
+            'theta_des':np.array([]),}
 
     # Run a simulation loop
     while proj.simtime <= time:
-        # Set the yaw to 0 (fixed condition)
-        cmg.set_state(yaw=0.0)
-
         # Get the state of the system
         state = _state(cmg)
 
         # Get the desired alpha
-        theta_des = _get_des(program[0], proj.simtime)
-        phi_des = _get_des(program[1], proj.simtime)
+        theta_des = _get_des(program, proj.simtime)
 
         # Get the controller torque
-        torque = get_torque(state, theta_des, phi_des)
-        torque = np.clip(torque, -0.005, 0.005)
+        torque = get_torque(state, theta_des)
+        torque = np.clip(torque, -0.004, 0.004)
 
         # Apply the controller
-        cmg.joints['S_to_A'].apply_torque(torque[0],
+        cmg.joints['S_to_A'].apply_torque(torque,
                                           draw_arrow=True,
-                                          arrow_scale=600,
+                                          arrow_scale=750,
                                           arrow_offset=0.7,)
-        cmg.joints['S_to_B'].apply_torque(torque[1],
+        cmg.joints['S_to_B'].apply_torque(-torque,
                                           draw_arrow=True,
-                                          arrow_scale=600,
+                                          arrow_scale=750,
                                           arrow_offset=0.7,)
 
         # Update the data
         data['time'] = np.append(data['time'], proj.simtime)
         data['omega_theta']=np.append(data['omega_theta'],state['omega_theta'])
-        data['omega_phi'] = np.append(data['omega_phi'], state['omega_phi'])
-        data['omega_alpha']=np.append(data['omega_alpha'],state['omega_alpha'])
-        data['omega_beta'] = np.append(data['omega_beta'], state['omega_beta'])
+        data['omega_gamma']=np.append(data['omega_gamma'],state['omega_gamma'])
         data['theta'] = np.append(data['theta'], state['theta'])
-        data['phi'] = np.append(data['phi'], state['phi'])
-        data['alpha'] = np.append(data['alpha'], state['alpha'])
-        data['beta'] = np.append(data['beta'], state['beta'])
-        data['tau_alpha'] = np.append(data['tau_alpha'], torque[0])
-        data['tau_beta'] = np.append(data['tau_beta'], torque[1])
+        data['gamma'] = np.append(data['gamma'], state['gamma'])
+        data['tau_gamma'] = np.append(data['tau_gamma'], torque)
         data['theta_des'] = np.append(data['theta_des'], theta_des)
-        data['phi_des'] = np.append(data['phi_des'], phi_des)
 
         # Take a simulation step
         proj.step(real_time=real_time, stable_step=False)
@@ -182,9 +161,7 @@ def _sim_loop(proj, cmg, program, get_torque, time, real_time):
     # Return the collected data
     return data
 
-def run(program, controller,
-        initial_alpha=-np.pi/4, initial_beta=np.pi/4,
-        time=20.0, real_time=True):
+def run(program, controller, initial_alpha=np.pi/4, time=45, real_time=True):
     """
     Makes and runs a condynsate-based simulation of a dual axis CMG.
     The goal of the simulation is to apply torques to the gimbals such
@@ -224,36 +201,65 @@ def run(program, controller,
 
     """
     # Build the project, run the simulation loop, terminate the project
-    proj, cmg = _make(initial_alpha, initial_beta, real_time)
+    proj, cmg = _make(initial_alpha, real_time)
     if real_time:
         _stall(proj)
     data = _sim_loop(proj, cmg, program, controller, time, real_time)
     proj.terminate()
     return data
 
-def controller(state, psi_des, theta_des):
-    return -0.001, 0.001
+# def controller(state, theta_des):
+#     K = np.array([[-6.25727963e-05,  5.03773953e-03,  1.91818797e-02]])
+#     T = np.array([[ 0.9957061 ,  0.        ,  0.        , -0.09257087],
+#                   [ 0.        ,  0.0304825 , -0.9995353 ,  0.        ],
+#                   [ 0.        ,  0.9995353 ,  0.0304825 ,  0.        ],
+#                   [-0.09257087,  0.        ,  0.        , -0.9957061 ]])
 
-if __name__ == "__main__":
-    run((0, 0), controller, time=1.0)
-    # data = run(1, 0, controller, time=10.0)
+#     m_e = np.array([0, 0, 0, 0.5*np.pi]) # The equilibrium nonlinear state vector
+#     n_e = np.array([0]) # The equilibrium nonlinear input vector
 
-    # # Import plotting tool
-    # import matplotlib.pyplot as plt
-    # %matplotlib inline
+#     # Define a desired alpha angle
+#     x_des = np.array([0, theta_des, 0, 0]) - m_e
 
-    # # Plot the yaw and desired yaw as functions of time
-    # plt.plot(data['time'], data['psi']*180/3.14, label='Yaw [deg]', lw=2.0)
-    # plt.plot(data['time'], data['psi_des']*180/3.14, label='Desired Yaw [deg]', lw=2.0)
-    # plt.legend()
-    # plt.xlabel('Time [seconds]')
-    # plt.axhline(c='k', lw=0.5)
-    # plt.show()
+#     # Build the nonlinear state vector
+#     m = np.array([state['omega_theta'],
+#                   state['theta'],
+#                   state['omega_gamma'],
+#                   state['gamma'],])
 
-    # # Plot the pitch and desired pitch as functions of time
-    # plt.plot(data['time'], data['theta']*180/3.14, label='Pitch [deg]', lw=2.0)
-    # plt.plot(data['time'], data['theta_des']*180/3.14, label='Desired Pitch [deg]', lw=2.0)
-    # plt.legend()
-    # plt.xlabel('Time [seconds]')
-    # plt.axhline(c='k', lw=0.5)
-    # plt.show()
+#     # Build the linear state vector
+#     x = m - m_e
+
+#     # Build the reference tracking linear state vector
+#     z = x - x_des
+
+#     # Transform into controllable coordinates
+#     z_tilda = T.T @ z
+#     z_c = z_tilda[0:3]
+
+#     # Apply the feedback control law with our selected gain matrix to get the linear input vector
+#     u = -K@z_c
+
+#     # Convert the linear input vector into the nonlinear input vector
+#     n = u + n_e
+
+#     # Return the nonlinear torques as scalars
+#     tau_gamma = n[0]
+#     return tau_gamma
+
+# if __name__ == "__main__":
+#     # Run a simulation
+#     data = run(1, controller, time=45.0, real_time=False)
+
+#     # Import plotting tool
+#     import matplotlib.pyplot as plt
+#     %matplotlib inline
+
+#     # Plot the pitch, desired pitch, and input torque as functions of time
+#     plt.plot(data['time'], data['theta']*180/3.14, label='Pitch [deg]', lw=2.0, c='r')
+#     plt.plot(data['time'], data['theta_des']*180/3.14, label='Desired Pitch [deg]', lw=2.0, c='r', ls='--')
+#     plt.plot(data['time'], 1000*data['tau_gamma'], label='Torque [mN-m]', lw=2.0, c='b')
+#     plt.legend()
+#     plt.xlabel('Time [seconds]')
+#     plt.axhline(c='k', lw=0.5)
+#     plt.show()

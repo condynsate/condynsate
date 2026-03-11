@@ -75,8 +75,8 @@
         </visual>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
-            <mass value="0.770"/>
-            <inertia ixx="0.00116" ixy="0" ixz="0" iyy="0.000640" iyz="0" izz="0.000640"/>
+            <mass value="2.49"/>
+            <inertia ixx="0.00376" ixy="0" ixz="0" iyy="0.00207" iyz="0" izz="0.00207"/>
         </inertial>
     </link>
 
@@ -90,8 +90,8 @@
         </visual>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
-            <mass value="0.770"/>
-            <inertia ixx="0.00116" ixy="0" ixz="0" iyy="0.000640" iyz="0" izz="0.000640"/>
+            <mass value="2.49"/>
+            <inertia ixx="0.00376" ixy="0" ixz="0" iyy="0.00207" iyz="0" izz="0.00207"/>
         </inertial>
     </link>
 
@@ -99,7 +99,7 @@
 	<joint name="S_to_A" type="continuous">
         <parent link = "S" />
         <child link = "A" />
-        <origin rpy="0 0 0" xyz = "-0.95 0 0" />
+        <origin rpy="0 0 1.5708" xyz = "-0.95 0 0" />
         <axis xyz = "0 0 1" />
     </joint>
 	
@@ -113,7 +113,7 @@
 	<joint name="S_to_B" type="continuous">
         <parent link = "S" />
         <child link = "B" />
-        <origin rpy="0 0 0" xyz = "0.95 0 0" />
+        <origin rpy="0 0 1.5708" xyz = "0.95 0 0" />
         <axis xyz = "0 0 1" />
     </joint>
 	
