@@ -15,7 +15,7 @@ from condynsate import Project
 from condynsate import __assets__ as assets
 import numpy as np
 
-def _make(initial_alpha, visualization):
+def _make(initial_gamma, visualization):
     # Create the project
     proj = Project(visualizer = visualization,
                    simulator_dt = 1.0/300.0,
@@ -38,8 +38,8 @@ def _make(initial_alpha, visualization):
     cmg.joints['B_to_Fb'].set_initial_state(omega=62.8)
 
     # Set the initial angle of the cmg pendulum
-    cmg.joints['S_to_A'].set_initial_state(angle=initial_alpha)
-    cmg.joints['S_to_B'].set_initial_state(angle=-initial_alpha)
+    cmg.joints['S_to_A'].set_initial_state(angle=initial_gamma)
+    cmg.joints['S_to_B'].set_initial_state(angle=-initial_gamma)
 
     # Set some visualizer options
     if visualization:
@@ -88,11 +88,11 @@ def _get_des(program_number, sim_time):
 
     # Sequential step programs
     elif program_number==4:
-        des = np.clip((sim_time//5.0) * 1.0*np.pi/180.0)
+        des = (min(sim_time,60.0)//5.0) * 1.0*np.pi/180.0
     elif program_number==5:
-        des = -(sim_time//5.0) * 2.5*np.pi/180.0
+        des = -(min(sim_time,60.0)//5.0) * 2.5*np.pi/180.0
     elif program_number==6:
-        des = (sim_time//2.5) * 3.5*np.pi/180.0
+        des = (min(sim_time,60.0)//2.5) * 3.5*np.pi/180.0
 
     # Linear programs
     elif program_number==7:
@@ -181,7 +181,7 @@ def _sim_loop(proj, cmg, program, get_torque, time, real_time):
         data[key] = np.array(value)
     return data
 
-def run(program, controller, initial_alpha=np.pi/4, time=45., real_time=True):
+def run(initial_gamma, program, controller, time=45., real_time=True):
     """
     Makes and runs a condynsate-based simulation of a dual axis CMG.
     The goal of the simulation is to apply torques to the gimbals such
@@ -221,7 +221,7 @@ def run(program, controller, initial_alpha=np.pi/4, time=45., real_time=True):
 
     """
     # Build the project, run the simulation loop, terminate the project
-    proj, cmg = _make(initial_alpha, real_time)
+    proj, cmg = _make(initial_gamma, real_time)
     if real_time:
         _stall(proj)
     data = _sim_loop(proj, cmg, program, controller, time, real_time)
@@ -229,17 +229,16 @@ def run(program, controller, initial_alpha=np.pi/4, time=45., real_time=True):
     return data
 
 def controller(state, theta_des):
-    K = np.array([[-6.25727963e-05,  5.03773953e-03,  1.91818797e-02]])
-    T = np.array([[ 0.9957061 ,  0.        ,  0.        , -0.09257087],
-                  [ 0.        ,  0.0304825 , -0.9995353 ,  0.        ],
-                  [ 0.        ,  0.9995353 ,  0.0304825 ,  0.        ],
-                  [-0.09257087,  0.        ,  0.        , -0.9957061 ]])
-
-    m_e = np.array([0, 0, 0, 0.5*np.pi]) # The equilibrium nonlinear state vector
-    n_e = np.array([0]) # The equilibrium nonlinear input vector
-
-    # Define a desired alpha angle
-    x_des = np.array([0, theta_des, 0, 0]) - m_e
+    # Definitions
+    m_e = np.array([0, 0, 0, 0.5*np.pi])   # Define the equilibrium nonlinear state vector
+    n_e = np.array([0])                    # Define the equilibrium nonlinear input vector
+    x_des = np.array([0, theta_des, 0, 0]) # Define a desired linear state vector
+    K_c = np.array([[-5.38e-05, -2.02e-02, 5.50e-03]])                # Define the controllable subsystem gain matrix
+    K = np.hstack((K_c, np.zeros((len(n_e), len(m_e)-K_c.shape[1])))) # Define the combined gain matrix [K_c, 0]
+    T = np.array([[ 0.9995, -0.0000,  0.0000,  0.0302],               # Define the Kalman decomposition transform
+                  [ 0.0000,  0.9999,  0.0107, -0.0000],
+                  [ 0.0000, -0.0107,  0.9999, -0.0000],
+                  [-0.0302, -0.0000,  0.0000,  0.9995]])
 
     # Build the nonlinear state vector
     m = np.array([state['omega_theta'],
@@ -253,17 +252,16 @@ def controller(state, theta_des):
     # Build the reference tracking linear state vector
     z = x - x_des
 
-    # Transform into controllable coordinates
+    # Transform the reference tracking linear state vector into controllable and uncontrollable subspaces
     z_tilda = T.T @ z
-    z_c = z_tilda[0:3]
 
     # Apply the feedback control law with our selected gain matrix to get the linear input vector
-    u = -K@z_c
+    u = -K@z_tilda
 
     # Convert the linear input vector into the nonlinear input vector
     n = u + n_e
 
-    # Return the nonlinear torques as scalars
+    # Return the nonlinear torque as a scalar
     tau_gamma = n[0]
     return tau_gamma
 
@@ -273,7 +271,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     # Run a simulation
-    data = run(1, controller, time=45.0, real_time=False)
+    data = run(1.5708, 1, controller, time=60.0, real_time=False)
 
     # Plot the pitch, desired pitch, and input torque as functions of time
     matplotlib.use('Inline')
@@ -287,3 +285,20 @@ if __name__ == "__main__":
     ax.legend()
     ax.set_xlabel('Time [seconds]')
     ax.axhline(c='k', lw=0.5)
+
+    # Build the uncontrollable state
+    T = np.array([[ 0.9995, -0.0000,  0.0000,  0.0302],
+                  [ 0.0000,  0.9999,  0.0107, -0.0000],
+                  [ 0.0000, -0.0107,  0.9999, -0.0000],
+                  [-0.0302, -0.0000,  0.0000,  0.9995]])
+    z = np.array((data['omega_theta'], data['theta']-data['theta_des'],
+                  data['omega_gamma'], data['gamma']-0.5*np.pi))
+    z_u = (T.T@z)[-1,:]
+
+    # Plot the uncontrollable state as a function of time
+    fig, ax = plt.subplots(1)
+    ax.plot(data['time'], z_u, label='Uncontrollable State', lw=2.0, c='b')
+    ax.legend()
+    ax.set_xlabel('Time [seconds]')
+    ax.axhline(c='k', lw=0.5)
+    plt.show()
