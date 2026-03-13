@@ -993,7 +993,7 @@ class Visualizer():
             geometry = geo.DaeMeshGeometry.from_file(path)
         return geometry
 
-    def _get_material(self, tex_path, color, shininess, opacity):
+    def _get_material(self,tex_path,color,shininess,opacity,emissive_color):
         """
         Makes a Phong material.
 
@@ -1012,6 +1012,10 @@ class Visualizer():
             The shininess of the object being added. Ranges from 0.0 to 1.0.
         opacity : float
             The opacity of the object being added. Ranges from 0.0 to 1.0.
+        emissive_color : 3vec of floats
+            The color of the light the object is emiting. In the form of
+            (R, G, B) where all elements range from 0.0 to 1.0. A value of
+            (0.0, 0.0, 0.0) results in no emmision.
 
         Returns
         -------
@@ -1026,10 +1030,14 @@ class Visualizer():
             texture = None
         color = tuple(int(255*c) for c in color)
         color = int("0x{:02x}{:02x}{:02x}".format(*color), 16)
+        emissive_color = tuple(int(255*e) for e in emissive_color)
+        emissive_color = int("0x{:02x}{:02x}{:02x}".format(*emissive_color),16)
         mat_kwargs = {'color' : color,
                       'map' : texture,
                       'opacity' : opacity,
-                      'shininess' : shininess}
+                      'shininess' : shininess,
+                      'emissive' : emissive_color,
+                      }
         return geo.MeshPhongMaterial(**mat_kwargs)
 
     def _add_object(self, name, path, material_kwargs):
@@ -1059,12 +1067,15 @@ class Visualizer():
         # Add the .obj to the scene
         scene_path = get_scene_path(name)
         geometry = self._get_geometry(path)
-        self._objects[scene_path] = {'geometry':geometry,
-                                     'tex_path':material_kwargs['tex_path'],
-                                     'color':material_kwargs['color'],
-                                     'shininess':material_kwargs['shininess'],
-                                     'opacity':material_kwargs['opacity'],
-                                     'trans_matrix':np.eye(4)}
+        self._objects[scene_path] = {
+            'geometry':geometry,
+            'tex_path':material_kwargs['tex_path'],
+            'color':material_kwargs['color'],
+            'shininess':material_kwargs['shininess'],
+            'opacity':material_kwargs['opacity'],
+            'emissive_color':material_kwargs['emissive_color'],
+            'trans_matrix':np.eye(4)
+            }
         material = self._get_material(**material_kwargs)
         self._scene[scene_path].set_object(geometry, material)
 
@@ -1105,6 +1116,11 @@ class Visualizer():
         opacity : float
             The opacity of the object being added. Ranges from 0.0 to 1.0.
             The default value is 1.0.
+        emissive_color : 3vec of floats
+            The color of the light the object is emiting. In the form of
+            (R, G, B) where all elements range from 0.0 to 1.0. A value of
+            (0.0, 0.0, 0.0) results in no emmision. The default value is
+            (0.0, 0.0, 0.0).
         position : 3vec of floats
             The extrinsic position to set.
             The default value is (0., 0., 0.)
@@ -1330,7 +1346,8 @@ class Visualizer():
         sanitized = {'tex_path' : None,
                      'color' : (1.0, 1.0, 1.0),
                      'shininess' : 0.01,
-                     'opacity' : 1.0,}
+                     'opacity' : 1.0,
+                     'emissive_color' : (0.0, 0.0, 0.0)}
 
         # Validate each key given by user
         for key, val in kwargs.items():
@@ -1359,6 +1376,12 @@ class Visualizer():
                 if not is_num(val, arg_name=key):
                     continue
                 sanitized[key] = float(max(0, min(500*val, 500)))
+
+            # Validate the color
+            elif k == 'emissive_color':
+                if not is_nvector(val, 3, arg_name=key):
+                    continue
+                sanitized[key] = tuple(float(max(0, min(e, 1))) for e in val)
         return sanitized
 
     def _set_material(self, name, material_kwargs):
@@ -1443,6 +1466,11 @@ class Visualizer():
         opacity : float, optional
             The opacity of the object. Ranges from 0.0 to 1.0.
             The default value is 1.0.
+        emissive_color : 3vec of floats
+            The color of the light the object is emiting. In the form of
+            (R, G, B) where all elements range from 0.0 to 1.0. A value of
+            (0.0, 0.0, 0.0) results in no emmision. The default value is
+            (0.0, 0.0, 0.0).
 
         Returns
         -------

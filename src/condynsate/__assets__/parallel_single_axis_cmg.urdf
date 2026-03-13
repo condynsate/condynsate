@@ -39,7 +39,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyroring_XZ-Z_18-Wx14-ODx12-IDx2-T_cen_orig.stl" scale="0.1 0.1 0.1"/>
+                <mesh filename="gyroring_XZ-Y_18-Wx14-ODx12-IDx2-T_cen_orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "Gimbals"/>
         </visual>
@@ -54,7 +54,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyroring_XZ-Z_18-Wx14-ODx12-IDx2-T_cen_orig.stl" scale="0.1 0.1 0.1"/>
+                <mesh filename="gyroring_XZ-Y_18-Wx14-ODx12-IDx2-T_cen_orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "Gimbals"/>
         </visual>
@@ -69,14 +69,14 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyrocore_YZ-Y_12-Wx11-ODx3-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
+                <mesh filename="gyrocore_XZ-Y_6-Wx11.5-ODx4-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "Wheels"/>
         </visual>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
-            <mass value="2.49"/>
-            <inertia ixx="0.00376" ixy="0" ixz="0" iyy="0.00207" iyz="0" izz="0.00207"/>
+            <mass value="3.63"/>
+            <inertia ixx="0.00348" ixy="0" ixz="0" iyy="0.00600" iyz="0" izz="0.00348"/>
         </inertial>
     </link>
 
@@ -84,14 +84,14 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyrocore_YZ-Y_12-Wx11-ODx3-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
+                <mesh filename="gyrocore_XZ-Y_6-Wx11.5-ODx4-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "Wheels"/>
         </visual>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
-            <mass value="2.49"/>
-            <inertia ixx="0.00376" ixy="0" ixz="0" iyy="0.00207" iyz="0" izz="0.00207"/>
+            <mass value="3.63"/>
+            <inertia ixx="0.00348" ixy="0" ixz="0" iyy="0.00600" iyz="0" izz="0.00348"/>
         </inertial>
     </link>
 
@@ -99,7 +99,7 @@
 	<joint name="S_to_A" type="continuous">
         <parent link = "S" />
         <child link = "A" />
-        <origin rpy="0 0 1.5708" xyz = "-0.95 0 0" />
+        <origin rpy="0 0 0" xyz = "-0.95 0 0" />
         <axis xyz = "0 0 1" />
     </joint>
 	
@@ -107,13 +107,13 @@
         <parent link = "A" />
         <child link = "Fa" />
         <origin rpy="0 0 0" xyz = "0 0 0" />
-        <axis xyz = "1 0 0" />
+        <axis xyz = "0 1 0" />
     </joint>
 
 	<joint name="S_to_B" type="continuous">
         <parent link = "S" />
         <child link = "B" />
-        <origin rpy="0 0 1.5708" xyz = "0.95 0 0" />
+        <origin rpy="0 0 0" xyz = "0.95 0 0" />
         <axis xyz = "0 0 1" />
     </joint>
 	
@@ -121,7 +121,7 @@
         <parent link = "B" />
         <child link = "Fb" />
         <origin rpy="0 0 0" xyz = "0 0 0" />
-        <axis xyz = "1 0 0" />
+        <axis xyz = "0 1 0" />
     </joint>
 
 

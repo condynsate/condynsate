@@ -33,9 +33,9 @@ def _make(initial_gamma, visualization):
         link.set_dynamics(linear_air_resistance=0.0,
                           angular_air_resistance=0.0)
 
-    # Set the speed of the cores to ~10 rps
-    cmg.joints['A_to_Fa'].set_initial_state(omega=62.8)
-    cmg.joints['B_to_Fb'].set_initial_state(omega=62.8)
+    # Set the speed of the cores to ~7.5 rps
+    cmg.joints['A_to_Fa'].set_initial_state(omega=47.1)
+    cmg.joints['B_to_Fb'].set_initial_state(omega=47.1)
 
     # Set the initial angle of the cmg pendulum
     cmg.joints['S_to_A'].set_initial_state(angle=initial_gamma)
@@ -43,17 +43,56 @@ def _make(initial_gamma, visualization):
 
     # Set some visualizer options
     if visualization:
+        # Load a starfield and planet
+        proj.visualizer.add_object('white_starfield',
+                                   assets['128-starfield_5-r_cen-orig.obj'],
+                                   color=(0.918, 0.929, 1.0),
+                                   emissive_color=(0.918, 0.929, 1.0),
+                                   scale=(175, 175, 175))
+        proj.visualizer.add_object('red_starfield',
+                                   assets['64-starfield_5-r_cen-orig.obj'],
+                                   scale=(175, 175, 175),
+                                   color=(1.0, 0.706, 0.424),
+                                   emissive_color=(1.0, 0.706, 0.424),
+                                   roll = 161.,
+                                   pitch = 74.,
+                                   yaw = 14.)
+        proj.visualizer.add_object('blue_starfield',
+                                   assets['32-starfield_5-r_cen-orig.obj'],
+                                   scale=(175, 175, 175),
+                                   color=(0.616, 0.741, 1.0),
+                                   emissive_color=(0.616, 0.741, 1.0),
+                                   roll = 145.,
+                                   pitch = 71.,
+                                   yaw = 102.)
+        proj.visualizer.add_object('planet',
+                                   assets['sphere_1_center_origin.stl'],
+                                   scale=(5000, 5000, 5000),
+                                   color=(0.938, 0.884, 0.766),
+                                   emissive_color=(0.375, 0.354, 0.306),
+                                   position=(0.0, 0.0, -2600))
+
+        # Make the grid and axes invisible
         proj.visualizer.set_axes(False)
-        proj.visualizer.set_grid(True)
+        proj.visualizer.set_grid(False)
+
+        # Set the camera position and target
         proj.visualizer.set_cam_position((6, -6, 6))
         proj.visualizer.set_cam_target(cmg.center_of_mass)
-        proj.visualizer.set_ptlight_1(position=(3, -3, -6), intensity=0.6)
+
+        # Set the scene lighting
+        proj.visualizer.set_ptlight_1(position=(3, -3, -6), intensity=0.65)
         proj.visualizer.set_ptlight_2(position=(6, 1, 6), intensity=0.5)
         proj.visualizer.set_spotlight(on=True, shadow=True, position=(6,0,0.5),
-                                      intensity=0.8, distance=7.6)
-        proj.visualizer.set_amblight(intensity=0.3)
+                                      intensity=0.7, distance=7.6)
+        proj.visualizer.set_dirnlight(on=True, shadow=True, intensity=0.25)
+        proj.visualizer.set_amblight(intensity=0.4)
+
+        # Set the background color
         proj.visualizer.set_background((0.0, 0.0, 0.0),
-                                       (0.294, 0.380, 0.650),)
+                                       (0.2, 0.2, 0.4),)
+
+        # Refresh the visualizer to reflect the changes we made
         proj.refresh_visualizer()
     return proj, cmg
 
@@ -80,38 +119,38 @@ def _get_des(program_number, sim_time):
 
     # Step programs
     if program_number==1:
-        des = 5.0*np.pi/180.0 if sim_time > 2.0 else 0.0
+        des = 10.0*np.pi/180.0 if sim_time > 2.0 else 0.0
     elif program_number==2:
-        des = -10.0*np.pi/180.0 if sim_time > 2.0 else 0.0
+        des = -15.0*np.pi/180.0 if sim_time > 2.0 else 0.0
     elif program_number==3:
-        des = 15.0*np.pi/180.0 if sim_time > 2.0 else 0.0
+        des = 30.0*np.pi/180.0 if sim_time > 2.0 else 0.0
 
     # Sequential step programs
     elif program_number==4:
-        des = (min(sim_time,60.0)//5.0) * 1.0*np.pi/180.0
+        des = (min(sim_time,60.0)//5.0) * 5.0*np.pi/180.0
     elif program_number==5:
-        des = -(min(sim_time,60.0)//5.0) * 2.5*np.pi/180.0
+        des = -(min(sim_time,60.0)//5.0) * 10.0*np.pi/180.0
     elif program_number==6:
-        des = (min(sim_time,60.0)//2.5) * 3.5*np.pi/180.0
+        des = (min(sim_time,60.0)//5.0) * 15.0*np.pi/180.0
 
     # Linear programs
     elif program_number==7:
-        des = -sim_time*0.25*np.pi/180.0
+        des = -sim_time*1.0*np.pi/180.0
     elif program_number==8:
-        des = sim_time*0.75*np.pi/180.0
+        des = sim_time*2.0*np.pi/180.0
     elif program_number==9:
-        des = -sim_time*2*np.pi/180.0
+        des = -sim_time*4.0*np.pi/180.0
 
     # Sinusoidal programs
     elif program_number==10:
-        des = 4.0*np.pi/180.0*np.sin(np.pi*sim_time/(2.0*10.0))
+        des = 10.0*np.pi/180.0*np.sin(np.pi*sim_time/(2.0*10.0))
     elif program_number==11:
-        des = -8.0*np.pi/180.0*np.sin(np.pi*sim_time/(2.0*10.0))
+        des = -15.0*np.pi/180.0*np.sin(np.pi*sim_time/(2.0*10.0))
     elif program_number==12:
-        des = 16.0*np.pi/180.0*np.sin(np.pi*sim_time/(2.0*10.0))
+        des = 30.0*np.pi/180.0*np.sin(np.pi*sim_time/(2.0*10.0))
 
     # Unrecognized program
-    des = max(min(des, 0.49*np.pi), -0.49*np.pi)
+    des = max(min(des, 0.4*np.pi), -0.4*np.pi)
     return des
 
 def _sim_loop(proj, cmg, program, get_torque, time, real_time):
@@ -138,16 +177,16 @@ def _sim_loop(proj, cmg, program, get_torque, time, real_time):
 
         # Get the controller torque
         torque = get_torque(state, theta_des)
-        torque = max(min(torque, 0.004), -0.004)
+        torque = max(min(torque, 0.02), -0.02)
 
         # Apply the controller
         cmg.joints['S_to_A'].apply_torque(torque,
                                           draw_arrow=True,
-                                          arrow_scale=750,
+                                          arrow_scale=150,
                                           arrow_offset=0.7,)
         cmg.joints['S_to_B'].apply_torque(-torque,
                                           draw_arrow=True,
-                                          arrow_scale=750,
+                                          arrow_scale=150,
                                           arrow_offset=0.7,)
 
         # Update the data
@@ -181,7 +220,7 @@ def _sim_loop(proj, cmg, program, get_torque, time, real_time):
         data[key] = np.array(value)
     return data
 
-def run(initial_gamma, program, controller, time=45., real_time=True):
+def run(initial_gamma, program, controller, time=30., real_time=True):
     """
     Makes and runs a condynsate-based simulation of a dual axis CMG.
     The goal of the simulation is to apply torques to the gimbals such
@@ -228,77 +267,76 @@ def run(initial_gamma, program, controller, time=45., real_time=True):
     proj.terminate()
     return data
 
-def controller(state, theta_des):
-    # Definitions
-    m_e = np.array([0, 0, 0, 0.5*np.pi])   # Define the equilibrium nonlinear state vector
-    n_e = np.array([0])                    # Define the equilibrium nonlinear input vector
-    x_des = np.array([0, theta_des, 0, 0]) # Define a desired linear state vector
-    K_c = np.array([[-5.38e-05, -2.02e-02, 5.50e-03]])                # Define the controllable subsystem gain matrix
-    K = np.hstack((K_c, np.zeros((len(n_e), len(m_e)-K_c.shape[1])))) # Define the combined gain matrix [K_c, 0]
-    T = np.array([[ 0.9995, -0.0000,  0.0000,  0.0302],               # Define the Kalman decomposition transform
-                  [ 0.0000,  0.9999,  0.0107, -0.0000],
-                  [ 0.0000, -0.0107,  0.9999, -0.0000],
-                  [-0.0302, -0.0000,  0.0000,  0.9995]])
+# def ctrler(state, theta_des):
+#     # Define the equilibrium nonlinear state vector, equilibrium nonlinear
+#     # input vector, and desired linear state vector
+#     m_e = np.array([0, 0, 0, 0.5*np.pi])
+#     n_e = np.array([0])
+#     x_des = np.array([0, theta_des, 0, 0])
 
-    # Build the nonlinear state vector
-    m = np.array([state['omega_theta'],
-                  state['theta'],
-                  state['omega_gamma'],
-                  state['gamma'],])
+#     # Define the controllable subsystem gain matrix,
+#     # combined gain matrix [K_c, 0], and the Kalman decomposition transform
+#     K_c = np.array([[-0.00562, -0.132,  0.0553]])
+#     K = np.hstack((K_c, np.zeros((len(n_e), len(m_e)-K_c.shape[1]))))
+#     T = np.array([[ 0.9996, -0.    ,  0.    ,  0.0286],
+#                   [ 0.    ,  0.9999,  0.014 , -0.    ],
+#                   [ 0.    , -0.014 ,  0.9999, -0.    ],
+#                   [-0.0286, -0.    ,  0.    ,  0.9996]])
 
-    # Build the linear state vector
-    x = m - m_e
+#     # Build the nonlinear state vector
+#     m = np.array([state['omega_theta'],
+#                   state['theta'],
+#                   state['omega_gamma'],
+#                   state['gamma'],])
 
-    # Build the reference tracking linear state vector
-    z = x - x_des
+#     # Build the linear state vector
+#     x = m - m_e
 
-    # Transform the reference tracking linear state vector into controllable and uncontrollable subspaces
-    z_tilda = T.T @ z
+#     # Build the reference tracking linear state vector
+#     z = x - x_des
 
-    # Apply the feedback control law with our selected gain matrix to get the linear input vector
-    u = -K@z_tilda
+#     # Transform the reference tracking linear state vector into
+#     # controllable and uncontrollable subspaces
+#     z_tilda = T.T @ z
 
-    # Convert the linear input vector into the nonlinear input vector
-    n = u + n_e
+#     # Apply the feedback control law with our selected gain matrix to
+#     # get the linear input vector
+#     u = -K@z_tilda
 
-    # Return the nonlinear torque as a scalar
-    tau_gamma = n[0]
-    return tau_gamma
+#     # Convert the linear input vector into the nonlinear input vector
+#     n = u + n_e
 
-if __name__ == "__main__":
-    # Import plotting tool
-    import matplotlib
-    import matplotlib.pyplot as plt
+#     # Return the nonlinear torque as a scalar
+#     tau_gamma = n[0]
+#     return tau_gamma
 
-    # Run a simulation
-    data = run(1.5708, 1, controller, time=60.0, real_time=False)
+# if __name__ == "__main__":
+#     # Import plotting tool
+#     import matplotlib
+#     import matplotlib.pyplot as plt
 
-    # Plot the pitch, desired pitch, and input torque as functions of time
-    matplotlib.use('Inline')
-    fig, ax = plt.subplots(1)
-    ax.plot(data['time'], data['theta']*180/3.14,
-            label='Pitch [deg]', lw=2.0, c='r')
-    ax.plot(data['time'], data['theta_des']*180/3.14,
-            label='Desired Pitch [deg]', lw=2.0, c='r', ls='--')
-    ax.plot(data['time'], 1000*data['tau_gamma'],
-            label='Torque [mN-m]', lw=2.0, c='b')
-    ax.legend()
-    ax.set_xlabel('Time [seconds]')
-    ax.axhline(c='k', lw=0.5)
+#     # Run a simulation
+#     dat = run(0.5*np.pi, 1, ctrler)
 
-    # Build the uncontrollable state
-    T = np.array([[ 0.9995, -0.0000,  0.0000,  0.0302],
-                  [ 0.0000,  0.9999,  0.0107, -0.0000],
-                  [ 0.0000, -0.0107,  0.9999, -0.0000],
-                  [-0.0302, -0.0000,  0.0000,  0.9995]])
-    z = np.array((data['omega_theta'], data['theta']-data['theta_des'],
-                  data['omega_gamma'], data['gamma']-0.5*np.pi))
-    z_u = (T.T@z)[-1,:]
+#     # Plot the pitch, desired pitch, and input torque as functions of time
+#     matplotlib.use('Inline')
+#     fig, ax = plt.subplots(1)
+#     ax.plot(dat['time'], dat['theta']*180/3.14,
+#             label='Pitch [deg]', lw=2.0, c='r')
+#     ax.plot(dat['time'], dat['theta_des']*180/3.14,
+#             label='Desired Pitch [deg]', lw=2.0, c='r', ls='--')
+#     ax.plot(dat['time'], 1000*dat['tau_gamma'],
+#             label='Torque [mN-m]', lw=2.0, c='b')
+#     ax.legend()
+#     ax.set_xlabel('Time [seconds]')
+#     ax.axhline(c='k', lw=0.5)
 
-    # Plot the uncontrollable state as a function of time
-    fig, ax = plt.subplots(1)
-    ax.plot(data['time'], z_u, label='Uncontrollable State', lw=2.0, c='b')
-    ax.legend()
-    ax.set_xlabel('Time [seconds]')
-    ax.axhline(c='k', lw=0.5)
-    plt.show()
+#     # Plot the gimbal angles as a function of time
+#     fig, ax = plt.subplots(1)
+#     ax.plot(dat['time'], 180.0*dat['gamma']/np.pi,
+#             label='Gimbal Angle [deg]', lw=2.0, c='k')
+#     ax.axhline(180.0*dat['gamma'][0]/np.pi, c='k', lw=2.0, ls='--',
+#                label='Initial Gimbal Angle [deg]')
+#     ax.legend()
+#     ax.set_xlabel('Time [seconds]')
+#     plt.show()
