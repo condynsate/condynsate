@@ -1,14 +1,10 @@
 <?xml version="1.0" ?>
-<robot name="gyro">
+<robot name="parallel_sacmg_spacecraft">
 
 
     <!-- ########### MATERIALS ########### -->
     <material name="Spacecraft">
-        <color rgba="0.588 0.862 0.972 1" />
-    </material>
-    
-    <material name="AltBlue">
-        <color rgba="0.380 0.796 0.956 1" />
+        <color rgba = "0.588 0.862 0.972 1" />
     </material>
     
     <material name = "Gimbals">
@@ -24,7 +20,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="dual_CMG_spacecraft_19-ODx18-ID_cen-orig.stl" scale="0.1 0.1 0.1"/>
+                <mesh filename="dual_CMG_spacecraft_19-ODx18-ID_cen-orig.obj" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "Spacecraft"/>
         </visual>

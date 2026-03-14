@@ -71,22 +71,29 @@ def _make(initial_gamma, visualization):
                                    color=(0.938, 0.884, 0.766),
                                    emissive_color=(0.375, 0.354, 0.306),
                                    position=(0.0, 0.0, -2600))
+        proj.visualizer.add_object('sun',
+                                   assets['sphere_1_center_origin.stl'],
+                                   scale=(75, 75, 75),
+                                   color=(1.0, 0.706, 0.424),
+                                   emissive_color=(1.0, 0.706, 0.424),
+                                   position=(360, -360, 180))
 
         # Make the grid and axes invisible
         proj.visualizer.set_axes(False)
         proj.visualizer.set_grid(False)
 
         # Set the camera position and target
-        proj.visualizer.set_cam_position((6, -6, 6))
+        proj.visualizer.set_cam_position((7, -8, 4))
         proj.visualizer.set_cam_target(cmg.center_of_mass)
 
         # Set the scene lighting
-        proj.visualizer.set_ptlight_1(position=(3, -3, -6), intensity=0.65)
-        proj.visualizer.set_ptlight_2(position=(6, 1, 6), intensity=0.5)
-        proj.visualizer.set_spotlight(on=True, shadow=True, position=(6,0,0.5),
-                                      intensity=0.7, distance=7.6)
-        proj.visualizer.set_dirnlight(on=True, shadow=True, intensity=0.25)
-        proj.visualizer.set_amblight(intensity=0.4)
+        proj.visualizer.set_ptlight_1(on=True, position=(6, -1, -12),
+                                      intensity=0.37, distance=50, shadow=True)
+        proj.visualizer.set_spotlight(on=True, position=(12,-12,6), angle=0.35,
+                                      intensity=1.00, distance=50, shadow=True)
+        proj.visualizer.set_amblight(on=True, intensity=0.39)
+        proj.visualizer.set_ptlight_2(on=False)
+        proj.visualizer.set_dirnlight(on=False)
 
         # Set the background color
         proj.visualizer.set_background((0.0, 0.0, 0.0),
@@ -266,3 +273,9 @@ def run(initial_gamma, program, controller, time=30., real_time=True):
     data = _sim_loop(proj, cmg, program, controller, time, real_time)
     proj.terminate()
     return data
+
+def c(x,y):
+    return 0.0
+
+if __name__ == "__main__":
+    run(1,0,c,time=1)
