@@ -8,7 +8,8 @@ With a physics engine provided by `PyBullet`_ and 3D visualization provided by `
 
 Documentation, tutorials, and examples were generated with the intent of educating instructors on the usage of ``condynsate`` to develop teaching demonstrations. The five included tutorials walk through the development of ``condynsate``-based projects, including the simulation environment, design and implementation of mechanical systems, application of internal and external forces and torques to the mechanical systems, real-time visualization and animation, keyboard interactivity, and methods of data collection. 
 
-In addition, at least one example of usage is included for each of the five major modules: the ``Keyboard`` module, which provides keyboard interactivity; the ``Visualizer`` module, which provides 3D visualization; the ``Animator`` module, which provides GUI-based plotting; the ``Simulator`` module, which provides the physics simulation environment; and the ``Project`` module, which provides automatic interfacing with all other modules for easy project development. 
+In addition, at least one example of usage is included for each of the five major modules: the ``Keyboard`` module, which provides keyboard interactivity; the ``Visualizer`` module, which provides 3D visualization; the ``Animator`` module, which provides GUI-based plotting; the ``Simulator`` module, which provides the physics simulation environment; and the ``Project`` module, which provides automatic interfacing with all other modules for easy project development.
+
 
 ``condynsate`` was built by `G. Schaer`_ and funded by the `Computational Tools for Dynamics and Control grant`_ through the University of Illinois Urbana-Champaign Grainger College of Engineering Academy for Excellence in Engineering Education (AE3) Strategic Instructional Innovations Program (SIIP).
 

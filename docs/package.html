@@ -176,6 +176,9 @@ the terminate function call are recorded. After the terminate
 function call, these frames are saved with h.264 and outputs in
 an MP4 container. The saved file name has the form
 animator.mp4. The default is False.</p></li>
+<li><p><strong>keyboard</strong> (<em>bool</em><em>, </em><em>optional</em>) – A boolean flag that indicates if the project should include a
+keyboard module. This keyboard module provides keyboard interactivity
+by starting a keyboard listener. The default is False.</p></li>
 </ul>
 </dd>
 </dl>
@@ -263,8 +266,12 @@ the project.</p>
 </ul>
 </dd>
 <dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>fixed</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the body is fixed (has 0 DoF) or free
-(has 6 DoF).</p>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>fixed</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the body is fixed (has 0 DoF) or free
+(has 6 DoF).</p></li>
+<li><p><strong>self_collision</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the physics client will detect self
+collisions within the URDF.</p></li>
+</ul>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>body</strong> – The body added to the simulation. This retured object facilitates
@@ -278,7 +285,7 @@ user interaction with the body and its joints and links.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="condynsate.Project.step">
-<span class="sig-prename descclassname"><span class="pre">Project.</span></span><span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">real_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stable_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Project.step" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Project.</span></span><span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">real_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stable_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.Project.step" title="Link to this definition"></a></dt>
 <dd><p>Takes a single simulation step and updates the visualizer to reflect
 the new simulator state.</p>
 <dl class="field-list simple">
@@ -545,8 +552,12 @@ the simulator.</p>
 </ul>
 </dd>
 <dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>fixed</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the body is fixed (has 0 DoF) or free
-(has 6 DoF).</p>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>fixed</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the body is fixed (has 0 DoF) or free
+(has 6 DoF).</p></li>
+<li><p><strong>self_collision</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the physics client will detect self
+collisions within the URDF.</p></li>
+</ul>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>body</strong> – The body added to the simulation. This retured object facilitates
@@ -904,8 +915,12 @@ of a set of links and joints.</p>
 </ul>
 </dd>
 <dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>fixed</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the body is fixed (has 0 DoF) or free
-(has 6 DoF).</p>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>fixed</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the body is fixed (has 0 DoF) or free
+(has 6 DoF).</p></li>
+<li><p><strong>self_collision</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the physics client will detect self collisions
+within the Body.</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py attribute">
@@ -1210,6 +1225,9 @@ velocity.</p>
 The default value is 0.001.</p></li>
 <li><p><strong>max_omega</strong> (<em>float</em><em>, </em><em>optional</em>) – The maximum allowed angular velocity of the joint about the
 joint axis. The default value is 1000.0</p></li>
+<li><p><strong>limits</strong> (<em>tuple</em><em> of </em><em>two floats</em><em>, </em><em>optional</em>) – Sets the lower and upper limits of a joint. In the form
+(lower_limit, upper_limit). When not set, the default behavior
+is no limits. Angles in radians.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -1854,6 +1872,10 @@ is (1.0, 1.0, 1.0).</p></li>
 The default value of 0.01.</p></li>
 <li><p><strong>opacity</strong> (<em>float</em>) – The opacity of the object being added. Ranges from 0.0 to 1.0.
 The default value is 1.0.</p></li>
+<li><p><strong>emissive_color</strong> (<em>3vec</em><em> of </em><em>floats</em>) – The color of the light the object is emiting. In the form of
+(R, G, B) where all elements range from 0.0 to 1.0. A value of
+(0.0, 0.0, 0.0) results in no emmision. The default value is
+(0.0, 0.0, 0.0).</p></li>
 <li><p><strong>position</strong> (<em>3vec</em><em> of </em><em>floats</em>) – The extrinsic position to set.
 The default value is (0., 0., 0.)</p></li>
 <li><p><strong>wxyz_quat</strong> (<em>4vec</em><em> of </em><em>floats</em>) – The extrinsic rotation to set as defined by a quaternion.
@@ -1948,6 +1970,10 @@ is (1.0, 1.0, 1.0).</p></li>
 The default value is 0.01</p></li>
 <li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>optional</em>) – The opacity of the object. Ranges from 0.0 to 1.0.
 The default value is 1.0.</p></li>
+<li><p><strong>emissive_color</strong> (<em>3vec</em><em> of </em><em>floats</em>) – The color of the light the object is emiting. In the form of
+(R, G, B) where all elements range from 0.0 to 1.0. A value of
+(0.0, 0.0, 0.0) results in no emmision. The default value is
+(0.0, 0.0, 0.0).</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
