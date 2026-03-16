@@ -33,11 +33,11 @@
         </inertial>
     </link>
 	
-    <link name="chassis" concave="yes">
+    <link name="A" concave="yes">
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyroouter_1-ODx0.9ID_lower_origin.stl" scale="2 2 2"/>
+                <mesh filename="gyrochassis-rotational_XZ-Z_20-Hx20-ODx18-IDx2-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "arches"/>
         </visual>
@@ -48,80 +48,79 @@
         </inertial>
     </link>
 
-    <link name="outer_gimbal" concave="yes">
+    <link name="B" concave="yes">
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyroring_0.9-ODx0.6-ID_center_origin.stl" scale="2 2 2"/>
+                <mesh filename="gyroring_XY-X_18-Wx14-ODx12-IDx2-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
-            <material name = "arches"/>
+            <material name = "industrial"/>
         </visual>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <mass value="0.221"/>
-            <inertia ixx="0.000478" ixy="0" ixz="0" iyy="0.000478" iyz="0" izz="0.000939"/>
+            <inertia ixx="0.000476" ixy="0" ixz="0" iyy="0.000476" iyz="0" izz="0.000937"/>
         </inertial>
     </link>
 
-    <link name="inner_gimbal" concave="yes">
+    <link name="C" concave="yes">
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyroring_0.6-ODx0.3-ID_center_origin.stl" scale="2 2 2"/>
+                <mesh filename="gyroring_YZ-Y_12-Wx8-ODx6-IDx2-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "arches"/>
         </visual>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <mass value="0.119"/>
-            <inertia ixx="0.0000783" ixy="0" ixz="0" iyy="0.000149" iyz="0" izz="0.0000783"/>
+            <inertia ixx="0.000148" ixy="0" ixz="0" iyy="0.0000777" iyz="0" izz="0.0000777"/>
         </inertial>
     </link>
 
-    <link name="core">
+    <link name="flywheel">
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyrocore.stl" scale="2 2 2"/>
+                <mesh filename="gyrocore_XY-Z_6-Wx5.5-ODx3-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "heritage"/>
         </visual>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
-            <mass value="0.343"/>
-            <inertia ixx="0.000107" ixy="0" ixz="0" iyy="0.0000650" iyz="0" izz="0.0000650"/>
+            <mass value="0.622"/>
+            <inertia ixx="0.000164" ixy="0" ixz="0" iyy="0.000164" iyz="0" izz="0.000235"/>
         </inertial>
     </link>
 
 
     <!-- ########### JOINTS ########### -->
-
-    <joint name="base_to_chassis" type="continuous">
+	    <joint name="base_to_A" type="continuous">
         <parent link = "base" />
-        <child link = "chassis" />
-        <origin rpy="0 0 0" xyz = "0 0 0.1" />
+        <child link = "A" />
+        <origin rpy="0 0 0" xyz = "0 0 2" />
         <axis xyz = "0 0 1" />
     </joint>
-
-    <joint name="chassis_to_outer" type="continuous">
-        <parent link = "chassis" />
-        <child link = "outer_gimbal" />
-        <origin rpy="0 0 0" xyz = "0 0 2" />
-        <axis xyz = "-1 0 0" />
+	
+    <joint name="A_to_B" type="continuous">
+        <parent link = "A" />
+        <child link = "B" />
+        <origin rpy="0 0 0" xyz = "0 0 0" />
+        <axis xyz = "1 0 0" />
     </joint>
 
-    <joint name="outer_to_inner" type="continuous">
-        <parent link = "outer_gimbal" />
-        <child link = "inner_gimbal" />
+    <joint name="B_to_C" type="continuous">
+        <parent link = "B" />
+        <child link = "C" />
         <origin rpy="0 0 0" xyz = "0 0 0" />
         <axis xyz = "0 1 0" />
     </joint>
 
-    <joint name="inner_to_core" type="continuous">
-        <parent link = "inner_gimbal" />
-        <child link = "core" />
+    <joint name="C_to_flywheel" type="continuous">
+        <parent link = "C" />
+        <child link = "flywheel" />
         <origin rpy="0 0 0" xyz = "0 0 0" />
-        <axis xyz = "1 0 0" />
+        <axis xyz = "0 0 1" />
     </joint>
 
 

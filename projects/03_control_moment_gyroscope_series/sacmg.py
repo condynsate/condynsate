@@ -22,7 +22,7 @@ def _make(initial_angle, initial_gimbal_angle, visualization):
     ground.links['plane'].set_texture(assets['tile_floor.png'])
 
     # Load the cmg
-    cmg = proj.load_urdf(assets['single_axis_cmg.urdf'], fixed=True)
+    cmg = proj.load_urdf(assets['sacmg.urdf'], fixed=True)
     cmg.set_initial_state(position=(0,0,1.2)) # Place cmg on the ground
 
     # Set joint friction to small value and eliminate link air resistance

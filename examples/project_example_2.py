@@ -2,7 +2,7 @@
 """
 This module gives an example use case for the Project class. In this example,
 we create a project that uses the visualizer and the keyboard facilitate
-interaction with a 3 axis gyroscope.
+interaction with a double axis gyroscope.
 """
 """
 © Copyright, 2026 G. Schaer.
@@ -30,35 +30,35 @@ def apply_torques(project, gryoscope):
 
     """
     # Determine what torques to apply based on key presses
+    # Determine what torques to apply based on key presses
     tau0 = 0.0 # Torque applied to outermost ring
-    tau0 -= 0.0025 * float(project.keyboard.is_pressed('q'))
-    tau0 += 0.0025 * float(project.keyboard.is_pressed('e'))
+    tau0 -= 0.01 * float(project.keyboard.is_pressed('q'))
+    tau0 += 0.01 * float(project.keyboard.is_pressed('e'))
 
     tau1 = 0.0 # Torque applied to the middle ring
-    tau1 -= 0.0025 * float(project.keyboard.is_pressed('s'))
-    tau1 += 0.0025 * float(project.keyboard.is_pressed('w'))
+    tau1 -= 0.01 * float(project.keyboard.is_pressed('s'))
+    tau1 += 0.01 * float(project.keyboard.is_pressed('w'))
 
     tau2 = 0.0 # Torque applied to the inner ring
-    tau2 -= 0.0025 * float(project.keyboard.is_pressed('a'))
-    tau2 += 0.0025 * float(project.keyboard.is_pressed('d'))
+    tau2 -= 0.01 * float(project.keyboard.is_pressed('a'))
+    tau2 += 0.01 * float(project.keyboard.is_pressed('d'))
 
     # Apply the torques
-    gryoscope.joints['base_to_chassis'].apply_torque(
+    gryoscope.joints['base_to_A'].apply_torque(
         tau0, # Set the torque value
         draw_arrow=True, # Draw an arrow to visualize the applied torque
-        arrow_scale=300, # Set the scaling of the arrow
-        arrow_offset=0.5,) # Move the arrow away from the center of the
+        arrow_scale=75, # Set the scaling of the arrow
+        arrow_offset=-1.5, # Move the arrow away from the center
+        ) # This returns 0 on success
 
-    gryoscope.joints['chassis_to_outer'].apply_torque(tau1,
-                                                    draw_arrow=True,
-                                                    arrow_scale=300,
-                                                    arrow_offset=0.8,)
-    gryoscope.joints['outer_to_inner'].apply_torque(tau2,
-                                                    draw_arrow=True,
-                                                    arrow_scale=300,
-                                                    arrow_offset=0.5,)
+    gryoscope.joints['A_to_B'].apply_torque(
+        tau1, draw_arrow=True, arrow_scale=75, arrow_offset=0.8,
+        )
+    gryoscope.joints['B_to_C'].apply_torque(
+        tau2, draw_arrow=True, arrow_scale=75, arrow_offset=-0.5,
+        )
 
-def set_color(gryoscope, max_omega=50.0):
+def set_color(gryoscope, max_omega=47.1):
     """
     Colors the inner wheel of the gyroscope according to its
     angular velocity.
@@ -77,11 +77,10 @@ def set_color(gryoscope, max_omega=50.0):
 
     """
     # Get the angular velocity of the wheel in its body coordinates
-    omega = gryoscope.links['core'].state.omega_in_body
+    omega = gryoscope.links['flywheel'].state.omega_in_body
 
-    # In the case of the wheel, the +x body axis is the rotational axis,
-    # so isolate that
-    omega = omega[0]
+    # The +z body axis is the rotational axis. Isolate is
+    omega = omega[2]
 
     # Get a color based on the rotation rate
     r = min(max(omega / max_omega + 1., 0.), 1.)
@@ -89,7 +88,7 @@ def set_color(gryoscope, max_omega=50.0):
     b = min(max(1. - omega / max_omega, 0.), 1.)
 
     # Set the color of the core link
-    gryoscope.links['core'].set_color((r, g, b))
+    gryoscope.links['flywheel'].set_color((r, g, b)) # Returns 0 on success
 
 
 def set_omega(project, gryoscope):
@@ -115,9 +114,9 @@ def set_omega(project, gryoscope):
     iter_val += 0.2 * float(project.keyboard.is_pressed('r'))
 
     # Read the current wheel joint speed, iterate it, and set the new value
-    old_omega = gryoscope.joints['inner_to_core'].state.omega
+    old_omega = gryoscope.joints['C_to_flywheel'].state.omega
     new_omega = old_omega + iter_val
-    gryoscope.joints['inner_to_core'].set_state(omega = new_omega)
+    gryoscope.joints['C_to_flywheel'].set_state(omega = new_omega)
 
 if __name__ == "__main__":
     # Make an instance of project
@@ -131,7 +130,7 @@ if __name__ == "__main__":
 
     # Load a plane with a carpet texture for the ground
     ground = proj.load_urdf(assets['plane_medium.urdf'], fixed=True)
-    ground.links['plane'].set_texture(assets['carpet.png'])
+    ground.links['plane'].set_texture(assets['tile_floor.png'])
 
     # Load and orient a 2 gimbal gyroscope.
     gyro = proj.load_urdf(assets['gyroscope.urdf'], fixed=True)
@@ -141,12 +140,13 @@ if __name__ == "__main__":
     proj.visualizer.set_cam_target(gyro.center_of_mass)
 
     # Set joint damping for gimbals
-    gyro.joints['base_to_chassis'].set_dynamics(damping=0.0005)
-    gyro.joints['chassis_to_outer'].set_dynamics(damping=0.0005)
-    gyro.joints['outer_to_inner'].set_dynamics(damping=0.0005)
+    gyro.joints['base_to_A'].set_dynamics(damping=0.006)
+    gyro.joints['A_to_B'].set_dynamics(damping=0.006)
+    gyro.joints['B_to_C'].set_dynamics(damping=0.006)
 
-    # Set no friction and max speed for core joint
-    gyro.joints['inner_to_core'].set_dynamics(damping=0.0, max_omega=50.0)
+    # Set flywheel friction to 0, limit maximum speed to 47.1 rad/sec
+    gyro.joints['C_to_flywheel'].set_dynamics(damping=0.0,
+                                              max_omega=47.1)
 
     # Remove all air resistance
     for link in gyro.links.values():
@@ -154,8 +154,8 @@ if __name__ == "__main__":
                           angular_air_resistance=0.0)
 
 
-    # Set the initial speed of the core to ~500 rpm
-    gyro.joints['inner_to_core'].set_initial_state(omega=50.0)
+    # Set the initial speed of the core to ~7.5 rps
+    gyro.joints['C_to_flywheel'].set_initial_state(omega=47.1)
 
     # Reset the project to its initial state. This is required to
     # reset the simulation, reset the visualizer, and reset/start the

@@ -26,7 +26,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyrochassis-fixed_20-ODx18ID_cen_orig.stl" scale="0.1 0.1 0.1"/>
+                <mesh filename="gyrochassis-fixed_20-ODx18-ID_cen-orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "storm"/>
         </visual>
@@ -35,11 +35,6 @@
             <mass value="0"/>
             <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
         </inertial>
-		<collision>
-			<geometry>
-				<mesh filename="gyrochassis-fixed_20-ODx18ID_cen_orig.stl" scale="0.1 0.1 0.1"/>
-			</geometry>
-		</collision>
     </link>
 	
 	<link name="massrod">
@@ -81,7 +76,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyroring_18-Wx14-ODx12-IDx2-T_cen_orig.stl" scale="0.1 0.1 0.1"/>
+                <mesh filename="gyroring_YZ-Y_18-Wx14-ODx12-IDx2-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "industrial"/>
         </visual>
@@ -96,7 +91,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyroring_12-Wx8-ODx6-IDx2-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
+                <mesh filename="gyroring_XZ-Z_12-Wx8-ODx6-IDx2-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "arches"/>
         </visual>
@@ -111,7 +106,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyrocore_6-Wx5.5-ODx3-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
+                <mesh filename="gyrocore_YZ-X_6-Wx5.5-ODx3-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "heritage"/>
         </visual>

@@ -20,7 +20,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="dual_CMG_spacecraft_19-ODx18-ID_cen-orig.obj" scale="0.1 0.1 0.1"/>
+                <mesh filename="opposed-gyrochassis-spacecraft_19-ODx18-ID_cen-orig.obj" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "Spacecraft"/>
         </visual>
@@ -35,7 +35,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyroring_XZ-Y_18-Wx14-ODx12-IDx2-T_cen_orig.stl" scale="0.1 0.1 0.1"/>
+                <mesh filename="gyroring_XZ-Y_18-Wx14-ODx12-IDx2-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "Gimbals"/>
         </visual>
@@ -50,7 +50,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="gyroring_XZ-Y_18-Wx14-ODx12-IDx2-T_cen_orig.stl" scale="0.1 0.1 0.1"/>
+                <mesh filename="gyroring_XZ-Y_18-Wx14-ODx12-IDx2-T_cen-orig.stl" scale="0.1 0.1 0.1"/>
             </geometry>
             <material name = "Gimbals"/>
         </visual>

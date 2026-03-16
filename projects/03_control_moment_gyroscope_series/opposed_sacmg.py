@@ -22,7 +22,7 @@ def _make(initial_gamma, visualization):
                    simulator_gravity = (0.,0.,0.))
 
     # Load the cmg
-    cmg = proj.load_urdf(assets['parallel_single_axis_cmg.urdf'], fixed=False)
+    cmg = proj.load_urdf(assets['opposed_sacmg.urdf'], fixed=False)
 
     # Set joint friction to small value and eliminate link air resistance
     cmg.joints['S_to_A'].set_dynamics(damping=0.006) # Req for sim stability
