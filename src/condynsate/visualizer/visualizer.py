@@ -988,12 +988,21 @@ class Visualizer():
         if path.endswith('.obj'):
             geometry = geo.ObjMeshGeometry.from_file(path)
         elif path.endswith('.stl'):
-            geometry = geo.StlMeshGeometry.from_file(path)
+            # For the basic shape to reduce visual mesh
+            if path.endswith('Sphere_1_center_origin.stl'):
+                geometry = geo.Sphere(radius=0.5)
+            elif path.endswith('Cube_1x1x1_center_origin.stl'):
+                geometry = geo.Box(lengths=(1.0, 1.0, 1.0))
+            elif path.endswith('Cylinder_1x1_center_origin.stl'):
+                geometry = geo.Cylinder(height=1.0, radius=0.5)
+            else:
+                geometry = geo.StlMeshGeometry.from_file(path)
         elif path.endswith('.dae'):
             geometry = geo.DaeMeshGeometry.from_file(path)
         return geometry
 
-    def _get_material(self,tex_path,color,shininess,opacity,emissive_color):
+    def _get_material(self, tex_path, tex_wrap, tex_repeat, color,
+                      shininess, opacity, emissive_color):
         """
         Makes a Phong material.
 
@@ -1005,6 +1014,11 @@ class Visualizer():
             of type .obj or .dae. .stl files do not support proper
             texturing and attempting to apply texture to .stl may result in
             unexpected viual results. If None, no texture is applied.
+        tex_wrap : 2 tuple of ints
+            The threejs repeat type for texture. [1001,1001] for flat,
+            [1000,1000] for round.
+        tex_repeat : 2 tuple of ints
+            Number of times to repeat texture in U, V directions.
         color : 3vec of floats
             The color to apply to the object being added. In the form of
             (R, G, B) where all elements range from 0.0 to 1.0.
@@ -1025,7 +1039,8 @@ class Visualizer():
         """
         if not tex_path is None:
             texture = geo.PngImage.from_file(tex_path)
-            texture = geo.ImageTexture(texture, wrap=[1, 1], repeat=[1, 1])
+            texture = geo.ImageTexture(texture,
+                                       wrap=tex_wrap, repeat=tex_repeat)
         else:
             texture = None
         color = tuple(int(255*c) for c in color)
@@ -1070,6 +1085,8 @@ class Visualizer():
         self._objects[scene_path] = {
             'geometry':geometry,
             'tex_path':material_kwargs['tex_path'],
+            'tex_wrap':material_kwargs['tex_wrap'],
+            'tex_repeat':material_kwargs['tex_repeat'],
             'color':material_kwargs['color'],
             'shininess':material_kwargs['shininess'],
             'opacity':material_kwargs['opacity'],
@@ -1078,7 +1095,6 @@ class Visualizer():
             }
         material = self._get_material(**material_kwargs)
         self._scene[scene_path].set_object(geometry, material)
-
 
     def add_object(self, name, path, **kwargs):
         """
@@ -1106,6 +1122,11 @@ class Visualizer():
             texturing and attempting to apply texture to .stl may result in
             unexpected viual results. If None, no texture is applied. The
             default is None
+        tex_wrap : 2 tuple of ints
+            The threejs repeat type for texture. [1001,1001] for flat,
+            [1000,1000] for round.
+        tex_repeat : 2 tuple of ints
+            Number of times to repeat texture in U, V directions.
         color : 3vec of floats
             The color to apply to the object being added. In the form of
             (R, G, B) where all elements range from 0.0 to 1.0. The default
@@ -1344,6 +1365,8 @@ class Visualizer():
         """
         # Set default values
         sanitized = {'tex_path' : None,
+                     'tex_wrap' : [1001, 1001],
+                     'tex_repeat' : [1, 1],
                      'color' : (1.0, 1.0, 1.0),
                      'shininess' : 0.01,
                      'opacity' : 1.0,
@@ -1358,6 +1381,18 @@ class Visualizer():
                 if val is None or not path_valid(val, ".png", val):
                     continue
                 sanitized[key] = val
+
+            # Validate the texture wrap
+            if k == 'tex_wrap':
+                if not is_nvector(val, 2, arg_name=key):
+                    continue
+                sanitized[key] = (int(val[0]), int(val[1]))
+
+            # Validate the texture repeat
+            if k == 'tex_repeat':
+                if not is_nvector(val, 2, arg_name=key):
+                    continue
+                sanitized[key] = (int(val[0]), int(val[1]))
 
             # Validate the color
             elif k == 'color':
@@ -1397,8 +1432,8 @@ class Visualizer():
             /Scene/foo/bar while 'baz' refers to the object at scene location
             /Scene/baz
         material_kwargs : dict
-            Defines the material. Has keys 'tex_path', 'color',
-            'shininess', and 'opacity'.
+            Defines the material. Has keys 'tex_path', 'tex_wrap',
+            'tex_repeat', 'color', 'shininess', 'opacity', and 'emissive_color'
 
         Returns
         -------
@@ -1413,13 +1448,19 @@ class Visualizer():
 
         # Check if a change is needed
         cur_tex_path = self._objects[scene_path]['tex_path']
+        cur_tex_wrap = self._objects[scene_path]['tex_wrap']
+        cur_tex_repeat = self._objects[scene_path]['tex_repeat']
         cur_color = self._objects[scene_path]['color']
         cur_shininess = self._objects[scene_path]['shininess']
         cur_opacity = self._objects[scene_path]['opacity']
+        cur_emissive_color = self._objects[scene_path]['emissive_color']
         if (cur_tex_path == material_kwargs['tex_path'] and
+            cur_tex_wrap == material_kwargs['tex_wrap'] and
+            cur_tex_repeat == material_kwargs['tex_repeat'] and
             cur_color == material_kwargs['color'] and
             cur_shininess == material_kwargs['shininess'] and
-            cur_opacity == material_kwargs['opacity']):
+            cur_opacity == material_kwargs['opacity'] and
+            cur_emissive_color == material_kwargs['emissive_color']):
             return
 
         # Apply the new materi
@@ -1429,9 +1470,12 @@ class Visualizer():
 
         # Update the store material
         self._objects[scene_path]['tex_path'] = material_kwargs['tex_path']
+        self._objects[scene_path]['tex_wrap'] = material_kwargs['tex_wrap']
+        self._objects[scene_path]['tex_repeat'] = material_kwargs['tex_repeat']
         self._objects[scene_path]['color'] = material_kwargs['color']
         self._objects[scene_path]['shininess'] = material_kwargs['shininess']
         self._objects[scene_path]['opacity'] = material_kwargs['opacity']
+        self._objects[scene_path]['emissive_color'] = material_kwargs['emissive_color']
 
     def set_material(self, name, **kwargs):
         """
@@ -1449,28 +1493,28 @@ class Visualizer():
 
         Keyword Args
         ------------
-        tex_path : string, optional
+        tex_path : string
             The path pointing to a .png file that defines the texture of
             the object being added. Is only applied correctly if object is
             of type .obj or .dae. .stl files do not support proper
             texturing and attempting to apply texture to .stl may result in
-            unexpected viual results. If None, no texture is applied. The
-            default is None
-        color : 3vec of floats, optional
-            The color to apply to the object. In the form of
-            (R, G, B) where all elements range from 0.0 to 1.0. The default
-            is (1.0, 1.0, 1.0).
-        shininess : float, optional
-            The shininess of the object. Ranges from 0.0 to 1.0.
-            The default value is 0.01
-        opacity : float, optional
-            The opacity of the object. Ranges from 0.0 to 1.0.
-            The default value is 1.0.
+            unexpected viual results. If None, no texture is applied.
+        tex_wrap : 2 tuple of ints
+            The threejs repeat type for texture. [1001,1001] for flat,
+            [1000,1000] for round.
+        tex_repeat : 2 tuple of ints
+            Number of times to repeat texture in U, V directions.
+        color : 3vec of floats
+            The color to apply to the object being added. In the form of
+            (R, G, B) where all elements range from 0.0 to 1.0.
+        shininess : float
+            The shininess of the object being added. Ranges from 0.0 to 1.0.
+        opacity : float
+            The opacity of the object being added. Ranges from 0.0 to 1.0.
         emissive_color : 3vec of floats
             The color of the light the object is emiting. In the form of
             (R, G, B) where all elements range from 0.0 to 1.0. A value of
-            (0.0, 0.0, 0.0) results in no emmision. The default value is
-            (0.0, 0.0, 0.0).
+            (0.0, 0.0, 0.0) results in no emmision.
 
         Returns
         -------

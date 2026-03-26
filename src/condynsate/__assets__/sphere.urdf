@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<robot name="cube">
+
+
+    <!-- ########### MATERIALS ########### -->
+
+    <material name="industrial">
+        <color rgba="0.114 0.345 0.655 1" />
+    </material>
+  
+
+    <!-- ########### LINKS ########### -->
+
+    <link name="cube">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="Sphere_1_center_origin.stl" scale="1 1 1"/>
+            </geometry>
+            <material name = "industrial"/>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="Sphere_1_center_origin.stl" scale="1 1 1"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="1"/>
+            <inertia ixx="0.125" ixy="0" ixz="0" iyy="0.125" iyz="0" izz="0.125"/>
+        </inertial>
+    </link>
+
+
+</robot>
+
+<!-- © Copyright, 2025 G. Schaer. -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->

@@ -48,10 +48,10 @@ def _make(initial_gamma, visualization):
                                    assets['128-starfield_5-r_cen-orig.obj'],
                                    color=(0.918, 0.929, 1.0),
                                    emissive_color=(0.918, 0.929, 1.0),
-                                   scale=(175, 175, 175))
+                                   scale=(190, 190, 190))
         proj.visualizer.add_object('red_starfield',
                                    assets['64-starfield_5-r_cen-orig.obj'],
-                                   scale=(175, 175, 175),
+                                   scale=(190, 190, 190),
                                    color=(1.0, 0.706, 0.424),
                                    emissive_color=(1.0, 0.706, 0.424),
                                    roll = 161.,
@@ -59,7 +59,7 @@ def _make(initial_gamma, visualization):
                                    yaw = 14.)
         proj.visualizer.add_object('blue_starfield',
                                    assets['32-starfield_5-r_cen-orig.obj'],
-                                   scale=(175, 175, 175),
+                                   scale=(190, 190, 190),
                                    color=(0.616, 0.741, 1.0),
                                    emissive_color=(0.616, 0.741, 1.0),
                                    roll = 145.,
@@ -67,16 +67,17 @@ def _make(initial_gamma, visualization):
                                    yaw = 102.)
         proj.visualizer.add_object('planet',
                                    assets['sphere_1_center_origin.stl'],
-                                   scale=(5000, 5000, 5000),
-                                   color=(0.938, 0.884, 0.766),
-                                   emissive_color=(0.375, 0.354, 0.306),
-                                   position=(0.0, 0.0, -2600))
+                                   scale=(6000, 6000, 6000),
+                                   emissive_color=(0.45, 0.45, 0.48),
+                                   tex_path=assets['earth.png'],
+                                   tex_wrap=[1000, 1000],
+                                   position=(0.0, 0.0, -3200),)
         proj.visualizer.add_object('sun',
                                    assets['sphere_1_center_origin.stl'],
                                    scale=(75, 75, 75),
                                    color=(1.0, 0.706, 0.424),
                                    emissive_color=(1.0, 0.706, 0.424),
-                                   position=(360, -360, 180))
+                                   position=(541, -541, 270))
 
         # Make the grid and axes invisible
         proj.visualizer.set_axes(False)
@@ -110,7 +111,7 @@ def _stall(proj):
 
     # If no keyboard exists, ignore this call
     except AttributeError:
-        sleep(1.333)
+        sleep(2.5)
 
 def _state(cmg):
     s = cmg.state

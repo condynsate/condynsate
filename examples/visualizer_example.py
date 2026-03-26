@@ -31,7 +31,7 @@ if __name__ == "__main__":
                    scale=(10., 10., 1.))
 
     # Add a cube from an stl file.
-    vis.add_object('Cube', assets['cube.stl'],
+    vis.add_object('Cube', assets['cube_1x1x1_center_origin.stl'],
                    color=(0.121, 0.403, 0.749), # Set initial color
                    scale=(0.5, 0.5, 0.5), # Scale cube to 0.5x0.5x0.5
                    position=(0., 0., 0.25) # Set initial position on ground

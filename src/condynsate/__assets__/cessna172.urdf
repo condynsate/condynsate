@@ -1,0 +1,240 @@
+<?xml version="1.0" ?>
+<robot name="cessna172">
+
+
+    <!-- ########### MATERIALS ########### -->
+
+    <material name="white">
+        <color rgba="0.9 0.9 0.9 1" />
+    </material>
+  
+     <material name="blue">
+        <color rgba="0.255 0.412 0.882 1" />
+    </material>
+  
+    <material name="black">
+        <color rgba="0.25 0.25 0.25 1" />
+    </material>
+	
+    <material name="steel">
+        <color rgba="0.65 0.69 0.67 1"/>
+    </material>
+
+    <!-- ########### LINKS ########### -->
+
+    <link name="fuselage">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_fuselage.obj" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "white"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0.083 0" xyz="0 0 0"/>
+            <mass value="964."/>
+            <inertia ixx="2420." ixy="0" ixz="-162." iyy="2430." iyz="0" izz="4370.0"/>
+        </inertial>
+    </link>
+
+    <link name="windows">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_windows.obj" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "black"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+    </link>
+	
+    <link name="wheels">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_wheels.obj" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "black"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+    </link>
+
+    <link name="nosecone">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_nosecone.obj" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "steel"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+    </link>
+
+    <link name="prop">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_prop.obj" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "black"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+    </link>
+
+    <link name="flaps">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_flaps.obj" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "blue"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+    </link>
+
+    <link name="r_aileron">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_r_aileron.obj" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "blue"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+    </link>
+	
+    <link name="l_aileron">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_l_aileron.obj" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "blue"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+    </link>
+
+    <link name="elevator">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_elevator.obj" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "blue"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+    </link>
+
+    <link name="rudder">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_rudder.obj" scale="0.1 0.1 0.1"/>
+            </geometry>
+            <material name = "blue"/>
+        </visual>
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <mass value="0"/>
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+    </link>
+
+    <!-- ########### JOINTS ########### -->
+
+    <joint name="fuselage_to_windows" type="fixed">
+        <parent link = "fuselage" />
+        <child link = "windows" />
+        <origin rpy="0 0 0" xyz = "0 0 0" />
+    </joint>
+	
+	<joint name="fuselage_to_wheels" type="fixed">
+        <parent link = "fuselage" />
+        <child link = "wheels" />
+        <origin rpy="0 0 0" xyz = "0 0 0" />
+    </joint>
+	
+	<joint name="fuselage_to_nosecone" type="continuous">
+        <parent link = "fuselage" />
+        <child link = "nosecone" />
+        <origin rpy="0 0 0" xyz = "0.20309 0 0.0271" />
+		<axis xyz = "1 0 0" />
+    </joint>
+	
+	<joint name="nosecone_to_prop" type="fixed">
+        <parent link = "nosecone" />
+        <child link = "prop" />
+        <origin rpy="0 0 0" xyz = "0 0 0" />
+    </joint>
+	
+	<joint name="fuselage_to_flaps" type="continuous">
+        <parent link = "fuselage" />
+        <child link = "flaps" />
+        <origin rpy="0 0 0" xyz = "-0.10464 0 0.070631" />
+		<axis xyz = "0 -1 0" />
+    </joint>
+	
+	<joint name="fuselage_to_r_aileron" type="continuous">
+        <parent link = "fuselage" />
+        <child link = "r_aileron" />
+        <origin rpy="0 0 0" xyz = "-0.091651 -0.40841 0.087295" />
+		<axis xyz = "-0.11 0.9919 -0.0633" />
+    </joint>
+	
+	<joint name="fuselage_to_l_aileron" type="continuous">
+        <parent link = "fuselage" />
+        <child link = "l_aileron" />
+        <origin rpy="0 0 0" xyz = "-0.091651 0.40841 0.087295" />
+		<axis xyz = "-0.11 -0.9919 -0.0633" />
+    </joint>
+
+	<joint name="fuselage_to_elevator" type="continuous">
+        <parent link = "fuselage" />
+        <child link = "elevator" />
+        <origin rpy="0 0 0" xyz = "-0.5029 0 -0.0045047" />
+		<axis xyz = "0 1 0" />
+    </joint>
+
+	<joint name="fuselage_to_rudder" type="continuous">
+        <parent link = "fuselage" />
+        <child link = "rudder" />
+        <origin rpy="0 0 0" xyz = "-0.54586 0.001 0.0656" />
+		<axis xyz = "-0.5361 0 0.8441" />
+    </joint>
+
+</robot>
+
+<!-- © Copyright, 2026 G. Schaer. -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->

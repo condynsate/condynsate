@@ -208,6 +208,7 @@ def euler_from_wxyz(wxyz):
     siny_cosp = 2 * (w * z + x * y)
     cosy_cosp = 1 - 2 * (y * y + z * z)
     yaw = np.arctan2(siny_cosp, cosy_cosp)
+
     return (float(yaw), float(pitch), float(roll))
 
 def Rbw_from_wxyz(wxyz):
