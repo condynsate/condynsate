@@ -1,3 +1,6 @@
 [submodule "src/condynsate/visualizer/meshcat"]
 	path = src/condynsate/visualizer/meshcat
 	url = https://github.com/meshcat-dev/meshcat-python
+[submodule "src/condynsate/visualizer/meshcat-python"]
+	path = src/condynsate/visualizer/meshcat-python
+	url = https://github.com/condynsate/meshcat-python.git

@@ -12,7 +12,7 @@ SPDX-License-Identifier: GPL-3.0-only
 ###############################################################################
 import sys
 import os
-meshcat_path = os.path.join(os.path.dirname(__file__), r'meshcat\src')
+meshcat_path = os.path.join(os.path.dirname(__file__), r'meshcat-python\src')
 sys.path.append(meshcat_path)
 
 ###############################################################################
