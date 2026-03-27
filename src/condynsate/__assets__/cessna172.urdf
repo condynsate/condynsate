@@ -16,6 +16,10 @@
         <color rgba="0.25 0.25 0.25 1" />
     </material>
 	
+    <material name="glass">
+        <color rgba="0.25 0.25 0.25 0.25" />
+    </material>
+	
     <material name="steel">
         <color rgba="0.65 0.69 0.67 1"/>
     </material>
@@ -26,13 +30,13 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="airplane_fuselage.obj" scale="0.1 0.1 0.1"/>
+                <mesh filename="airplane_fuselage.obj" scale="1 1 1"/>
             </geometry>
             <material name = "white"/>
         </visual>
         <inertial>
             <origin rpy="0 0.083 0" xyz="0 0 0"/>
-            <mass value="964."/>
+            <mass value="964.0"/>
             <inertia ixx="2420." ixy="0" ixz="-162." iyy="2430." iyz="0" izz="4370.0"/>
         </inertial>
     </link>
@@ -41,9 +45,9 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="airplane_windows.obj" scale="0.1 0.1 0.1"/>
+                <mesh filename="airplane_windows.obj" scale="1 1 1"/>
             </geometry>
-            <material name = "black"/>
+            <material name = "glass"/>
         </visual>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -56,7 +60,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="airplane_wheels.obj" scale="0.1 0.1 0.1"/>
+                <mesh filename="airplane_wheels.obj" scale="1 1 1"/>
             </geometry>
             <material name = "black"/>
         </visual>
@@ -71,7 +75,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="airplane_nosecone.obj" scale="0.1 0.1 0.1"/>
+                <mesh filename="airplane_nosecone.obj" scale="1 1 1"/>
             </geometry>
             <material name = "steel"/>
         </visual>
@@ -86,7 +90,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="airplane_prop.obj" scale="0.1 0.1 0.1"/>
+                <mesh filename="airplane_prop.obj" scale="1 1 1"/>
             </geometry>
             <material name = "black"/>
         </visual>
@@ -101,7 +105,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="airplane_flaps.obj" scale="0.1 0.1 0.1"/>
+                <mesh filename="airplane_flaps.obj" scale="1 1 1"/>
             </geometry>
             <material name = "blue"/>
         </visual>
@@ -116,7 +120,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="airplane_r_aileron.obj" scale="0.1 0.1 0.1"/>
+                <mesh filename="airplane_r_aileron.obj" scale="1 1 1"/>
             </geometry>
             <material name = "blue"/>
         </visual>
@@ -131,7 +135,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="airplane_l_aileron.obj" scale="0.1 0.1 0.1"/>
+                <mesh filename="airplane_l_aileron.obj" scale="1 1 1"/>
             </geometry>
             <material name = "blue"/>
         </visual>
@@ -146,7 +150,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="airplane_elevator.obj" scale="0.1 0.1 0.1"/>
+                <mesh filename="airplane_elevator.obj" scale="1 1 1"/>
             </geometry>
             <material name = "blue"/>
         </visual>
@@ -161,7 +165,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <geometry>
-                <mesh filename="airplane_rudder.obj" scale="0.1 0.1 0.1"/>
+                <mesh filename="airplane_rudder.obj" scale="1 1 1"/>
             </geometry>
             <material name = "blue"/>
         </visual>
@@ -189,7 +193,7 @@
 	<joint name="fuselage_to_nosecone" type="continuous">
         <parent link = "fuselage" />
         <child link = "nosecone" />
-        <origin rpy="0 0 0" xyz = "0.20309 0 0.0271" />
+        <origin rpy="0 0 0" xyz = "2.0309 0 0.271" />
 		<axis xyz = "1 0 0" />
     </joint>
 	
@@ -202,35 +206,35 @@
 	<joint name="fuselage_to_flaps" type="continuous">
         <parent link = "fuselage" />
         <child link = "flaps" />
-        <origin rpy="0 0 0" xyz = "-0.10464 0 0.070631" />
+        <origin rpy="0 0 0" xyz = "-1.0464 0 0.70631" />
 		<axis xyz = "0 -1 0" />
     </joint>
 	
 	<joint name="fuselage_to_r_aileron" type="continuous">
         <parent link = "fuselage" />
         <child link = "r_aileron" />
-        <origin rpy="0 0 0" xyz = "-0.091651 -0.40841 0.087295" />
+        <origin rpy="0 0 0" xyz = "-0.91651 -4.0841 0.87295" />
 		<axis xyz = "-0.11 0.9919 -0.0633" />
     </joint>
 	
 	<joint name="fuselage_to_l_aileron" type="continuous">
         <parent link = "fuselage" />
         <child link = "l_aileron" />
-        <origin rpy="0 0 0" xyz = "-0.091651 0.40841 0.087295" />
+        <origin rpy="0 0 0" xyz = "-0.91651 4.0841 0.87295" />
 		<axis xyz = "-0.11 -0.9919 -0.0633" />
     </joint>
 
 	<joint name="fuselage_to_elevator" type="continuous">
         <parent link = "fuselage" />
         <child link = "elevator" />
-        <origin rpy="0 0 0" xyz = "-0.5029 0 -0.0045047" />
+        <origin rpy="0 0 0" xyz = "-5.029 0 -0.045047" />
 		<axis xyz = "0 1 0" />
     </joint>
 
 	<joint name="fuselage_to_rudder" type="continuous">
         <parent link = "fuselage" />
         <child link = "rudder" />
-        <origin rpy="0 0 0" xyz = "-0.54586 0.001 0.0656" />
+        <origin rpy="0 0 0" xyz = "-5.4586 0.01 0.656" />
 		<axis xyz = "-0.5361 0 0.8441" />
     </joint>
 

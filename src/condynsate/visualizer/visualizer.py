@@ -1038,7 +1038,25 @@ class Visualizer():
 
         """
         if not tex_path is None:
-            texture = geo.PngImage.from_file(tex_path)
+            if is_instance(tex_path, tuple) or is_instance(tex_path, list):
+                is_jpg = tex_path[0].endswith(('.jpg', 'jpeg'))
+                is_png = tex_path[0].endswith('.png')
+                n = int(np.sqrt(len(tex_path)))
+                if np.isclose(n - np.sqrt(len(tex_path)), 0.0):
+                    if is_jpg:
+                        texture = geo.JpgImage.from_files(tex_path, n, n)
+                    elif is_png:
+                        texture = geo.PngImage.from_files(tex_path, n, n)
+                else:
+                    if is_jpg:
+                        texture = geo.JpgImage.from_file(tex_path[0])
+                    elif is_png:
+                        texture = geo.PngImage.from_file(tex_path[0])
+            else:
+                if tex_path.endswith(('.jpg', 'jpeg')):
+                    texture = geo.JpgImage.from_file(tex_path)
+                elif tex_path.endswith(('.png')):
+                    texture = geo.PngImage.from_file(tex_path)
             texture = geo.ImageTexture(texture,
                                        wrap=tex_wrap, repeat=tex_repeat)
         else:
@@ -1378,9 +1396,14 @@ class Visualizer():
 
             # Validate the texture path
             if k == 'tex_path':
-                if val is None or not path_valid(val, ".png", val):
+                if val is None:
                     continue
-                sanitized[key] = val
+                c1 = ((is_instance(val, tuple) or is_instance(val, list)) and
+                      all(path_valid(v, ('.png','.jpg'), v) for v in val))
+                c2 = (is_instance(val, str)
+                      and path_valid(val, ('.png','.jpg'), val))
+                if c1 or c2:
+                         sanitized[key] = val
 
             # Validate the texture wrap
             if k == 'tex_wrap':
@@ -1463,7 +1486,7 @@ class Visualizer():
             cur_emissive_color == material_kwargs['emissive_color']):
             return
 
-        # Apply the new materi
+        # Apply the new material
         geometry = self._objects[scene_path]['geometry']
         material = self._get_material(**material_kwargs)
         self._scene[scene_path].set_object(geometry, material)

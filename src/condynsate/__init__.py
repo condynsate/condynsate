@@ -26,7 +26,7 @@ _root = os.path.split(__file__)[0]
 _dirpath = os.path.join(_root, "__assets__")
 _vals = [os.path.join(_dirpath, f) for f in os.listdir(_dirpath)]
 _pairs = []
-_accepted = ('.urdf', '.png', '.obj', '.stl', '.dae')
+_accepted = ('.urdf', '.png', '.jpg', '.obj', '.stl', '.dae')
 for _v in _vals:
     if _v.lower().endswith(_accepted):
         _pairs.append((os.path.basename(_v.lower()), _v))
