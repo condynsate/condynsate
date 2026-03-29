@@ -15,6 +15,8 @@ from condynsate import Project
 from condynsate import __assets__ as assets
 import numpy as np
 
+R_EARTH = 6371000 * 0.02
+
 def _make(initial_gamma, visualization):
     # Create the project
     proj = Project(visualizer = visualization,
@@ -43,41 +45,37 @@ def _make(initial_gamma, visualization):
 
     # Set some visualizer options
     if visualization:
-        # Load a starfield and planet
-        proj.visualizer.add_object('white_starfield',
-                                   assets['128-starfield_5-r_cen-orig.obj'],
-                                   color=(0.918, 0.929, 1.0),
-                                   emissive_color=(0.918, 0.929, 1.0),
-                                   scale=(190, 190, 190))
-        proj.visualizer.add_object('red_starfield',
-                                   assets['64-starfield_5-r_cen-orig.obj'],
-                                   scale=(190, 190, 190),
-                                   color=(1.0, 0.706, 0.424),
-                                   emissive_color=(1.0, 0.706, 0.424),
-                                   roll = 161.,
-                                   pitch = 74.,
-                                   yaw = 14.)
-        proj.visualizer.add_object('blue_starfield',
-                                   assets['32-starfield_5-r_cen-orig.obj'],
-                                   scale=(190, 190, 190),
-                                   color=(0.616, 0.741, 1.0),
-                                   emissive_color=(0.616, 0.741, 1.0),
-                                   roll = 145.,
-                                   pitch = 71.,
-                                   yaw = 102.)
+        # Load a skybox, planet, and sun
+        tex_paths = [v for k,v in assets.items()
+                     if k.startswith('earth_')]
+        tex_paths = sorted(tex_paths)
         proj.visualizer.add_object('planet',
                                    assets['sphere_1_center_origin.stl'],
-                                   scale=(6000, 6000, 6000),
-                                   emissive_color=(0.45, 0.45, 0.48),
-                                   tex_path=assets['earth.png'],
+                                   scale=(R_EARTH*2, )*3,
+                                   tex_path=tex_paths,
+                                   pitch=-np.deg2rad(13),
+                                   roll=np.deg2rad(28.47),
+                                   emissive_color=(0.1, 0.1, 0.1),
                                    tex_wrap=[1000, 1000],
-                                   position=(0.0, 0.0, -3200),)
+                                   position=(0.0, 0.0, -(1.02*R_EARTH),))
+        tex_paths = [v for k,v in assets.items()
+                     if k.startswith('night_skybox')]
+        tex_paths = sorted(tex_paths)
+        proj.visualizer.add_object('skybox',
+                                   assets['sphere_1_center_origin.stl'],
+                                   scale=(R_EARTH*5*2, )*3,
+                                   roll=-np.deg2rad(60.0),
+                                   pitch=-np.deg2rad(10.0),
+                                   tex_path=tex_paths,
+                                   emissive_color=(0.1, 0.1, 0.1),
+                                   tex_wrap=[1000, 1000],
+                                   position=(0.0, 0.0, -(1.02*R_EARTH),))
         proj.visualizer.add_object('sun',
                                    assets['sphere_1_center_origin.stl'],
-                                   scale=(75, 75, 75),
-                                   color=(1.0, 0.706, 0.424),
-                                   emissive_color=(1.0, 0.706, 0.424),
-                                   position=(541, -541, 270))
+                                   scale=(np.deg2rad(4)*4*R_EARTH,)*3,
+                                   color=(1.0, 1.0, 1.0),
+                                   emissive_color=(1.0, 1.0, 1.0),
+                                   position=np.array([.69,-.21,.69])*4*R_EARTH)
 
         # Make the grid and axes invisible
         proj.visualizer.set_axes(False)
@@ -88,17 +86,22 @@ def _make(initial_gamma, visualization):
         proj.visualizer.set_cam_target(cmg.center_of_mass)
 
         # Set the scene lighting
-        proj.visualizer.set_ptlight_1(on=True, position=(6, -1, -12),
-                                      intensity=0.37, distance=50, shadow=True)
-        proj.visualizer.set_spotlight(on=True, position=(12,-12,6), angle=0.35,
-                                      intensity=1.00, distance=50, shadow=True)
-        proj.visualizer.set_amblight(on=True, intensity=0.39)
+        proj.visualizer.set_ptlight_1(on=True, position=(0, 0, -12),
+                                      intensity=0.15, distance=50, shadow=True)
+        proj.visualizer.set_spotlight(on=True, position=(50000,-15000,50000),
+                                      angle=1.57, intensity=2.0, shadow=True,
+                                      distance=72284.0+R_EARTH)
+        proj.visualizer.set_amblight(on=True, intensity=0.14)
         proj.visualizer.set_ptlight_2(on=False)
         proj.visualizer.set_dirnlight(on=False)
 
         # Set the background color
         proj.visualizer.set_background((0.0, 0.0, 0.0),
                                        (0.2, 0.2, 0.4),)
+
+        # Extend the render distance
+        dist_to_hori = 1.1*np.sqrt(2*R_EARTH*0.02*R_EARTH)
+        proj.visualizer.set_cam_frustum(far=max(dist_to_hori, 3.98*R_EARTH))
 
         # Refresh the visualizer to reflect the changes we made
         proj.refresh_visualizer()
@@ -111,7 +114,7 @@ def _stall(proj):
 
     # If no keyboard exists, ignore this call
     except AttributeError:
-        sleep(2.5)
+        sleep(5.0)
 
 def _state(cmg):
     s = cmg.state
@@ -176,6 +179,7 @@ def _sim_loop(proj, cmg, program, get_torque, time, real_time):
 
     # Run a simulation loop
     start = now()
+    earth_pitch = 0.0
     while proj.simtime <= time:
         # Get the state of the system
         state = _state(cmg)
@@ -207,6 +211,20 @@ def _sim_loop(proj, cmg, program, get_torque, time, real_time):
             data['tau_gamma'].append(torque)
             data['theta_des'].append(theta_des)
 
+        # Move the earth to simulate an orbit
+        earth_pitch -= (np.pi*2)/(2*3600)*proj.simulator.dt
+        earth_x = np.array((np.sin(earth_pitch)*1.02*R_EARTH,
+                            0.0,
+                            -np.cos(earth_pitch)*1.02*R_EARTH,))
+        proj.visualizer.set_transform('planet',
+                                      pitch=-np.deg2rad(13),
+                                      roll=np.deg2rad(28.47),
+                                      scale=(R_EARTH*2,)*3,
+                                      position=earth_x)
+        proj.visualizer.set_ptlight_1(position=(np.sin(earth_pitch)*12,
+                                                0.0,
+                                                -np.cos(earth_pitch)*12))
+
         # Take a simulation step
         proj.step(real_time=real_time)
 
@@ -222,8 +240,7 @@ def _sim_loop(proj, cmg, program, get_torque, time, real_time):
     data['theta_des'].append(theta_des)
 
     # Return the collected data
-    duration = now() - start
-    print(f"Simulation took {duration:.2f} seconds.")
+    print(f"Simulation took {now() - start:.2f} seconds.")
     for key, value in data.items():
         data[key] = np.array(value)
     return data
@@ -279,4 +296,4 @@ def c(x,y):
     return 0.0
 
 if __name__ == "__main__":
-    run(1,0,c,time=1)
+    run(0.7854, 1, c, time=120.0)

@@ -47,8 +47,10 @@ class _PlaneParams():
         self.params['mass'] = 964.0
 
         # Distance from CoM to wing and tail center of lift
-        self.params['r_w'] = 0.111
+        self.params['r_w'] = 0.111  # Axial distance
+        self.params['h_w'] = 0.974  # Vertical distance
         self.params['r_te'] = 4.560
+        self.params['h_te'] = 0.0
 
         # Input limits
         self.params['delta_mn'] = -0.332
@@ -65,23 +67,48 @@ class _PlaneParams():
         return self.params[key]
 PARAM = _PlaneParams()
 
+def _RX(x):
+    return np.array([[1, 0,          0        ],
+                     [0, np.cos(x), -np.sin(x)],
+                     [0, np.sin(x),  np.cos(x)]])
+def _RY(x):
+    return np.array([[ np.cos(x), 0, np.sin(x)],
+                     [ 0,         1, 0        ],
+                     [-np.sin(x), 0, np.cos(x)]])
+def _RZ(x):
+    return np.array([[np.cos(x), -np.sin(x), 0],
+                     [np.sin(x),  np.cos(x), 0],
+                     [0,          0,         1]])
 class _SimVars():
+    R : dict
     state : dict
     _dt : float
 
     def __init__(self, state0, input0, dt):
+        self._dt = dt
+
+        self.R = {}
+        self.R['PF'] = _RY(state0['alpha'])@_RZ(state0['beta'])
+        self.R['FP'] = self.R['PF'].T
+        r, p, y = state0['phi'], state0['theta'], state0['psi']
+        self.R['WP'] = _RX(r)@_RY(np.pi-p)@_RZ(np.pi+y)
+        self.R['PW'] = self.R['WP'].T
+
         self.state = {}
-        self.state['p'] = np.array((0.0, 0.0, state0['h']))
-        self.state['u'] = np.array((np.cos(state0['theta']-state0['alpha']),
-                                    0.0,
-                                    np.sin(state0['theta']-state0['alpha'])))
-        self.state['u'] *= state0['u_inf']
+        self.state['p_W'] = np.array((0.0, 0.0, state0['h']))
+        self.state['u_P'] = self.R['FP'] @ (state0['u_inf'], 0.0, 0.0)
+        self.state['u_W'] = self.R['PW'] @ self.state['u_P']
+        self.state['u_inf'] = np.linalg.norm(self.state['u_W'])
+        u, v, w = self.state['u_P']
+        self.state['alpha'] = np.arctan2(w, u)
+        self.state['beta'] = np.arcsin(v / self.state['u_inf'])
+        self.state['psi'] = state0['psi']
         self.state['theta'] = state0['theta']
+        self.state['phi'] = state0['phi']
         self.state['delta'] = input0['delta']
         self.state['P'] = input0['P']
         self.state['earth_pitch'] = 0.0
-
-        self._dt = dt
+        self.state['earth_roll'] = 0.0
 
     def __getattr__(self, key):
         return self.state[key]
@@ -89,29 +116,50 @@ class _SimVars():
     def _to_m180_p180(self, ang_deg):
         return np.rad2deg((np.deg2rad(ang_deg) + np.pi) % (2*np.pi) - np.pi)
 
-    def step(self, F_aero_net, omega_theta, delta_des, P_des):
-        F_net = F_aero_net + np.array([0, 0, -_g(self.p[2])*PARAM.mass])
+    def step(self, F_aero_net, state, delta_des, P_des):
+        # Get the net force by adding gravity
+        F_net = F_aero_net+np.array([0,0,-_g(self.state['p_W'][2])*PARAM.mass])
 
-        self.state['p'] += self.state['u'] * self._dt
-        self.state['u'] += (F_net / PARAM.mass) * self._dt
-        self.state['theta'] += omega_theta * self._dt
+        # Apply accelerations and velocities
+        self.state['u_W'] += (F_net / PARAM.mass) * self._dt
+        self.state['p_W'] += self.state['u_W'] * self._dt
+        self.state['psi'] += state['omega_psi'] * self._dt
+        self.state['theta'] += state['omega_theta'] * self._dt
+        self.state['phi'] += state['omega_phi'] * self._dt
         self.state['theta'] = self._to_m180_p180(self.state['theta'])
-        d_ep = -self.state['u'][0]*self._dt / (self.state['p'][2] + R_PLANET)
-        self.state['earth_pitch'] += d_ep
+        self.state['phi'] = self._to_m180_p180(self.state['phi'])
 
-        clipped_delta_des = min(max(delta_des,PARAM.delta_mn),PARAM.delta_mx)
-        d_delta = clipped_delta_des - self.state['delta']
-        if abs(d_delta) <= PARAM.delta_rate*self._dt:
-            self.state['delta'] += d_delta
-        else:
-            self.state['delta'] += PARAM.delta_rate*np.sign(d_delta)*self._dt
+        # Update the connected states
+        self.state['u_inf'] = np.linalg.norm(self.state['u_W'])
+        self.state['u_P'] = self.R['WP'] @ self.state['u_W']
+        u, v, w = self.state['u_P']
+        self.state['alpha'] = np.arctan2(w, u)
+        self.state['beta'] = np.arcsin(v / self.state['u_inf'])
+        d = -self.state['u_W'][0]*self._dt / (self.state['p_W'][2]+R_PLANET)
+        self.state['earth_pitch'] += d
+        d = self.state['u_W'][1]*self._dt / (self.state['p_W'][2]+R_PLANET)
+        self.state['earth_roll'] += d
 
-        clipped_P_des =  min(max(P_des, 0.0), PARAM.P_mx)
-        d_P = clipped_P_des - self.state['P']
-        if abs(d_P) <= PARAM.P_rate*self._dt:
-            self.state['P'] += d_P
+        # Update the coordinate transform matrices
+        self.R['PF'] = _RY(self.state['alpha'])@_RZ(self.state['beta'])
+        self.R['FP'] = self.R['PF'].T
+        r, p, y = self.state['phi'], self.state['theta'], self.state['psi']
+        self.R['WP'] = _RX(r)@_RY(np.pi-p)@_RZ(np.pi+y)
+        self.R['PW'] = self.R['WP'].T
+
+        # Update the elevator angle
+        d=min(max(delta_des,PARAM.delta_mn),PARAM.delta_mx)-self.state['delta']
+        if abs(d) <= PARAM.delta_rate*self._dt:
+            self.state['delta'] += d
         else:
-            self.state['P'] += PARAM.P_rate*np.sign(d_P)*self._dt
+            self.state['delta'] += PARAM.delta_rate*np.sign(d)*self._dt
+
+        # Update the power setting
+        d = min(max(P_des, 0.0), PARAM.P_mx) - self.state['P']
+        if abs(d) <= PARAM.P_rate*self._dt:
+            self.state['P'] += d
+        else:
+            self.state['P'] += PARAM.P_rate*np.sign(d)*self._dt
 
 class _SimData():
     data : dict
@@ -154,25 +202,30 @@ class _SimData():
 
 def _read_kwargs(**kwargs):
     state0 = {'h' : kwargs.get('h', 2000.0),
-              'u_inf' : kwargs.get('u_inf', 47.8184),
+              'u_inf' : kwargs.get('u_inf', 47.82),
               'alpha' : kwargs.get('alpha', 0.05923),
-              'omega_theta' : kwargs.get('omega_theta', 0.0) ,
-              'theta' : kwargs.get('theta', 0.05923)}
+              'beta' : kwargs.get('beta', 0.0),
+              'omega_psi' : kwargs.get('omega_psi', 0.0),
+              'omega_theta' : kwargs.get('omega_theta', 0.0),
+              'omega_phi' : kwargs.get('omega_phi', 0.0),
+              'psi' : kwargs.get('psi', 0.0),
+              'theta' : kwargs.get('theta', 0.05923),
+              'phi' : kwargs.get('phi', 0.0)}
     input0 = {'delta' : kwargs.get('delta', 0.06592),
-              'P' : kwargs.get('P', 62159.9),}
+              'P' : kwargs.get('P', 62160.),}
     settings = {'state0' : state0,
                 'input0' : input0,
                 'duration' : kwargs.get('time', 20.0),
                 'real_time' : kwargs.get('real_time', True),
                 'turb_mag' : kwargs.get('turbulence', 0.0),
-                'shake' : kwargs.get('shake', 0.35),
+                'shake' : kwargs.get('shake', 0.5),
                 'seed' : kwargs.get('seed', 2357136050),}
     return settings
 
 def _load_planet(proj, state0):
     n_repeat = int(np.sqrt((4*np.pi*R_PLANET**2)/5.827e8)//2)*2+1
     tex_paths = [v for k,v in assets.items()
-                 if k.startswith('countryside_225sqmi_')]
+                 if k.startswith('countryside_225sqmi_28')]
     tex_paths = sorted(tex_paths)
     proj.visualizer.add_object('ground',
                                assets['sphere_1_center_origin.stl'],
@@ -214,7 +267,9 @@ def _load_vis_env(proj, state0):
     proj.visualizer.set_dirnlight(on=False)
 
     # Look at the plane
-    proj.visualizer.set_cam_position((0, 10, 1.25))
+    proj.visualizer.set_cam_position((10*np.sin(state0['psi']),
+                                      10*np.cos(state0['psi']),
+                                      1.25))
     proj.visualizer.set_cam_target((0, 0, 0))
 
     # Make the grid and axes invisible
@@ -237,8 +292,12 @@ def _set_init_conds(plane, state0, input0):
     plane.joints['fuselage_to_rudder'].set_initial_state(angle=0)
 
     # Apply initial state
-    plane.set_initial_state(pitch = -state0['theta'] + 0.083, # Model axis cor
-                            omega = (0.0, -state0['omega_theta'], 0.0))
+    plane.set_initial_state(yaw = -state0['psi'],
+                            pitch = -state0['theta'] + 0.083, # Model axis cor
+                            roll = state0['phi'],
+                            omega = (state0['omega_phi'],
+                                     -state0['omega_theta'],
+                                     -state0['omega_psi']))
 
 def _make(**kwargs):
     # Create the project
@@ -309,46 +368,59 @@ def _cL(alpha, a_s, a_0, a_l0):
     # Complete stall
     return 0.0
 
-def _wing_forces(state):
+def _wing_forces(s):
     # Get the reynold's number
-    re = _rho(state['h'])*PARAM.c_w*state['u_inf']/_mu(state['h'])
+    re = _rho(s.p_W[2])*PARAM.c_w*s.u_inf/_mu(s.p_W[2])
 
     # Calculate stall angle and 0 lift angle (for NACA2412)
     a_s = 0.0407*np.log(re) - 0.266
     a_l0 = -0.0436 * (np.arctan(re/11880. - 10.52) / np.pi + 0.5)
 
     # Get the lift and drag
-    cL = _cL(state['alpha'], a_s, PARAM.a0_w, a_l0)
-    cDi = (PARAM.a0_w*(state['alpha']-a_l0))**2 / (np.pi*PARAM.ar_w)
+    cL = _cL(s.alpha, a_s, PARAM.a0_w, a_l0)
+    cDi = (PARAM.a0_w*(s.alpha-a_l0))**2 / (np.pi*PARAM.ar_w)
     cDf = 0.074*re**(-0.2)
-    L = 0.5 * _rho(state['h']) * PARAM.s_w * cL * state['u_inf']**2
-    D = 0.5 * _rho(state['h']) * PARAM.s_w * (cDi + cDf) * state['u_inf']**2
-    return L, D
 
-def _tail_forces(state, delta):
+    # Add a cos beta as a first order crab angle correction term
+    L = 0.5*_rho(s.p_W[2])*PARAM.s_w*np.cos(s.beta)*cL*s.u_inf**2
+    D = 0.5*_rho(s.p_W[2])*PARAM.s_w*np.cos(s.beta)*(cDi + cDf)*s.u_inf**2
+
+    # Convert from lift and drag to world coords
+    return s.R['PW'] @ s.R['FP'] @ (-D, 0.0, -L)
+
+def _tail_forces(s):
     # Get the reynold's number
-    re = _rho(state['h'])*PARAM.c_te*state['u_inf']/_mu(state['h'])
+    re = _rho(s.p_W[2])*PARAM.c_te*s.u_inf/_mu(s.p_W[2])
 
     # Calculate the stall conditions (for inverted NACA2412)
     a_ste = 0.0407*np.log(re) - 0.266
     a_l0te = 0.0436 * (np.arctan(re/11880. - 10.52) / np.pi + 0.5)
 
     # Get the lift and drag
-    cLt = _cL(state['alpha'], a_ste, PARAM.a0_t, a_l0te)
-    cDit = (PARAM.a0_t*(state['alpha']-a_l0te))**2 / (np.pi*PARAM.ar_t)
-    cLe = _cL(state['alpha']-delta, a_ste, PARAM.a0_e, a_l0te)
-    cDie = (PARAM.a0_e*(state['alpha']-delta-a_l0te))**2 / (np.pi*PARAM.ar_e)
+    cLt = _cL(s.alpha, a_ste, PARAM.a0_t, a_l0te)
+    cDit = (PARAM.a0_t*(s.alpha-a_l0te))**2 / (np.pi*PARAM.ar_t)
+    cLe = _cL(s.alpha-s.delta, a_ste, PARAM.a0_e, a_l0te)
+    cDie = (PARAM.a0_e*(s.alpha-s.delta-a_l0te))**2 / (np.pi*PARAM.ar_e)
     cDfte = 0.074*re**(-0.2)
-    half_rho_usq = 0.5*_rho(state['h'])*state['u_inf']**2
+
+    # Add a cos beta as a first order crab angle correction term
+    half_rho_usq = np.cos(s.beta)*0.5*_rho(s.p_W[2])*s.u_inf**2
     L=(PARAM.s_t*cLt+PARAM.s_e*cLe)*half_rho_usq
     D=(PARAM.s_t*cDit+PARAM.s_e*cDie+(PARAM.s_t+PARAM.s_e)*cDfte)*half_rho_usq
-    return L, D
 
-def  _body_forces(state):
-    # Get the lift and drag
+    # Convert from lift and drag to world coords
+    return s.R['PW'] @ s.R['FP'] @ (-D, 0.0, -L)
+
+def  _body_forces(s):
+    # No body lift
     L = 0.0
-    D = 0.5 * _rho(state['h']) * PARAM.s_b * PARAM.cDf_b * state['u_inf']**2
-    return L, D
+
+    # We assume that the of the body is independent of wind direction
+    D = 0.5 * _rho(s.p_W[2]) * PARAM.s_b * PARAM.cDf_b * s.u_inf**2
+
+    # Convert from lift and drag to world coords
+    return s.R['PW'] @ s.R['FP'] @ (-D, 0.0, -L)
+
 
 def _prop_rps(P):
     # Prop RPS as a function of engine power
@@ -368,43 +440,37 @@ def _eta(u_inf, P):
         return -25.62*J*J + 44.57*J - 18.56
     return 0.0
 
-def _prop_forces(state, P):
-    return P*_eta(state['u_inf'], P) / state['u_inf']
+def _prop_forces(s):
+    T = s.P * _eta(s.u_inf, s.P) / s.u_inf
 
-def _LD_to_plane(L, D, alpha, theta):
-    Lx = -L*np.sin(theta-alpha)
-    Lz = -L*np.cos(theta-alpha)
-    Dx = -D*np.cos(theta-alpha)
-    Dz = D*np.sin(theta-alpha)
-    return np.array((Lx, 0.0, Lz)) + np.array((Dx, 0.0, Dz))
+    # Convert from plane coords to world coords
+    return s.R['PW'] @ (T, 0.0, 0.0)
 
-def _net_aero_force_torque(state, delta, P):
+def _net_aero_force_torque(s):
     # Get the forces
-    Lw, Dw = _wing_forces(state)
-    Lt, Dt = _tail_forces(state, delta)
-    Lb, Db = _body_forces(state)
-    T = _prop_forces(state, P)
+    Fw = _wing_forces(s)
+    Ft = _tail_forces(s)
+    Fb = _body_forces(s)
+    Fp = _prop_forces(s)
+    F_net = Fw + Ft + Fb + Fp
 
-    # Get the net torque
-    tau_y = (-np.cos(state['alpha'])*(Lw*PARAM.r_w + Lt*PARAM.r_te) -
-             np.sin(state['alpha'])*(Dw*PARAM.r_w + Dt*PARAM.r_te))
+    # Get the net torque from the lift and drag of the wings and tail
+    rw_W = s.R['PW'] @ (-PARAM.r_w, 0.0, -PARAM.h_w)
+    rt_W = s.R['PW'] @ (-PARAM.r_te, 0.0, -PARAM.h_te)
+    tau_net = np.cross(rw_W, Fw) + np.cross(rt_W, Ft)
+    return F_net, tau_net
 
-    # Convert to plane coords
-    Fw = _LD_to_plane(Lw, Dw, state['alpha'], state['theta'])
-    Ft = _LD_to_plane(Lt, Dt, state['alpha'], state['theta'])
-    Fb = _LD_to_plane(Lb, Db, state['alpha'], state['theta'])
-    Fp = np.array((np.cos(state['theta'])*T, 0.0, -np.sin(state['theta'])*T))
-    return Fw + Ft + Fb + Fp, np.array([0.0, tau_y, 0.0])
-
-def _plane_to_world(vec):
-    return np.array((vec[0], -vec[1], -vec[2]))
-
-def _state(plane, h, u, theta):
-    state = {'h' : h,
-             'u_inf' : np.linalg.norm(u),
-             'alpha' : theta - np.atan2(u[2], u[0]),
+def _state(plane, s):
+    state = {'h' : s.p_W[2],
+             'u_inf' : s.u_inf,
+             'alpha' : s.alpha,
+             'beta' : s.beta,
+             'omega_psi' : -plane.state.omega_in_body[2],
              'omega_theta' : -plane.state.omega_in_body[1],
-             'theta' : theta,}
+             'omega_phi' : plane.state.omega_in_body[0],
+             'psi' : s.psi,
+             'theta' : s.theta,
+             'phi' : s.phi,}
     return state
 
 def _gen_turb_param(magnitude, seed):
@@ -464,25 +530,28 @@ def _h_des(program_number, curr_time, h0):
 
     return min(max(h_des, 50.0), 4000.0)
 
-def _update_vis_env(proj, plane, simvars, prev_states, shake):
+def _update_vis_env(proj, plane, s, prev_states, shake):
     # Set the elevator deflection
-    plane.joints['fuselage_to_elevator'].set_state(angle = simvars.delta)
+    plane.joints['fuselage_to_elevator'].set_state(angle = s.delta)
 
     # Position the camera
     if shake > 0.0:
-        cz = shake*(np.mean(prev_states['h'][-100:])-simvars.p[2])
-        proj.visualizer.set_cam_position((0, 10, cz+1.25))
+        cz = shake*(np.mean(prev_states['h'][-100:])-s.p_W[2])
+        proj.visualizer.set_cam_position((10*np.sin(s.psi),
+                                          10*np.cos(s.psi),
+                                          cz + 1.25))
         proj.visualizer.set_cam_target((0, 0, cz))
 
     # Rotate the earth according to the forward velocity,
     # and move the earth according to the altitude
     proj.visualizer.set_transform('ground',
-                                  pitch = simvars.earth_pitch,
+                                  pitch = s.earth_pitch,
+                                  roll = s.earth_roll,
                                   scale = (2*R_PLANET, )*3,
-                                  position=(0,0,-R_PLANET-simvars.p[2]))
+                                  position=(0,0,-R_PLANET-s.p_W[2]))
 
     # Increase render distance to the horizon
-    far = max(1.1*np.sqrt(2*R_PLANET*simvars.p[2]), 0.1005*R_PLANET)
+    far = max(1.1*np.sqrt(2*R_PLANET*s.p_W[2]), 0.1005*R_PLANET)
     proj.visualizer.set_cam_frustum(far=far)
 
 def _sim_loop(controller, program_nmuber, proj, plane, **kwargs):
@@ -490,7 +559,7 @@ def _sim_loop(controller, program_nmuber, proj, plane, **kwargs):
     turb = _gen_turb_param(kwargs['turb_mag'], kwargs['seed'])
 
     # Build a structure to track and update all hand updated sim variables
-    v = _SimVars(kwargs['state0'], kwargs['input0'], proj.simulator.dt)
+    simvars = _SimVars(kwargs['state0'], kwargs['input0'], proj.simulator.dt)
 
     # Make structure to hold simulation data
     data = _SimData()
@@ -503,33 +572,34 @@ def _sim_loop(controller, program_nmuber, proj, plane, **kwargs):
     while proj.simtime <= kwargs['duration']:
 
         # Get the state of the system
-        state = _state(plane,v.p[2],v.u+_turbulence(turb,proj.simtime),v.theta)
+        state = _state(plane, simvars)
         h_des = _h_des(program_nmuber, proj.simtime, kwargs['state0']['h'])
 
         # Crash condition (will strike ground in 0.5 seconds)
-        if state['h'] + 0.5*v.u[2] <= 0.0:
+        if state['h'] - 0.5*simvars.u_W[2] <= 0.0:
             break
 
         # Get the controller inputs
-        delta_des, P_des = controller(state, h_des)
+        inputs_des = controller(state, h_des)
 
         # Update the data
-        data.step(proj.simtime, state, (v.delta, v.P, delta_des, P_des), h_des)
+        input_args = (simvars.delta, simvars.P, inputs_des[0], inputs_des[1])
+        data.step(proj.simtime, state, input_args, h_des)
 
         # Calculate the net force and torque on the plane
-        F_aero_net, tau_aero_net = _net_aero_force_torque(state, v.delta, v.P)
+        F_aero_net, tau_aero_net = _net_aero_force_torque(simvars)
+        F_aero_net += _turbulence(turb, proj.simtime)
 
         # Apply only the torque. We ignore the forces
         # because motion is handled by moving the planet instead of the plane.
-        plane.apply_torque(_plane_to_world(tau_aero_net))
+        plane.apply_torque(tau_aero_net)
 
         # Update the visuals
         if kwargs['real_time']:
-            _update_vis_env(proj, plane, v, data, kwargs['shake'])
+            _update_vis_env(proj, plane, simvars, data, kwargs['shake'])
 
         # Take a simulation step
-        v.step(_plane_to_world(F_aero_net), state['omega_theta'],
-               delta_des, P_des)
+        simvars.step(F_aero_net, state, inputs_des[0], inputs_des[1])
         proj.step(real_time=kwargs['real_time'], stable_step=False)
 
     # Return the collected data
@@ -566,7 +636,7 @@ def run(controller, program_number, **kwargs):
         h : float, optional
             The initial altitude in meters. The default value is 2000
         u_inf : float, optional
-            The initial airspeed in meters/second. The default value is 47.8184
+            The initial airspeed in meters/second. The default value is 47.82
         alpha : float, optional
             The initial angle of attack in radians. The default value
             is 0.05923
@@ -574,14 +644,19 @@ def run(controller, program_number, **kwargs):
             The initial pitching rate in radians/second. The default value is 0
         theta : float, optional
             The initial pitch angle in radians. The default value is 0.05923
+        delta : float, optional
+            The initial elevator deflection angle in radians. The default
+            value is 0.06592
+        P : float, optional
+            The initial power setting in KW. The default value is 62160.
         seed : int, optional
             The seed of the random number generator used for the simulation.
             The default is 2357136050
         turbulence : float, optional
-            The magnitude of the turbulent wind in m/s. The default is 0
+            The magnitude of the turbulent wind in N. The default is 0
         shake : float, optional
             The magnitude by which plane accelerations are visualized. The
-            default is 0.35. Set to 0.0 for free camera movement.
+            default is 0.5. Set to 0.0 for free camera movement.
 
     Returns
     -------
@@ -599,13 +674,11 @@ def run(controller, program_number, **kwargs):
     return data
 
 def ctrlr(state, h_des):
-    m_e = np.array([0.0, 43.4816, 0.060307, 0.0, 0.060307])
-    n_e = np.array([0.06878, 56237.45])
+    m_e = np.array([0.0, 47.82, 0.05923, 0.0, 0.05923])
+    n_e = np.array([0.06592, 62160.])
     x_des = np.array([h_des, 0.0, 0.0, 0.0, 0.0])
-    K = np.array([[ 9.87485821e-03, -2.92274181e-02, -2.59702909e+00,
-         6.50978731e+00,  3.57972626e+00],
-       [ 6.89177862e+02,  7.37680069e+03, -4.86655469e+01,
-        -3.54140719e+02, -4.88447472e+04]])
+    K = np.array([[ 8.801e-03,  2.748e-03, -1.720e+00, 1.287e+00,  1.639e+00],
+                  [ 2.730e+02,  1.469e+03, -5.856e+03, 1.563e+02,  6.134e+03]])
     m = np.array([state['h'],
                   state['u_inf'],
                   state['alpha'],
@@ -615,4 +688,4 @@ def ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    data = run(ctrlr, 2, time=10.0)
+    data = run(ctrlr, 1)

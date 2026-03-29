@@ -27,7 +27,6 @@ import meshcat
 import meshcat.geometry as geo
 import umsgpack
 import cv2
-from PIL import Image
 from condynsate.misc import save_recording
 from condynsate.visualizer.utilities import (is_instance, is_num, is_nvector,
                                              path_valid, name_valid)
@@ -466,19 +465,19 @@ class Visualizer():
             self._scene[scene_path_2].set_property('position', position)
 
         if 'intensity' in kwargs:
-            intensity = np.clip(kwargs['intensity'], 0.0, 10.0)
+            intensity = max(kwargs['intensity'], 0.0)
             self._scene[scene_path_2].set_property('intensity', intensity)
 
         if 'distance' in kwargs:
-            distance = np.clip(kwargs['distance'], 0.0, 100.0)
+            distance = max(kwargs['distance'], 0.0)
             self._scene[scene_path_2].set_property('distance', distance)
 
         if 'decay' in kwargs:
-            decay = np.clip(kwargs['decay'], 0.0, 10.0)
+            decay = max(kwargs['decay'], 0.0)
             self._scene[scene_path_2].set_property('decay', decay)
 
         if 'angle' in kwargs:
-            angle = np.clip(kwargs['angle'], 0.0, 1.5707)
+            angle = min(max(kwargs['angle'], 0.0), 1.5707)
             self._scene[scene_path_2].set_property('angle', angle)
 
         # Because of a typo in the meshcat repo, setting castShadow is a little
