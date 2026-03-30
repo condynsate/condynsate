@@ -23,10 +23,12 @@ class _PlaneParams():
         self.params = {}
 
         # Wing param
-        self.params['a0_w'] = 5.011
+        self.params['a0_w'] = 5.01
         self.params['s_w'] = 16.2
         self.params['c_w'] = 1.49
         self.params['ar_w'] = 7.52
+        self.params['b_w'] = 10.9
+        self.params['dihedral_w'] = 0.0297
 
         # Horizontal stab param
         self.params['a0_t'] = 4.817
@@ -38,8 +40,14 @@ class _PlaneParams():
         self.params['s_e'] = 1.35
         self.params['ar_e'] = 9.37
 
-        # Tail and elevator chord
+        # Horizontal and elevator chord
         self.params['c_te'] = 0.942
+
+        # Combined vertical stab and rudder param
+        self.params['a0_v'] = 1.63 # Jone's theory estimate
+        self.params['s_v'] = 1.73
+        self.params['ar_v'] = 1.04
+        self.params['c_v'] = 1.17
 
         # Body parameters
         self.params['s_b'] = 5.59
@@ -49,8 +57,10 @@ class _PlaneParams():
         # Distance from CoM to wing and tail center of lift
         self.params['r_w'] = 0.111  # Axial distance
         self.params['h_w'] = 0.974  # Vertical distance
-        self.params['r_te'] = 4.560
-        self.params['h_te'] = 0.0
+        self.params['r_te'] = 4.56  # Axial distance
+        self.params['h_te'] = 0.00  # Vertical distance
+        self.params['r_v'] = 4.95  # Axial distance
+        self.params['h_v'] = 0.36  # Vertical distance
 
         # Input limits
         self.params['delta_mn'] = -0.332
@@ -93,15 +103,35 @@ class _SimVars():
         r, p, y = state0['phi'], state0['theta'], state0['psi']
         self.R['WP'] = _RX(r)@_RY(np.pi-p)@_RZ(np.pi+y)
         self.R['PW'] = self.R['WP'].T
+        self.R['WPl'] = _RX(r+PARAM.dihedral_w)@_RY(np.pi-p)@_RZ(np.pi+y)
+        self.R['WPr'] = _RX(r-PARAM.dihedral_w)@_RY(np.pi-p)@_RZ(np.pi+y)
+        self.R['PlW'] = self.R['WPl'].T
+        self.R['PrW'] = self.R['WPr'].T
 
         self.state = {}
         self.state['p_W'] = np.array((0.0, 0.0, state0['h']))
         self.state['u_P'] = self.R['FP'] @ (state0['u_inf'], 0.0, 0.0)
         self.state['u_W'] = self.R['PW'] @ self.state['u_P']
+        self.state['u_Pl'] = self.R['WPl']@self.state['u_W']
+        self.state['u_Pr'] = self.R['WPr']@self.state['u_W']
         self.state['u_inf'] = np.linalg.norm(self.state['u_W'])
+
         u, v, w = self.state['u_P']
         self.state['alpha'] = np.arctan2(w, u)
         self.state['beta'] = np.arcsin(v / self.state['u_inf'])
+
+        u, v, w = self.state['u_Pl']
+        self.state['alpha_l'] = np.arctan2(w, u)
+        self.state['beta_l'] = np.arcsin(v / self.state['u_inf'])
+        self.R['PlF'] = _RY(self.state['alpha_l'])@_RZ(self.state['beta_l'])
+        self.R['FPl'] = self.R['PlF'].T
+
+        u, v, w = self.state['u_Pr']
+        self.state['alpha_r'] = np.arctan2(w, u)
+        self.state['beta_r'] = np.arcsin(v / self.state['u_inf'])
+        self.R['PrF'] = _RY(self.state['alpha_r'])@_RZ(self.state['beta_r'])
+        self.R['FPr'] = self.R['PrF'].T
+
         self.state['psi'] = state0['psi']
         self.state['theta'] = state0['theta']
         self.state['phi'] = state0['phi']
@@ -122,6 +152,7 @@ class _SimVars():
 
         # Apply accelerations and velocities
         self.state['u_W'] += (F_net / PARAM.mass) * self._dt
+        self.state['u_inf'] = np.linalg.norm(self.state['u_W'])
         self.state['p_W'] += self.state['u_W'] * self._dt
         self.state['psi'] += state['omega_psi'] * self._dt
         self.state['theta'] += state['omega_theta'] * self._dt
@@ -129,23 +160,42 @@ class _SimVars():
         self.state['theta'] = self._to_m180_p180(self.state['theta'])
         self.state['phi'] = self._to_m180_p180(self.state['phi'])
 
-        # Update the connected states
-        self.state['u_inf'] = np.linalg.norm(self.state['u_W'])
+        # Update the local velocities
         self.state['u_P'] = self.R['WP'] @ self.state['u_W']
+        self.state['u_Pl'] = self.R['WPl'] @ self.state['u_W']
+        self.state['u_Pr'] = self.R['WPr'] @ self.state['u_W']
+
+        # Update the local flow angles
         u, v, w = self.state['u_P']
         self.state['alpha'] = np.arctan2(w, u)
         self.state['beta'] = np.arcsin(v / self.state['u_inf'])
+        u, v, w = self.state['u_Pl']
+        self.state['alpha_l'] = np.arctan2(w, u)
+        self.state['beta_l'] = np.arcsin(v / self.state['u_inf'])
+        u, v, w = self.state['u_Pr']
+        self.state['alpha_r'] = np.arctan2(w, u)
+        self.state['beta_r'] = np.arcsin(v / self.state['u_inf'])
+
+        # Update the world rotation based on position
         d = -self.state['u_W'][0]*self._dt / (self.state['p_W'][2]+R_PLANET)
         self.state['earth_pitch'] += d
         d = self.state['u_W'][1]*self._dt / (self.state['p_W'][2]+R_PLANET)
         self.state['earth_roll'] += d
 
         # Update the coordinate transform matrices
-        self.R['PF'] = _RY(self.state['alpha'])@_RZ(self.state['beta'])
-        self.R['FP'] = self.R['PF'].T
         r, p, y = self.state['phi'], self.state['theta'], self.state['psi']
         self.R['WP'] = _RX(r)@_RY(np.pi-p)@_RZ(np.pi+y)
+        self.R['WPl'] = _RX(r+PARAM.dihedral_w)@_RY(np.pi-p)@_RZ(np.pi+y)
+        self.R['WPr'] = _RX(r-PARAM.dihedral_w)@_RY(np.pi-p)@_RZ(np.pi+y)
         self.R['PW'] = self.R['WP'].T
+        self.R['PlW'] = self.R['WPl'].T
+        self.R['PrW'] = self.R['WPr'].T
+        self.R['PF'] = _RY(self.state['alpha'])@_RZ(self.state['beta'])
+        self.R['PlF'] = _RY(self.state['alpha_l'])@_RZ(self.state['beta_l'])
+        self.R['PrF'] = _RY(self.state['alpha_r'])@_RZ(self.state['beta_r'])
+        self.R['FP'] = self.R['PF'].T
+        self.R['FPl'] = self.R['PlF'].T
+        self.R['FPr'] = self.R['PrF'].T
 
         # Update the elevator angle
         d=min(max(delta_des,PARAM.delta_mn),PARAM.delta_mx)-self.state['delta']
@@ -280,8 +330,9 @@ def _load_vis_env(proj, state0):
     proj.refresh_visualizer()
 
 def _set_init_conds(plane, state0, input0):
-    # Rotate the prop at 2500rpm
-    plane.joints['fuselage_to_nosecone'].set_initial_state(omega=261.8)
+    # Rotate the prop
+    omega = _prop_rps(input0['P']) * np.pi * 2.0
+    plane.joints['fuselage_to_nosecone'].set_initial_state(omega=omega)
 
     # Set the initial control surfaces
     plane.joints['fuselage_to_flaps'].set_initial_state(angle=0)
@@ -312,12 +363,15 @@ def _make(**kwargs):
     plane = proj.load_urdf(assets['cessna172.urdf'], fixed=False)
     _set_init_conds(plane, kwargs['state0'], kwargs['input0'])
 
-    # Remove all friction
+    # Remove all joint friction
     for joint in plane.joints.values():
         joint.set_dynamics(damping=0.0)
+
+    # Set linear air resistance to 0 because we track position manually
+    # Add some rotational air resistance. Rotations are handled by Pybullet
     for link in plane.links.values():
         link.set_dynamics(linear_air_resistance=0.0,
-                          angular_air_resistance=0.0)
+                          angular_air_resistance=0.6)
 
     return proj, plane
 
@@ -346,24 +400,29 @@ def _T(h):
 def _mu(h):
     return 1.458e-6*_T(h)**(1.5) / (_T(h) + 110.4)
 
-def _cL(alpha, a_s, a_0, a_l0):
+def _cL(alpha, beta, a_s, a_0, a_l0):
     # No stall
     if abs(alpha) <= a_s:
-        return a_0*(alpha-a_l0)
+        # Add a cos beta as a first order crab angle correction term
+        return np.cos(beta)*a_0*(alpha-a_l0)
 
     # Positive stalling region
     if 0 < alpha < a_s+0.0873:
         a = -32.83*(a_0*(a_s+0.3491)-a_l0*a_0)
         b = 65.66*(a_0*(a_s**2+0.3491*a_s+0.0152)-a_l0*a_0*a_s)
         c = -32.83*(a_0*a_s**2*(a_s+0.3491)-a_l0*a_0*(a_s**2-0.0305))
-        return a*alpha**2 + b*alpha + c
+
+        # Add a cos beta as a first order crab angle correction term
+        return np.cos(beta)*(a*alpha**2 + b*alpha + c)
 
     # Negative stalling region
     if -a_s-0.0873 < alpha < 0:
         a = 32.83*(a_0*(a_s+0.3491)+a_l0*a_0)
         b = 65.66*(a_0*(a_s**2+0.3491*a_s+0.0152)+a_l0*a_0*a_s)
         c = 32.83*(a_0*a_s**2*(a_s+0.3491)+a_l0*a_0*(a_s**2-0.0305))
-        return a*alpha**2 + b*alpha + c
+
+        # Add a cos beta as a first order crab angle correction term
+        return np.cos(beta)*(a*alpha**2 + b*alpha + c)
 
     # Complete stall
     return 0.0
@@ -376,19 +435,26 @@ def _wing_forces(s):
     a_s = 0.0407*np.log(re) - 0.266
     a_l0 = -0.0436 * (np.arctan(re/11880. - 10.52) / np.pi + 0.5)
 
-    # Get the lift and drag
-    cL = _cL(s.alpha, a_s, PARAM.a0_w, a_l0)
-    cDi = (PARAM.a0_w*(s.alpha-a_l0))**2 / (np.pi*PARAM.ar_w)
+    # Get the lift and drag of the left wing
+    cL = _cL(s.alpha_l, s.beta_l, a_s, PARAM.a0_w, a_l0)
+    cDi = (PARAM.a0_w*(s.alpha_l-a_l0))**2 / (np.pi*PARAM.ar_w)
     cDf = 0.074*re**(-0.2)
+    L_l = 0.5*_rho(s.p_W[2])*0.5*PARAM.s_w*cL*s.u_inf**2
+    D_l = 0.5*_rho(s.p_W[2])*0.5*PARAM.s_w*(cDi + cDf)*s.u_inf**2
 
-    # Add a cos beta as a first order crab angle correction term
-    L = 0.5*_rho(s.p_W[2])*PARAM.s_w*np.cos(s.beta)*cL*s.u_inf**2
-    D = 0.5*_rho(s.p_W[2])*PARAM.s_w*np.cos(s.beta)*(cDi + cDf)*s.u_inf**2
+    # Get the lift and drag of the right wing
+    cL = _cL(s.alpha_r, s.beta_r, a_s, PARAM.a0_w, a_l0)
+    cDi = (PARAM.a0_w*(s.alpha_r-a_l0))**2 / (np.pi*PARAM.ar_w)
+    cDf = 0.074*re**(-0.2)
+    L_r = 0.5*_rho(s.p_W[2])*0.5*PARAM.s_w*cL*s.u_inf**2
+    D_r = 0.5*_rho(s.p_W[2])*0.5*PARAM.s_w*(cDi + cDf)*s.u_inf**2
 
     # Convert from lift and drag to world coords
-    return s.R['PW'] @ s.R['FP'] @ (-D, 0.0, -L)
+    F_l = s.R['PlW'] @ s.R['FPl'] @ (-D_l, 0.0, -L_l)
+    F_r = s.R['PrW'] @ s.R['FPr'] @ (-D_r, 0.0, -L_r)
+    return F_l, F_r
 
-def _tail_forces(s):
+def _hori_stab_force(s):
     # Get the reynold's number
     re = _rho(s.p_W[2])*PARAM.c_te*s.u_inf/_mu(s.p_W[2])
 
@@ -396,31 +462,58 @@ def _tail_forces(s):
     a_ste = 0.0407*np.log(re) - 0.266
     a_l0te = 0.0436 * (np.arctan(re/11880. - 10.52) / np.pi + 0.5)
 
-    # Get the lift and drag
-    cLt = _cL(s.alpha, a_ste, PARAM.a0_t, a_l0te)
-    cDit = (PARAM.a0_t*(s.alpha-a_l0te))**2 / (np.pi*PARAM.ar_t)
-    cLe = _cL(s.alpha-s.delta, a_ste, PARAM.a0_e, a_l0te)
-    cDie = (PARAM.a0_e*(s.alpha-s.delta-a_l0te))**2 / (np.pi*PARAM.ar_e)
-    cDfte = 0.074*re**(-0.2)
+    # Get the lift and induced drag of the horizontal stab
+    cL_t = _cL(s.alpha, s.beta, a_ste, PARAM.a0_t, a_l0te)
+    cDi_t = (PARAM.a0_t*(s.alpha-a_l0te))**2 / (np.pi*PARAM.ar_t)
+    L_t = 0.5*_rho(s.p_W[2])*PARAM.s_t*cL_t*s.u_inf**2
+    Di_t = 0.5*_rho(s.p_W[2])*PARAM.s_t*cDi_t*s.u_inf**2
 
-    # Add a cos beta as a first order crab angle correction term
-    half_rho_usq = np.cos(s.beta)*0.5*_rho(s.p_W[2])*s.u_inf**2
-    L=(PARAM.s_t*cLt+PARAM.s_e*cLe)*half_rho_usq
-    D=(PARAM.s_t*cDit+PARAM.s_e*cDie+(PARAM.s_t+PARAM.s_e)*cDfte)*half_rho_usq
+    # Get the lift and induced drag of the elevators
+    cL_e = _cL(s.alpha-s.delta, s.beta, a_ste, PARAM.a0_e, a_l0te)
+    cDi_e = (PARAM.a0_e*(s.alpha-s.delta-a_l0te))**2 / (np.pi*PARAM.ar_e)
+    L_e = 0.5*_rho(s.p_W[2])*PARAM.s_t*cL_e*s.u_inf**2
+    Di_e = 0.5*_rho(s.p_W[2])*PARAM.s_t*cDi_e*s.u_inf**2
+
+    # Parasitic drag of stab and elevator
+    cDf_te = 0.074*re**(-0.2)
+    Df_te = 0.5*_rho(s.p_W[2])*(PARAM.s_t+PARAM.s_e)*cDf_te*s.u_inf**2
 
     # Convert from lift and drag to world coords
-    return s.R['PW'] @ s.R['FP'] @ (-D, 0.0, -L)
+    return s.R['PW'] @ s.R['FP'] @ (-(Di_t + Di_e + Df_te), 0.0, -(L_t + L_e))
 
-def  _body_forces(s):
-    # No body lift
-    L = 0.0
+def _vert_stab_force(s):
+    # Get the reynold's number
+    re = _rho(s.p_W[2])*PARAM.c_v*s.u_inf/_mu(s.p_W[2])
+
+    # Calculate stall angle and 0 lift angle (for NACA0012)
+    a_s = 0.0407*np.log(re) - 0.266
+    a_l0 = 0.0
+
+    # Get the lift and drag of the left wing
+    # Note that alpha and beta are flipped for the vert stab
+    cL_v = _cL(s.beta, s.alpha, a_s, PARAM.a0_v, a_l0)
+    cDi_v = (PARAM.a0_v*(s.beta-a_l0))**2 / (np.pi*PARAM.ar_v)
+    cDf_v = 0.074*re**(-0.2)
+    L_v = 0.5*_rho(s.p_W[2])*0.5*PARAM.s_v*cL_v*s.u_inf**2
+    D_v = 0.5*_rho(s.p_W[2])*0.5*PARAM.s_v*(cDi_v + cDf_v)*s.u_inf**2
+
+    # Convert from lift and drag to world coords
+    # Note that for vert stab, lift force is in -y instead of -z
+    return s.R['PW'] @ s.R['FP'] @ (-D_v, -L_v, 0.0)
+
+def  _body_force(s):
+    # Body lift is treated as though body is low-lift symmetric airfoil
+    # with no stall angle
+    cL_alpha =  _cL(s.alpha, s.beta, np.inf, 0.5, 0.0)
+    cL_beta =  _cL(s.beta, s.alpha, np.inf, 0.5, 0.0)
+    L_alpha = 0.5*_rho(s.p_W[2])*PARAM.s_b*cL_alpha*s.u_inf**2
+    L_beta = 0.5*_rho(s.p_W[2])*PARAM.s_b*cL_beta*s.u_inf**2
 
     # We assume that the of the body is independent of wind direction
     D = 0.5 * _rho(s.p_W[2]) * PARAM.s_b * PARAM.cDf_b * s.u_inf**2
 
     # Convert from lift and drag to world coords
-    return s.R['PW'] @ s.R['FP'] @ (-D, 0.0, -L)
-
+    return s.R['PW'] @ s.R['FP'] @ (-D, -L_beta, -L_alpha)
 
 def _prop_rps(P):
     # Prop RPS as a function of engine power
@@ -431,33 +524,37 @@ def _prop_rps(P):
     den = (71.65)**(P/PARAM.P_mx) + 3.177
     return num / den
 
-def _eta(u_inf, P):
+def _eta(u_P, P):
     # Ideal prop efficiency based on advance ratio for a 20 degree angle prop
-    J = u_inf / (_prop_rps(P) * PARAM.prop_diameter)
+    J = u_P[0] / (_prop_rps(P) * PARAM.prop_diameter)
     if 0 <= J < 0.87:
         return -1.097*J*J + 1.908*J
     if 0.87 <= J <= 1.05:
         return -25.62*J*J + 44.57*J - 18.56
     return 0.0
 
-def _prop_forces(s):
-    T = s.P * _eta(s.u_inf, s.P) / s.u_inf
+def _prop_force(s):
+    T = s.P * _eta(s.u_P, s.P) / s.u_inf
 
     # Convert from plane coords to world coords
     return s.R['PW'] @ (T, 0.0, 0.0)
 
 def _net_aero_force_torque(s):
     # Get the forces
-    Fw = _wing_forces(s)
-    Ft = _tail_forces(s)
-    Fb = _body_forces(s)
-    Fp = _prop_forces(s)
-    F_net = Fw + Ft + Fb + Fp
+    Fwl, Fwr = _wing_forces(s)
+    Fte = _hori_stab_force(s)
+    Fv = _vert_stab_force(s)
+    Fb = _body_force(s)
+    Fp = _prop_force(s)
+    F_net = Fwl + Fwr + Fte + Fv + Fb + Fp
 
-    # Get the net torque from the lift and drag of the wings and tail
-    rw_W = s.R['PW'] @ (-PARAM.r_w, 0.0, -PARAM.h_w)
-    rt_W = s.R['PW'] @ (-PARAM.r_te, 0.0, -PARAM.h_te)
-    tau_net = np.cross(rw_W, Fw) + np.cross(rt_W, Ft)
+    # Get the net torque from the lift and drag of the surfaces
+    rwl = s.R['PlW'] @ (-PARAM.r_w, -0.5*PARAM.b_w, -PARAM.h_w)
+    rwr = s.R['PrW'] @ (-PARAM.r_w,  0.5*PARAM.b_w, -PARAM.h_w)
+    rv = s.R['PW'] @ (-PARAM.r_v, 0.0, -PARAM.h_v)
+    rte = s.R['PW'] @ (-PARAM.r_te, 0.0, -PARAM.h_te)
+    tau_net = (np.cross(rwl, Fwl) + np.cross(rwr, Fwr) +
+               np.cross(rv,Fv) + np.cross(rte, Fte))
     return F_net, tau_net
 
 def _state(plane, s):
@@ -533,6 +630,10 @@ def _h_des(program_number, curr_time, h0):
 def _update_vis_env(proj, plane, s, prev_states, shake):
     # Set the elevator deflection
     plane.joints['fuselage_to_elevator'].set_state(angle = s.delta)
+
+    # Update the prop speed
+    omega = _prop_rps(s.P)*np.pi*2.0
+    plane.joints['fuselage_to_nosecone'].set_state(omega=omega)
 
     # Position the camera
     if shake > 0.0:
@@ -688,4 +789,4 @@ def ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    data = run(ctrlr, 1)
+    data = run(ctrlr, 0, shake=0, t=10, phi=np.deg2rad(10))
