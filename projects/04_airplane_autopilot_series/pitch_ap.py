@@ -23,59 +23,66 @@ class _PlaneParams():
         self.params = {}
 
         # Wing param
-        self.params['a0_w'] = 5.01
-        self.params['s_w'] = 16.2
-        self.params['c_w'] = 1.49
-        self.params['ar_w'] = 7.52
-        self.params['b_w'] = 10.9
-        self.params['dihedral_w'] = 0.0218
-        self.params['d_eta_d_alpha'] = 0.25 # Downwash angle slope wrt AoA
+        self.params['a0_w'] = 5.01          # cL slope wrt AoA [1/rad]
+        self.params['s_w'] = 16.2           # Projected top-down area [m^2]
+        self.params['c_w'] = 1.49           # Mean aerodynamic chord [m]
+        self.params['ar_w'] = 7.52          # Aspect ratio [-]
+        self.params['b_w'] = 10.9           # Span [m]
+        self.params['dihedral_w'] = 0.0297  # Diheadral angle [rad]
+        self.params['d_eta_d_alpha'] = 0.25 # Downwash angle slope wrt AoA [-]
 
         # Horizontal stab param
-        self.params['a0_t'] = 4.817
-        self.params['s_t'] = 2.00
-        self.params['ar_t'] = 6.32
+        self.params['a0_h'] = 4.817 # cL slope wrt AoA [1/rad]
+        self.params['s_h'] = 2.00   # Projected top-down area [m^2]
+        self.params['ar_h'] = 6.32  # Aspect ratio [-]
 
-        # Ele param
-        self.params['a0_e'] = 5.230
-        self.params['s_e'] = 1.35
-        self.params['ar_e'] = 9.37
+        # Elevator param
+        self.params['a0_e'] = 5.230 # cL slope wrt AoA [1/rad]
+        self.params['s_e'] = 1.35   # Projected top-down area [m^2]
+        self.params['ar_e'] = 9.37  # Aspect ratio [-]
 
-        # Horizontal and elevator chord
-        self.params['c_te'] = 0.942
+        # Combined horizontal and elevator parameters
+        self.params['c_he'] = 0.942 # Mean aerodynamic chord [m]
 
-        # Combined vertical stab and rudder param
-        self.params['a0_v'] = 1.63 # Jone's theory estimate
-        self.params['s_v'] = 1.73
-        self.params['ar_v'] = 1.04
-        self.params['c_v'] = 1.17
+        # Combined vertical stab and rudder parameters
+        # Jone's theory estimate for a0
+        self.params['a0_v'] = 1.63 # cL slope wrt AoA [1/rad]
+        self.params['s_v'] = 1.73  # Projected side area [m^2]
+        self.params['ar_v'] = 1.04 # Aspect ratio [-]
+        self.params['c_v'] = 1.17  # Mean aerodynamic chord [m]
 
         # Body parameters
-        self.params['s_b'] = 5.59
-        self.params['cDf_b'] = 0.095
-        self.params['mass'] = 964.0
+        self.params['s_b'] = 5.59   # Project side area [m^2]
+        self.params['mass'] = 964.0 # Mass [kg]
 
         # Distance from CoM to wing and tail center of lift (at 0 AoA)
         # positive behind and above CoM
-        self.params['dcL_w'] = 0.156   # Axial distance (wing)
-        self.params['hcL_w'] = 0.971   # Vertical distance (wing)
-        self.params['dcL_te'] = 4.59   # Axial distance (hori stab + ele)
-        self.params['hcL_te'] = -.0288 # Vertical distance (hori stab + ele)
-        self.params['dcL_v'] =  4.76   # Axial distance (v stab)
-        self.params['hcL_v'] = 0.260   # Vertical distance (v stab)
-        self.params['dcL_b'] =  0.608  # Axial distance (fuselage)
-        self.params['hcL_b'] = 0.127   # Vertical distance (fuselage)
+        self.params['dcL_w'] = 0.156  # Axial distance (wing) [m]
+        self.params['hcL_w'] = 0.971  # Vertical distance (wing) [m]
+        self.params['dcL_he'] = 4.59  # Axial distance (hori stab + ele) [m]
+        self.params['hcL_he'] = -.0288# Vertical distance (hori stab + ele) [m]
+        self.params['dcL_v'] =  4.76  # Axial distance (v stab + rud) [m]
+        self.params['hcL_v'] = 0.260  # Vertical distance (v stab + rud) [m]
+        self.params['dcL_b'] =  0.608 # Axial distance (fuselage) [m]
+        self.params['hcL_b'] = 0.127  # Vertical distance (fuselage) [m]
 
         # Input limits
-        self.params['delta_mn'] = -0.332
-        self.params['delta_mx'] = 0.384
-        self.params['delta_rate'] = 0.26
-        self.params['P_mx'] = 1.342e5
-        self.params['P_rate'] = 3.4e4
+        self.params['delta_mn'] = -0.332 # Max downward deflection of ele [rad]
+        self.params['delta_mx'] = 0.384  # Max upward deflection of ele [rad]
+        self.params['delta_rate'] = 0.26 # Max deflection rate of ele [rad/s]
+        self.params['P_mx'] = 1.342e5    # Max engine power setting [kW]
+        self.params['P_rate'] = 3.4e4    # Max engine power setting rate [kW/s]
 
-        # Powerplant sizing
-        self.params['P_rpm_max'] = 2700.0
-        self.params['prop_diameter'] = 1.905
+        # Prop sizing
+        self.params['P_rpm_max'] = 2700.0     # RPM of prop at 100% power [rpm]
+        self.params['prop_diameter'] = 1.905  # Diameter of prop [m]
+
+        # Moment stability derivatives
+        self.params['cnr'] = -0.099 # Yaw damping wrt yaw rate
+        self.params['cnp'] = -0.03  # Yaw damping wrt roll rate
+        self.params['cmq'] = -12.4  # Pitch damping wrt pitch rate
+        self.params['clr'] = 0.096  # Roll damping wrt yaw rate
+        self.params['clp'] = -0.47  # Roll damping wrt roll rate
 
     def __getattr__(self, key):
         return self.params[key]
@@ -119,6 +126,7 @@ class _SimVars():
         self.state['u_Pl'] = self.R['WPl']@self.state['u_W']
         self.state['u_Pr'] = self.R['WPr']@self.state['u_W']
         self.state['u_inf'] = np.linalg.norm(self.state['u_W'])
+        self.state['q'] = 0.5*_rho(self.state['p_W'][2])*self.state['u_inf']**2
 
         u, v, w = self.state['u_P']
         self.state['alpha'] = np.arctan2(w, u)
@@ -136,11 +144,16 @@ class _SimVars():
         self.R['PrF'] = _RY(self.state['alpha_r'])@_RZ(self.state['beta_r'])
         self.R['FPr'] = self.R['PrF'].T
 
+        self.state['omega_psi'] = state0['omega_psi']
+        self.state['omega_theta'] = state0['omega_theta']
+        self.state['omega_phi'] = state0['omega_phi']
         self.state['psi'] = state0['psi']
         self.state['theta'] = state0['theta']
         self.state['phi'] = state0['phi']
+
         self.state['delta'] = input0['delta']
         self.state['P'] = input0['P']
+
         self.state['earth_pitch'] = 0.0
         self.state['earth_roll'] = 0.0
 
@@ -158,6 +171,10 @@ class _SimVars():
         self.state['u_W'] += (F_net / PARAM.mass) * self._dt
         self.state['u_inf'] = np.linalg.norm(self.state['u_W'])
         self.state['p_W'] += self.state['u_W'] * self._dt
+        self.state['q'] = 0.5*_rho(self.state['p_W'][2])*self.state['u_inf']**2
+        self.state['omega_psi'] = state['omega_psi']
+        self.state['omega_theta'] = state['omega_theta']
+        self.state['omega_phi'] = state['omega_phi']
         self.state['psi'] += state['omega_psi'] * self._dt
         self.state['theta'] += state['omega_theta'] * self._dt
         self.state['phi'] += state['omega_phi'] * self._dt
@@ -371,11 +388,10 @@ def _make(**kwargs):
     for joint in plane.joints.values():
         joint.set_dynamics(damping=0.0)
 
-    # Set linear air resistance to 0 because we track position manually
-    # Add some rotational air resistance. Rotations are handled by Pybullet
+    # Set aii air resistance to 0
     for link in plane.links.values():
         link.set_dynamics(linear_air_resistance=0.0,
-                          angular_air_resistance=0.4)
+                          angular_air_resistance=0.0)
 
     return proj, plane
 
@@ -405,13 +421,13 @@ def _mu(h):
     return 1.458e-6*_T(h)**(1.5) / (_T(h) + 110.4)
 
 def _cL(alpha_eff, beta, a_s, a_0, a_l0):
-
     # No stall
     if abs(alpha_eff) <= a_s:
         # Add a cos beta as a first order crab angle correction term
         return np.cos(beta)*a_0*(alpha_eff-a_l0)
 
     # Positive stalling region
+    # Assume stall starts at a_s where cL decreases to 50% at 3 deg past a_s
     if 0 < alpha_eff < a_s+0.0524:
         a = 182.4*a_0*(a_l0-a_s-0.1047)
         b = -364.8*a_0*(a_l0*a_s-a_s**2-0.1047*a_s-0.0027)
@@ -421,6 +437,7 @@ def _cL(alpha_eff, beta, a_s, a_0, a_l0):
         return np.cos(beta)*(a*alpha_eff**2 + b*alpha_eff + c)
 
     # Negative stalling region
+    # Assume stall starts at -a_s where cL decreases to 50% at 3 deg past -a_s
     if -a_s-0.0524 < alpha_eff < 0:
         a = 182.4*a_0*(a_l0+a_s+0.1047)
         b = 364.8*a_0*(a_l0*a_s+a_s**2+0.1047*a_s+0.0027)
@@ -430,31 +447,38 @@ def _cL(alpha_eff, beta, a_s, a_0, a_l0):
         return np.cos(beta)*(a*alpha_eff**2 + b*alpha_eff + c)
 
     # Complete stall
+    # Any angle of attack outside of [-a_s-3deg, a_s+3deg] produces no lift
     return 0.0
 
 def _wing_forces(s):
     # Get the reynold's number
     re = _rho(s.p_W[2])*PARAM.c_w*s.u_inf/_mu(s.p_W[2])
 
-    # Calculate stall angle and 0 lift angle (for NACA2412)
+    # Calculate stall angle and 0 lift angle (estimates based on NACA2412)
     a_s = min(0.0408*np.log(re) - 0.267, 0.244)
     a_l0 = -0.0436 * (np.arctan(re/11880. - 10.52) / np.pi + 0.5)
 
     # Get the lift and drag of the left wing
-    cL_l = _cL(s.alpha_l, s.beta_l, a_s, PARAM.a0_w, a_l0)
-    cDi = (PARAM.a0_w*(s.alpha_l-a_l0))**2 / (np.pi*PARAM.ar_w)
-    cDf = 0.074*re**(-0.2)
-    L_l = 0.5*_rho(s.p_W[2])*0.5*PARAM.s_w*cL_l*s.u_inf**2
-    D_l = 0.5*_rho(s.p_W[2])*0.5*PARAM.s_w*(cDi + cDf)*s.u_inf**2
+    # Induced drag is elliptical lift distribution assumption (Oswald factor=0)
+    # Skin drag is turbulent flow over thin plate assumption
+    # Form drag is flow over airfoil until stall, then transition to flat plate
+    cL = _cL(s.alpha_l, s.beta_l, a_s, PARAM.a0_w, a_l0)
+    cDi = cL**2 / (np.pi*PARAM.ar_w)
+    cDf_skin = 0.074*re**(-0.2)
+    cDf_form = (0.006 if s.alpha_l < a_s
+                else abs(1.8*np.sin(s.alpha_l))-0.284*np.cos(s.alpha_l))
+    L_l = 0.5 * PARAM.s_w * cL * s.q
+    D_l = 0.5 * PARAM.s_w * (cDi + cDf_skin + cDf_form) * s.q
 
     # Get the lift and drag of the right wing
     # Note, we bias the right wing to stall first to simulate
     # slight degredation of the right surface compared to the left
-    cL_r = _cL(s.alpha_r, s.beta_r, 0.99*a_s, PARAM.a0_w, a_l0)
-    cDi = (PARAM.a0_w*(s.alpha_r-a_l0))**2 / (np.pi*PARAM.ar_w)
-    cDf = 0.074*re**(-0.2)
-    L_r = 0.5*_rho(s.p_W[2])*0.5*PARAM.s_w*cL_r*s.u_inf**2
-    D_r = 0.5*_rho(s.p_W[2])*0.5*PARAM.s_w*(cDi + cDf)*s.u_inf**2
+    cL = _cL(s.alpha_r, s.beta_r, 0.98*a_s, PARAM.a0_w, a_l0)
+    cDi = cL**2 / (np.pi*PARAM.ar_w)
+    cDf_form = (0.006 if s.alpha_r < a_s
+                else abs(1.8*np.sin(s.alpha_r))-0.284*np.cos(s.alpha_r))
+    L_r = 0.5 * PARAM.s_w * cL * s.q
+    D_r = 0.5 * PARAM.s_w * (cDi + cDf_skin + cDf_form) * s.q
 
     # Convert from lift and drag to world coords
     F_l = s.R['PlW'] @ s.R['FPl'] @ (-D_l, 0.0, -L_l)
@@ -463,33 +487,42 @@ def _wing_forces(s):
 
 def _hori_stab_force(s):
     # Get the reynold's number
-    re = _rho(s.p_W[2])*PARAM.c_te*s.u_inf/_mu(s.p_W[2])
+    re = _rho(s.p_W[2])*PARAM.c_he*s.u_inf/_mu(s.p_W[2])
 
-    # Calculate the stall conditions (for inverted NACA2412)
-    a_ste = min(0.0408*np.log(re) - 0.267, 0.297)
-    a_l0te = 0.0436 * (np.arctan(re/11880. - 10.52) / np.pi + 0.5)
+    # Calculate stall angle and 0 lift angle (estimates based on NACA2412)
+    a_s = min(0.0408*np.log(re) - 0.267, 0.297)
+    a_l0 = 0.0436 * (np.arctan(re/11880. - 10.52) / np.pi + 0.5)
 
-    # Get the downwash angle from the wings
-    eta = PARAM.d_eta_d_alpha * (s.alpha_l + s.alpha_r)*0.5
+    # Get the effective AoA based on downwash angle from the wings
+    eta = PARAM.d_eta_d_alpha * 0.5 * (s.alpha_l + s.alpha_r)
+    alpha_eff = s.alpha - eta
 
-    # Get the lift and induced drag of the horizontal stab
-    cL_t = _cL(s.alpha - eta, s.beta, a_ste, PARAM.a0_t, a_l0te)
-    cDi_t = (PARAM.a0_t*(s.alpha-a_l0te))**2 / (np.pi*PARAM.ar_t)
-    L_t = 0.5*_rho(s.p_W[2])*PARAM.s_t*cL_t*s.u_inf**2
-    Di_t = 0.5*_rho(s.p_W[2])*PARAM.s_t*cDi_t*s.u_inf**2
+    # Get the lift, induced drag, and form drag of the horizontal stab
+    # Induced drag is elliptical lift distribution assumption (Oswald factor=0)
+    # Skin drag is turbulent flow over thin plate assumption
+    # Form drag is flow over airfoil until stall, then transition to flat plate
+    cL = _cL(alpha_eff, s.beta, a_s, PARAM.a0_h, a_l0)
+    cDi = cL**2 / (np.pi*PARAM.ar_h)
+    cDf_form = (0.006 if alpha_eff < a_s
+                else abs(1.8*np.sin(alpha_eff))-0.284*np.cos(alpha_eff))
+    L_h = PARAM.s_h * cL * s.q
+    D_h = PARAM.s_h * (cDi + cDf_form) * s.q
 
     # Get the lift and induced drag of the elevators
-    cL_e = _cL(s.alpha - eta - s.delta, s.beta, a_ste, PARAM.a0_e, a_l0te)
-    cDi_e = (PARAM.a0_e*(s.alpha-s.delta-a_l0te))**2 / (np.pi*PARAM.ar_e)
-    L_e = 0.5*_rho(s.p_W[2])*PARAM.s_t*cL_e*s.u_inf**2
-    Di_e = 0.5*_rho(s.p_W[2])*PARAM.s_t*cDi_e*s.u_inf**2
+    cL = _cL(s.alpha - eta - s.delta, s.beta, a_s, PARAM.a0_e, a_l0)
+    cDi = cL**2 / (np.pi*PARAM.ar_e)
+    cDf_form = (0.006 if alpha_eff-s.delta < a_s
+                else abs(1.8*np.sin(alpha_eff-s.delta)) -
+                0.284*np.cos(alpha_eff-s.delta))
+    L_e = PARAM.s_e * cL * s.q
+    D_e = PARAM.s_e * (cDi + cDf_form) * s.q
 
     # Parasitic drag of stab and elevator
-    cDf_te = 0.074*re**(-0.2)
-    Df_te = 0.5*_rho(s.p_W[2])*(PARAM.s_t+PARAM.s_e)*cDf_te*s.u_inf**2
+    cDf_skin = 0.074*re**(-0.2)
+    D_he = (PARAM.s_h + PARAM.s_e) * cDf_skin * s.q
 
     # Convert from lift and drag to world coords
-    return s.R['PW'] @ s.R['FP'] @ (-(Di_t + Di_e + Df_te), 0.0, -(L_t + L_e))
+    return s.R['PW'] @ s.R['FP'] @ (-(D_h + D_e + D_he), 0.0, -(L_h + L_e))
 
 def _vert_stab_force(s):
     # Get the reynold's number
@@ -501,11 +534,16 @@ def _vert_stab_force(s):
 
     # Get the lift and drag of the left wing
     # Note that alpha and beta are flipped for the vert stab
-    cL_v = _cL(s.beta, s.alpha, a_s, PARAM.a0_v, a_l0)
-    cDi_v = (PARAM.a0_v*(s.beta-a_l0))**2 / (np.pi*PARAM.ar_v)
-    cDf_v = 0.074*re**(-0.2)
-    L_v = 0.5*_rho(s.p_W[2])*0.5*PARAM.s_v*cL_v*s.u_inf**2
-    D_v = 0.5*_rho(s.p_W[2])*0.5*PARAM.s_v*(cDi_v + cDf_v)*s.u_inf**2
+    # Induced drag is elliptical lift distribution assumption (Oswald factor=0)
+    # Skin drag is turbulent flow over thin plate assumption
+    # Form drag is flow over airfoil until stall, then transition to flat plate
+    cL = _cL(s.beta, s.alpha, a_s, PARAM.a0_v, a_l0)
+    cDi = (PARAM.a0_v*(s.beta-a_l0))**2 / (np.pi*PARAM.ar_v)
+    cDf_skin = 0.074*re**(-0.2)
+    cDf_form = (0.006 if s.beta < a_s
+                else abs(1.8*np.sin(s.beta))-0.284*np.cos(s.beta))
+    L_v = PARAM.s_v * cL * s.q
+    D_v = PARAM.s_v * (cDi + cDf_skin + cDf_form) * s.q
 
     # Convert from lift and drag to world coords
     # Note that for vert stab, lift force is in -y instead of -z
@@ -514,13 +552,16 @@ def _vert_stab_force(s):
 def  _body_force(s):
     # Body lift is treated as though body is low-lift symmetric airfoil
     # with no stall angle
-    cL_alpha =  _cL(s.alpha, s.beta, np.inf, 0.5, 0.0)
-    cL_beta =  _cL(s.beta, s.alpha, np.inf, 0.5, 0.0)
+    a_0 = 0.5
+    a_s = np.inf
+    a_l0 = 0.0
+    cL_alpha =  _cL(s.alpha, s.beta, a_s, a_0, a_l0)
+    cL_beta =  _cL(s.beta, s.alpha, a_s, a_0, a_l0)
     L_alpha = 0.5*_rho(s.p_W[2])*PARAM.s_b*cL_alpha*s.u_inf**2
     L_beta = 0.5*_rho(s.p_W[2])*PARAM.s_b*cL_beta*s.u_inf**2
 
-    # We assume that the of the body is independent of wind direction
-    D = 0.5 * _rho(s.p_W[2]) * PARAM.s_b * PARAM.cDf_b * s.u_inf**2
+    # Assume body acts approximately like streamline body with cD_tot = 0.045
+    D = PARAM.s_b * 0.045 * s.q
 
     # Convert from lift and drag to world coords
     return s.R['PW'] @ s.R['FP'] @ (-D, -L_beta, -L_alpha)
@@ -553,35 +594,46 @@ def _pcL_W(s):
     # Adjust dCL based on AoA for nonsymmetric surfaces (wings, hstab, ele)
     # Assume wings, hstab, and ele are all NACA2412 airfoils
     # dcL moves fore by 10%c at 20 deg and aft by 10% at -20 deg AoA
-    ddcLwl = min(max(0.286*PARAM.c_w*s.alpha_l, -.1*PARAM.c_w), .1*PARAM.c_w)
-    ddcLwr = min(max(0.286*PARAM.c_w*s.alpha_r, -.1*PARAM.c_w), .1*PARAM.c_w)
-    ddcLte = min(max(0.286*PARAM.c_te*s.alpha, -.1*PARAM.c_te), .1*PARAM.c_te)
-    rwl_Pl = (-PARAM.dcL_w+ddcLwl, -0.5*PARAM.b_w, -PARAM.hcL_w)
-    rwr_Pr = (-PARAM.dcL_w+ddcLwr,  0.5*PARAM.b_w, -PARAM.hcL_w)
-    rte_P = (-PARAM.dcL_te+ddcLte, 0.0, -PARAM.hcL_te)
+    ddcL_wl = min(max(0.286*PARAM.c_w*s.alpha_l, -.1*PARAM.c_w), .1*PARAM.c_w)
+    ddcL_wr = min(max(0.286*PARAM.c_w*s.alpha_r, -.1*PARAM.c_w), .1*PARAM.c_w)
+    ddcL_he = min(max(0.286*PARAM.c_he*s.alpha, -.1*PARAM.c_he), .1*PARAM.c_he)
+    rwl_Pl = (-PARAM.dcL_w+ddcL_wl, -0.5*PARAM.b_w, -PARAM.hcL_w)
+    rwr_Pr = (-PARAM.dcL_w+ddcL_wr,  0.5*PARAM.b_w, -PARAM.hcL_w)
+    rhe_P = (-PARAM.dcL_he+ddcL_he, 0.0, -PARAM.hcL_he)
     rv_P = (-PARAM.dcL_v, 0.0, -PARAM.hcL_v)
     rb_P = (-PARAM.dcL_b, 0.0, -PARAM.hcL_b)
     return (s.R['PlW']@rwl_Pl, s.R['PrW']@rwr_Pr,
-            s.R['PW']@rte_P, s.R['PW']@rv_P, s.R['PW']@rb_P)
+            s.R['PW']@rhe_P, s.R['PW']@rv_P, s.R['PW']@rb_P)
 
-def _tau_LD(s, Fwl, Fwr, Fte, Fv, Fb):
-    pcLwl, pcLwr, pcLv, pcLte, pcLb = _pcL_W(s)
-    return (np.cross(pcLwl, Fwl) + np.cross(pcLwr, Fwr) +
-            np.cross(pcLte, Fte) + np.cross(pcLv, Fv) +
-            np.cross(pcLb, Fb))
+def _tau_LD(s, F_wl, F_wr, F_he, F_v, F_b):
+    pcL_wl, pcL_wr, pcL_he, pcL_v, pcL_b = _pcL_W(s)
+    return (np.cross(pcL_wl, F_wl) + np.cross(pcL_wr, F_wr) +
+            np.cross(pcL_he, F_he) + np.cross(pcL_v, F_v) +
+            np.cross(pcL_b, F_b))
+
+def _tau_damping(s):
+    c1 = s.q * PARAM.s_w * PARAM.b_w**2 / (2.0 * s.u_inf)
+    c2 = s.q * PARAM.s_w * PARAM.c_w**2 / (2.0 * s.u_inf)
+    tau_z = (PARAM.cnr*s.omega_psi + PARAM.cnp*s.omega_phi) * c1
+    tau_y = (PARAM.cmq*s.omega_theta) * c2
+    tau_x = (PARAM.clr*s.omega_psi + PARAM.clp*s.omega_phi) * c1
+    return s.R['PW'] @ (tau_x, tau_y, tau_z)
 
 def _net_aero_force_torque(s):
     # Get the forces
-    Fwl, Fwr,  = _wing_forces(s)
-    Fte = _hori_stab_force(s)
-    Fv = _vert_stab_force(s)
-    Fb = _body_force(s)
-    Fp = _prop_force(s)
-    F_net = Fwl + Fwr + Fte + Fv + Fb + Fp
+    F_wl, F_wr  = _wing_forces(s)
+    F_he = _hori_stab_force(s)
+    F_v = _vert_stab_force(s)
+    F_b = _body_force(s)
+    F_p = _prop_force(s)
+    F_net = F_wl + F_wr + F_he + F_v + F_b + F_p
 
     # Get the net torque from the lift and drag of the surfaces
-    tau_LD = _tau_LD(s, Fwl, Fwr, Fte, Fv, Fb)
-    return F_net, tau_LD
+    # and from Euler rate-based damping moments
+    tau_LD = _tau_LD(s, F_wl, F_wr, F_he, F_v, F_b)
+    tau_damp = _tau_damping(s)
+    tau_net = tau_LD + tau_damp
+    return F_net, tau_net
 
 def _state(plane, s):
     state = {'h' : s.p_W[2],
@@ -594,6 +646,7 @@ def _state(plane, s):
              'psi' : s.psi,
              'theta' : s.theta,
              'phi' : s.phi,}
+    print(f'{np.rad2deg(s.phi):.1f}')
     return state
 
 def _gen_turb_param(magnitude, seed):
@@ -815,4 +868,4 @@ def ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    data = run(ctrlr, 0, shake=0, t=20, phi=np.deg2rad(10))
+    data = run(ctrlr, 0 , shake=0, t=20, phi=np.deg2rad(15), real_time=True)
