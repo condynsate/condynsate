@@ -160,9 +160,6 @@ class _SimVars():
     def __getattr__(self, key):
         return self.state[key]
 
-    def _to_m180_p180(self, ang_deg):
-        return np.rad2deg((np.deg2rad(ang_deg) + np.pi) % (2*np.pi) - np.pi)
-
     def step(self, F_aero_net, state, delta_des, P_des):
         # Get the net force by adding gravity
         F_net = F_aero_net+np.array([0,0,-_g(self.state['p_W'][2])*PARAM.mass])
@@ -175,11 +172,9 @@ class _SimVars():
         self.state['omega_psi'] = state['omega_psi']
         self.state['omega_theta'] = state['omega_theta']
         self.state['omega_phi'] = state['omega_phi']
-        self.state['psi'] += state['omega_psi'] * self._dt
-        self.state['theta'] += state['omega_theta'] * self._dt
-        self.state['phi'] += state['omega_phi'] * self._dt
-        self.state['theta'] = self._to_m180_p180(self.state['theta'])
-        self.state['phi'] = self._to_m180_p180(self.state['phi'])
+        self.state['psi'] = state['psi']
+        self.state['theta'] = state['theta']
+        self.state['phi'] = state['phi']
 
         # Update the local velocities
         self.state['u_P'] = self.R['WP'] @ self.state['u_W']
@@ -240,8 +235,13 @@ class _SimData():
                      'h':[],
                      'u_inf':[],
                      'alpha':[],
+                     'beta':[],
+                     'omega_psi':[],
                      'omega_theta':[],
+                     'omega_phi':[],
+                     'psi':[],
                      'theta':[],
+                     'phi':[],
                      'delta_des':[],
                      'P_des':[],
                      'delta':[],
@@ -263,8 +263,13 @@ class _SimData():
         self.data['h'].append(float(state['h']))
         self.data['u_inf'].append(float(state['u_inf']))
         self.data['alpha'].append(float(state['alpha']))
+        self.data['beta'].append(float(state['beta']))
+        self.data['omega_psi'].append(float(state['omega_psi']))
         self.data['omega_theta'].append(float(state['omega_theta']))
+        self.data['omega_phi'].append(float(state['omega_phi']))
+        self.data['psi'].append(float(state['psi']))
         self.data['theta'].append(float(state['theta']))
+        self.data['phi'].append(float(state['phi']))
         self.data['delta'].append(float(input_cur_des[0]))
         self.data['P'].append(float(input_cur_des[1]))
         self.data['delta_des'].append(float(input_cur_des[2]))
@@ -289,7 +294,7 @@ def _read_kwargs(**kwargs):
                 'duration' : kwargs.get('time', 20.0),
                 'real_time' : kwargs.get('real_time', True),
                 'turb_mag' : kwargs.get('turbulence', 0.0),
-                'shake' : kwargs.get('shake', 0.5),
+                'shake' : kwargs.get('shake', 3.0),
                 'seed' : kwargs.get('seed', 2357136050),}
     return settings
 
@@ -338,9 +343,8 @@ def _load_vis_env(proj, state0):
     proj.visualizer.set_dirnlight(on=False)
 
     # Look at the plane
-    proj.visualizer.set_cam_position((10*np.sin(state0['psi']),
-                                      10*np.cos(state0['psi']),
-                                      1.25))
+    R = _RX(state0['phi'])@_RY(np.pi-state0['theta'])@_RZ(np.pi+state0['psi'])
+    proj.visualizer.set_cam_position(R.T@(-11, 0, -2))
     proj.visualizer.set_cam_target((0, 0, 0))
 
     # Make the grid and axes invisible
@@ -373,8 +377,9 @@ def _set_init_conds(plane, state0, input0):
 
 def _make(**kwargs):
     # Create the project
-    proj = Project(keyboard=False, visualizer=kwargs['real_time'])
-    proj.simulator.set_gravity((0., 0., 0.))
+    proj = Project(keyboard=False, visualizer=kwargs['real_time'],
+                   simulator_gravity = (0.,0.,0.),
+                   simulator_dt = 0.001,)
 
     # Load the visual environment
     if kwargs['real_time']:
@@ -421,10 +426,16 @@ def _mu(h):
     return 1.458e-6*_T(h)**(1.5) / (_T(h) + 110.4)
 
 def _cL(alpha_eff, beta, a_s, a_0, a_l0):
+    # Add random buffeting near the stall region
+    buffet = 0.0
+    if abs(abs(alpha_eff) - a_s) <= 0.0524:
+        buffet = -0.3*((abs(alpha_eff)-a_s)+0.0524)*9.55*np.random.rand()
+
     # No stall
     if abs(alpha_eff) <= a_s:
+
         # Add a cos beta as a first order crab angle correction term
-        return np.cos(beta)*a_0*(alpha_eff-a_l0)
+        return np.cos(beta)*a_0*(alpha_eff-a_l0) + buffet
 
     # Positive stalling region
     # Assume stall starts at a_s where cL decreases to 50% at 3 deg past a_s
@@ -434,7 +445,7 @@ def _cL(alpha_eff, beta, a_s, a_0, a_l0):
         c = 182.4*a_0*(a_l0*(a_s**2-0.0055)-a_s**2*(a_s+0.1047))
 
         # Add a cos beta as a first order crab angle correction term
-        return np.cos(beta)*(a*alpha_eff**2 + b*alpha_eff + c)
+        return np.cos(beta)*(a*alpha_eff**2 + b*alpha_eff + c) + buffet
 
     # Negative stalling region
     # Assume stall starts at -a_s where cL decreases to 50% at 3 deg past -a_s
@@ -444,7 +455,7 @@ def _cL(alpha_eff, beta, a_s, a_0, a_l0):
         c = 182.4*a_0*(a_l0*(a_s**2-0.0055)+a_s**2*(a_s+0.1047))
 
         # Add a cos beta as a first order crab angle correction term
-        return np.cos(beta)*(a*alpha_eff**2 + b*alpha_eff + c)
+        return np.cos(beta)*(a*alpha_eff**2 + b*alpha_eff + c) + buffet
 
     # Complete stall
     # Any angle of attack outside of [-a_s-3deg, a_s+3deg] produces no lift
@@ -471,9 +482,7 @@ def _wing_forces(s):
     D_l = 0.5 * PARAM.s_w * (cDi + cDf_skin + cDf_form) * s.q
 
     # Get the lift and drag of the right wing
-    # Note, we bias the right wing to stall first to simulate
-    # slight degredation of the right surface compared to the left
-    cL = _cL(s.alpha_r, s.beta_r, 0.98*a_s, PARAM.a0_w, a_l0)
+    cL = _cL(s.alpha_r, s.beta_r, a_s, PARAM.a0_w, a_l0)
     cDi = cL**2 / (np.pi*PARAM.ar_w)
     cDf_form = (0.006 if s.alpha_r < a_s
                 else abs(1.8*np.sin(s.alpha_r))-0.284*np.cos(s.alpha_r))
@@ -636,17 +645,17 @@ def _net_aero_force_torque(s):
     return F_net, tau_net
 
 def _state(plane, s):
+    pybullet_state = plane.state
     state = {'h' : s.p_W[2],
              'u_inf' : s.u_inf,
              'alpha' : s.alpha,
              'beta' : s.beta,
-             'omega_psi' : -plane.state.omega_in_body[2],
-             'omega_theta' : -plane.state.omega_in_body[1],
-             'omega_phi' : plane.state.omega_in_body[0],
-             'psi' : s.psi,
-             'theta' : s.theta,
-             'phi' : s.phi,}
-    print(f'{np.rad2deg(s.phi):.1f}')
+             'omega_psi' : -pybullet_state.omega_in_body[2],
+             'omega_theta' : -pybullet_state.omega_in_body[1],
+             'omega_phi' : pybullet_state.omega_in_body[0],
+             'psi' : -pybullet_state.ypr[0],
+             'theta' : -pybullet_state.ypr[1],
+             'phi' : pybullet_state.ypr[2],}
     return state
 
 def _gen_turb_param(magnitude, seed):
@@ -716,11 +725,12 @@ def _update_vis_env(proj, plane, s, prev_states, shake):
 
     # Position the camera
     if shake > 0.0:
-        cz = shake*(np.mean(prev_states['h'][-100:])-s.p_W[2])
-        proj.visualizer.set_cam_position((10*np.sin(s.psi),
-                                          10*np.cos(s.psi),
-                                          cz + 1.25))
-        proj.visualizer.set_cam_target((0, 0, cz))
+        cz_a = 500*shake*(prev_states['alpha'][-2:][0]-s.alpha)
+        cz_b = 500*shake*(prev_states['beta'][-2:][0]-s.beta)
+        cz_h = shake*(np.mean(prev_states['h'][-50:])-s.p_W[2])
+        cz_rand = shake*0.0008*(np.random.rand(3)*2-1)
+        p = s.R['PW']@(-11, -cz_b, -2-cz_a-cz_h)+cz_rand
+        proj.visualizer.set_cam_position(p)
 
     # Rotate the earth according to the forward velocity,
     # and move the earth according to the altitude
@@ -836,7 +846,7 @@ def run(controller, program_number, **kwargs):
             The magnitude of the turbulent wind in N. The default is 0
         shake : float, optional
             The magnitude by which plane accelerations are visualized. The
-            default is 0.5. Set to 0.0 for free camera movement.
+            default is 3.0. Set to 0.0 for free camera movement.
 
     Returns
     -------
@@ -868,4 +878,4 @@ def ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    data = run(ctrlr, 0 , shake=0, t=20, phi=np.deg2rad(15), real_time=True)
+    data = run(ctrlr, 1)
