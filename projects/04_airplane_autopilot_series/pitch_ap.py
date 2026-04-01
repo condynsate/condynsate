@@ -56,15 +56,19 @@ class _PlaneParams():
         self.params['mass'] = 964.0 # Mass [kg]
 
         # Distance from CoM to wing and tail center of lift (at 0 AoA)
-        # positive behind and above CoM
-        self.params['dcL_w'] = 0.156  # Axial distance (wing) [m]
-        self.params['hcL_w'] = 0.971  # Vertical distance (wing) [m]
-        self.params['dcL_he'] = 4.59  # Axial distance (hori stab + ele) [m]
-        self.params['hcL_he'] = -.0288# Vertical distance (hori stab + ele) [m]
-        self.params['dcL_v'] =  4.76  # Axial distance (v stab + rud) [m]
-        self.params['hcL_v'] = 0.260  # Vertical distance (v stab + rud) [m]
-        self.params['dcL_b'] =  0.608 # Axial distance (fuselage) [m]
-        self.params['hcL_b'] = 0.127  # Vertical distance (fuselage) [m]
+        # positive in front of, to the right of, and below CoM
+        self.params['x_w'] = -0.156  # Axial distance (wing) [m]
+        self.params['y_w'] = 6.48    # Lateral distance (right wing) [m]
+        self.params['z_w'] = -0.971  # Vertical distance (wing) [m]
+        self.params['x_he'] = -4.59  # Axial distance (hori stab + ele) [m]
+        self.params['y_he'] = 0.0    # Lateral distance (hori stab + ele) [m]
+        self.params['z_he'] = 0.0288 # Vertical distance (hori stab + ele) [m]
+        self.params['x_v'] = -4.76   # Axial distance (v stab + rud) [m]
+        self.params['y_v'] = 0.0     # Lateral distance (v stab + rud) [m]
+        self.params['z_v'] = -0.260  # Vertical distance (v stab + rud) [m]
+        self.params['x_b'] = -0.608  # Axial distance (fuselage) [m]
+        self.params['y_b'] = 0.0     # Lateral distance (fuselage) [m]
+        self.params['z_b'] = -0.127  # Vertical distance (fuselage) [m]
 
         # Input limits
         self.params['delta_mn'] = -0.332 # Max downward deflection of ele [rad]
@@ -106,69 +110,55 @@ class _SimVars():
     _dt : float
 
     def __init__(self, state0, input0, dt):
+        # Build the empty state and rotation dicts
+        self.state = {}
+        self.R = {}
+
+        # Define the time step
         self._dt = dt
 
-        self.R = {}
-        self.R['PF'] = _RY(state0['alpha'])@_RZ(state0['beta'])
-        self.R['FP'] = self.R['PF'].T
-        r, p, y = state0['phi'], state0['theta'], state0['psi']
-        self.R['WP'] = _RX(r)@_RY(np.pi-p)@_RZ(np.pi+y)
-        self.R['PW'] = self.R['WP'].T
-        self.R['WPl'] = _RX(r+PARAM.dihedral_w)@_RY(np.pi-p)@_RZ(np.pi+y)
-        self.R['WPr'] = _RX(r-PARAM.dihedral_w)@_RY(np.pi-p)@_RZ(np.pi+y)
-        self.R['PlW'] = self.R['WPl'].T
-        self.R['PrW'] = self.R['WPr'].T
+        # Apply the initial euler angles
+        self._update_euler_angs(state0)
 
-        self.state = {}
-        self.state['p_W'] = np.array((0.0, 0.0, state0['h']))
-        self.state['u_P'] = self.R['FP'] @ (state0['u_inf'], 0.0, 0.0)
-        self.state['u_W'] = self.R['PW'] @ self.state['u_P']
-        self.state['u_Pl'] = self.R['WPl']@self.state['u_W']
-        self.state['u_Pr'] = self.R['WPr']@self.state['u_W']
-        self.state['u_inf'] = np.linalg.norm(self.state['u_W'])
-        self.state['q'] = 0.5*_rho(self.state['p_W'][2])*self.state['u_inf']**2
+        # Get the rotation matrices that are determined by euler angles
+        # and flow angles at center of mass
+        self._update_plane_rot_mats()
 
-        u, v, w = self.state['u_P']
-        self.state['alpha'] = np.arctan2(w, u)
-        self.state['beta'] = np.arcsin(v / self.state['u_inf'])
+        # Set the flow angles at the center of mass and get the
+        # relevant rotations
+        self.state['alpha'] = state0['alpha']
+        self.state['beta'] = state0['beta']
+        self.R['CoM_F'] = _RY(self.state['alpha'])@_RZ(self.state['beta'])
+        self.R['F_CoM'] = self.R['CoM_F'].T
 
-        u, v, w = self.state['u_Pl']
-        self.state['alpha_l'] = np.arctan2(w, u)
-        self.state['beta_l'] = np.arcsin(v / self.state['u_inf'])
-        self.R['PlF'] = _RY(self.state['alpha_l'])@_RZ(self.state['beta_l'])
-        self.R['FPl'] = self.R['PlF'].T
+        # Set the initial world velocity and position
+        R_F_W = self.R['CoM_W'] @ self.R['F_CoM']
+        self.state['u_W'] = R_F_W @ (state0['u_inf'], 0.0, 0.0)
+        self.state['p_W'] = np.array( (0.0, 0.0, state0['h']) )
 
-        u, v, w = self.state['u_Pr']
-        self.state['alpha_r'] = np.arctan2(w, u)
-        self.state['beta_r'] = np.arcsin(v / self.state['u_inf'])
-        self.R['PrF'] = _RY(self.state['alpha_r'])@_RZ(self.state['beta_r'])
-        self.R['FPr'] = self.R['PrF'].T
-
-        self.state['omega_psi'] = state0['omega_psi']
-        self.state['omega_theta'] = state0['omega_theta']
-        self.state['omega_phi'] = state0['omega_phi']
-        self.state['psi'] = state0['psi']
-        self.state['theta'] = state0['theta']
-        self.state['phi'] = state0['phi']
-
+        # Set the initial inputs
         self.state['delta'] = input0['delta']
         self.state['P'] = input0['P']
 
+        # Set the rotations of the planet to 0
         self.state['earth_pitch'] = 0.0
         self.state['earth_roll'] = 0.0
 
+        # Calculate the local flow velocity at the center of mass
+        self._update_velocities()
+
+        # Calculate the effective flow angles at each of the surfaces
+        self._update_local_flow_angs()
+
+        # Get the rotations between local surface flow and the plane
+        self._update_flow_rot_mats()
+
     def __getattr__(self, key):
+        if key.lower().startswith('r_'):
+            return self.R[key[2:]]
         return self.state[key]
 
-    def step(self, F_aero_net, state, delta_des, P_des):
-        # Get the net force by adding gravity
-        F_net = F_aero_net+np.array([0,0,-_g(self.state['p_W'][2])*PARAM.mass])
-
-        # Apply accelerations and velocities
-        self.state['u_W'] += (F_net / PARAM.mass) * self._dt
-        self.state['u_inf'] = np.linalg.norm(self.state['u_W'])
-        self.state['p_W'] += self.state['u_W'] * self._dt
-        self.state['q'] = 0.5*_rho(self.state['p_W'][2])*self.state['u_inf']**2
+    def _update_euler_angs(self, state):
         self.state['omega_psi'] = state['omega_psi']
         self.state['omega_theta'] = state['omega_theta']
         self.state['omega_phi'] = state['omega_phi']
@@ -176,43 +166,31 @@ class _SimVars():
         self.state['theta'] = state['theta']
         self.state['phi'] = state['phi']
 
-        # Update the local velocities
-        self.state['u_P'] = self.R['WP'] @ self.state['u_W']
-        self.state['u_Pl'] = self.R['WPl'] @ self.state['u_W']
-        self.state['u_Pr'] = self.R['WPr'] @ self.state['u_W']
-
-        # Update the local flow angles
-        u, v, w = self.state['u_P']
-        self.state['alpha'] = np.arctan2(w, u)
-        self.state['beta'] = np.arcsin(v / self.state['u_inf'])
-        u, v, w = self.state['u_Pl']
-        self.state['alpha_l'] = np.arctan2(w, u)
-        self.state['beta_l'] = np.arcsin(v / self.state['u_inf'])
-        u, v, w = self.state['u_Pr']
-        self.state['alpha_r'] = np.arctan2(w, u)
-        self.state['beta_r'] = np.arcsin(v / self.state['u_inf'])
-
-        # Update the world rotation based on position
-        d = -self.state['u_W'][0]*self._dt / (self.state['p_W'][2]+R_PLANET)
-        self.state['earth_pitch'] += d
-        d = self.state['u_W'][1]*self._dt / (self.state['p_W'][2]+R_PLANET)
-        self.state['earth_roll'] += d
-
-        # Update the coordinate transform matrices
+    def _update_plane_rot_mats(self):
         r, p, y = self.state['phi'], self.state['theta'], self.state['psi']
-        self.R['WP'] = _RX(r)@_RY(np.pi-p)@_RZ(np.pi+y)
-        self.R['WPl'] = _RX(r+PARAM.dihedral_w)@_RY(np.pi-p)@_RZ(np.pi+y)
-        self.R['WPr'] = _RX(r-PARAM.dihedral_w)@_RY(np.pi-p)@_RZ(np.pi+y)
-        self.R['PW'] = self.R['WP'].T
-        self.R['PlW'] = self.R['WPl'].T
-        self.R['PrW'] = self.R['WPr'].T
-        self.R['PF'] = _RY(self.state['alpha'])@_RZ(self.state['beta'])
-        self.R['PlF'] = _RY(self.state['alpha_l'])@_RZ(self.state['beta_l'])
-        self.R['PrF'] = _RY(self.state['alpha_r'])@_RZ(self.state['beta_r'])
-        self.R['FP'] = self.R['PF'].T
-        self.R['FPl'] = self.R['PlF'].T
-        self.R['FPr'] = self.R['PrF'].T
+        self.R['W_CoM'] = _RX(r)@_RY(np.pi-p)@_RZ(np.pi+y)
+        self.R['CoM_W'] = self.R['W_CoM'].T
+        self.R['W_WL'] = _RX(r+PARAM.dihedral_w)@_RY(np.pi-p)@_RZ(np.pi+y)
+        self.R['WL_W'] = self.R['W_WL'].T
+        self.R['W_WR'] = _RX(r-PARAM.dihedral_w)@_RY(np.pi-p)@_RZ(np.pi+y)
+        self.R['WR_W'] = self.R['W_WR'].T
+        self.R['W_HE'] = self.R['W_CoM']
+        self.R['HE_W'] = self.R['CoM_W']
+        self.R['W_V'] = self.R['W_CoM']
+        self.R['V_W'] = self.R['CoM_W']
+        self.R['W_B'] = self.R['W_CoM']
+        self.R['B_W'] = self.R['CoM_W']
 
+    def _apply_force(self, F_aero_net):
+        # Get the net force by adding gravity
+        F_gravity = np.array([0,0,-_g(self.state['p_W'][2])*PARAM.mass])
+        F_net = F_aero_net + F_gravity
+
+        # Apply accelerations and velocities
+        self.state['u_W'] += (F_net / PARAM.mass) * self._dt
+        self.state['p_W'] += self.state['u_W'] * self._dt
+
+    def _update_inputs(self, delta_des, P_des):
         # Update the elevator angle
         d=min(max(delta_des,PARAM.delta_mn),PARAM.delta_mx)-self.state['delta']
         if abs(d) <= PARAM.delta_rate*self._dt:
@@ -226,6 +204,104 @@ class _SimVars():
             self.state['P'] += d
         else:
             self.state['P'] += PARAM.P_rate*np.sign(d)*self._dt
+
+    def _update_world_rot(self):
+        d = -self.state['u_W'][0]*self._dt / (self.state['p_W'][2]+R_PLANET)
+        self.state['earth_pitch'] += d
+        d = self.state['u_W'][1]*self._dt / (self.state['p_W'][2]+R_PLANET)
+        self.state['earth_roll'] += d
+
+    def _update_velocities(self):
+        # Update the local flow velocity at the center of mass
+        self.state['u_CoM'] = self.R['W_CoM'] @ self.state['u_W']
+
+        # Update the flow velocity and dynamic pressure
+        self.state['u_inf'] = np.linalg.norm(self.state['u_W'])
+        self.state['q'] = 0.5*_rho(self.state['p_W'][2])*self.state['u_inf']**2
+
+    def _update_alpha_beta(self, ):
+        # Update the center of mass local flow angles
+        self.state['alpha'] = np.arctan2(self.state['u_CoM'][2],
+                                         self.state['u_CoM'][0])
+        self.state['beta'] = np.arcsin((self.state['u_CoM'][1] /
+                                        self.state['u_inf']))
+
+    def _u_LOC(self, O_LOC_CoM, R_CoM_LOC):
+        # Get the angular rate of the plane in the plane coordinates
+        omega_CoM_CoM = (self.state['omega_phi'],
+                         self.state['omega_theta'],
+                         self.state['omega_psi'])
+
+        # Get the induced velocity at the origin of the local flow frame
+        # in the local coordinates
+        i_LOC = R_CoM_LOC @ np.cross(omega_CoM_CoM, O_LOC_CoM)
+
+        # Return the flow velocity in local coordinates
+        return R_CoM_LOC @ self.state['u_CoM'] + i_LOC
+
+    def _update_local_flow_angs(self):
+        # Get the flow velocity at each of the surfaces in the surfaces'
+        # own coordinates
+        # Note, h stab, v stab, and body coordinate orientations all match
+        # the plane coordinate directions
+        u_WL = self._u_LOC((PARAM.x_w, -PARAM.y_w, PARAM.z_w),
+                           self.R['W_WL']@self.R['CoM_W'])
+        u_WR = self._u_LOC((PARAM.x_w, PARAM.y_w, PARAM.z_w),
+                           self.R['W_WR']@self.R['CoM_W'])
+        u_HE = self._u_LOC((PARAM.x_he, PARAM.y_he, PARAM.z_he), np.eye(3))
+        u_V = self._u_LOC((PARAM.x_v, PARAM.y_v, PARAM.z_v), np.eye(3))
+        u_B = self._u_LOC((PARAM.x_b, PARAM.y_b, PARAM.z_b), np.eye(3))
+
+        # Save the magnitude of the local surface velocities
+        self.state['u_WL'] = np.linalg.norm(u_WL)
+        self.state['u_WR'] = np.linalg.norm(u_WR)
+        self.state['u_HE'] = np.linalg.norm(u_HE)
+        self.state['u_V'] = np.linalg.norm(u_V)
+        self.state['u_B'] = np.linalg.norm(u_B)
+
+        # Update the local flow angles at each of the surfaces
+        self.state['alpha_wl'] = np.arctan2(u_WL[2], u_WL[0])
+        self.state['beta_wl'] = np.arcsin(u_WL[1] / self.state['u_WL'])
+        self.state['alpha_wr'] = np.arctan2(u_WR[2], u_WR[0])
+        self.state['beta_wr'] = np.arcsin(u_WR[1] / self.state['u_WR'])
+        self.state['alpha_he'] = np.arctan2(u_HE[2], u_HE[0])
+        self.state['beta_he'] = np.arcsin(u_HE[1] / self.state['u_HE'])
+        self.state['alpha_v'] = np.arctan2(u_V[2], u_V[0])
+        self.state['beta_v'] = np.arcsin(u_V[1] / self.state['u_V'])
+        self.state['alpha_b'] = np.arctan2(u_B[2], u_B[0])
+        self.state['beta_b'] = np.arcsin(u_B[1] / self.state['u_B'])
+
+    def _update_flow_rot_mats(self):
+        self.R['CoM_F'] = _RY(self.state['alpha'])@_RZ(self.state['beta'])
+        self.R['F_CoM'] = self.R['CoM_F'].T
+        self.R['WL_FWL']=_RY(self.state['alpha_wl'])@_RZ(self.state['beta_wl'])
+        self.R['FWL_WL'] = self.R['WL_FWL'].T
+        self.R['WR_FWR']=_RY(self.state['alpha_wr'])@_RZ(self.state['beta_wr'])
+        self.R['FWR_WR'] = self.R['WR_FWR'].T
+        self.R['HE_FHE']=_RY(self.state['alpha_he'])@_RZ(self.state['beta_he'])
+        self.R['FHE_HE'] = self.R['HE_FHE'].T
+        self.R['V_FV'] = _RY(self.state['alpha_v'])@_RZ(self.state['beta_v'])
+        self.R['FV_V'] = self.R['V_FV'].T
+        self.R['B_FB'] = _RY(self.state['alpha_b'])@_RZ(self.state['beta_b'])
+        self.R['FB_B'] = self.R['B_FB'].T
+
+    def step(self, F_aero_net, state, delta_des, P_des):
+        # Step 1
+        self._update_euler_angs(state)
+        self._update_plane_rot_mats()
+        self._apply_force(F_aero_net)
+        self._update_inputs(delta_des, P_des)
+        self._update_world_rot()
+
+        # Step 2
+        self._update_velocities()
+
+        # Step 3
+        self._update_alpha_beta()
+        self._update_local_flow_angs()
+
+        # Step 4
+        self._update_flow_rot_mats()
 
 class _SimData():
     data : dict
@@ -461,102 +537,71 @@ def _cL(alpha_eff, beta, a_s, a_0, a_l0):
     # Any angle of attack outside of [-a_s-3deg, a_s+3deg] produces no lift
     return 0.0
 
-def _wing_forces(s):
-    # Get the reynold's number
-    re = _rho(s.p_W[2])*PARAM.c_w*s.u_inf/_mu(s.p_W[2])
+def _L_and_D(c, s, ar, a0, typ, h, u_inf, alpha, beta):
+    # Get the reynold's number and dynamic pressure
+    re = _rho(h) * c * u_inf / _mu(h)
+    q = 0.5 * _rho(h) * u_inf * u_inf
 
-    # Calculate stall angle and 0 lift angle (estimates based on NACA2412)
+    # Calculate stall angle and 0 lift angle
     a_s = min(0.0408*np.log(re) - 0.267, 0.244)
-    a_l0 = -0.0436 * (np.arctan(re/11880. - 10.52) / np.pi + 0.5)
+    if typ == 'NACA2412':
+        a_l0=max(min(-.0436*(-1.11e-12*re*re + 2.22e-6*re - .108), 0), -.0436)
+    elif typ == 'NACA2412i':
+        a_l0=max(min(.0436*(-1.11e-12*re*re + 2.22e-6*re - .108), .0436), 0)
+    elif typ == 'NACA0012':
+        a_l0=0.0
 
-    # Get the lift and drag of the left wing
-    # Induced drag is elliptical lift distribution assumption (Oswald factor=0)
-    # Skin drag is turbulent flow over thin plate assumption
-    # Form drag is flow over airfoil until stall, then transition to flat plate
-    cL = _cL(s.alpha_l, s.beta_l, a_s, PARAM.a0_w, a_l0)
-    cDi = cL**2 / (np.pi*PARAM.ar_w)
-    cDf_skin = 0.074*re**(-0.2)
-    cDf_form = (0.006 if s.alpha_l < a_s
-                else abs(1.8*np.sin(s.alpha_l))-0.284*np.cos(s.alpha_l))
-    L_l = 0.5 * PARAM.s_w * cL * s.q
-    D_l = 0.5 * PARAM.s_w * (cDi + cDf_skin + cDf_form) * s.q
+    # Get the lift and drag coefficients
+    cL = _cL(alpha, beta, a_s, a0, a_l0)
+    cDi = cL*cL / (np.pi * ar)
+    cDf_skin = 0.074 * re**(-0.2)
+    cDf_form = (0.006 if abs(alpha) < a_s
+                else abs(1.8*np.sin(alpha))-0.284*np.cos(alpha))
 
-    # Get the lift and drag of the right wing
-    cL = _cL(s.alpha_r, s.beta_r, a_s, PARAM.a0_w, a_l0)
-    cDi = cL**2 / (np.pi*PARAM.ar_w)
-    cDf_form = (0.006 if s.alpha_r < a_s
-                else abs(1.8*np.sin(s.alpha_r))-0.284*np.cos(s.alpha_r))
-    L_r = 0.5 * PARAM.s_w * cL * s.q
-    D_r = 0.5 * PARAM.s_w * (cDi + cDf_skin + cDf_form) * s.q
+    # Get the total lift and drag
+    L = 0.5 * s * cL * q
+    D = 0.5 * s * (cDi + cDf_skin + cDf_form) * q
+    return L, D
 
-    # Convert from lift and drag to world coords
-    F_l = s.R['PlW'] @ s.R['FPl'] @ (-D_l, 0.0, -L_l)
-    F_r = s.R['PrW'] @ s.R['FPr'] @ (-D_r, 0.0, -L_r)
-    return F_l, F_r
+def _wing_forces(s):
+    # Get the lift and drag of the left wing (in local left wing flow)
+    LD_wl = _L_and_D(PARAM.c_w, PARAM.s_w, PARAM.ar_w, PARAM.a0_w, 'NACA2412',
+                         s.p_W[2], s.u_WL, s.alpha_wl, s.beta_wl)
+
+    # Get the lift and drag of the right wing (in local right wing flow)
+    LD_wr = _L_and_D(PARAM.c_w, PARAM.s_w, PARAM.ar_w, PARAM.a0_w, 'NACA2412',
+                         s.p_W[2], s.u_WR, s.alpha_wr, s.beta_wr)
+
+    # Convert from local flow coords to world coords
+    F_wl_W = s.R_WL_W @ s.R_FWL_WL @ (-LD_wl[1], 0.0, -LD_wl[0])
+    F_wr_W = s.R_WR_W @ s.R_FWR_WR @ (-LD_wr[1], 0.0, -LD_wr[0])
+    return F_wl_W, F_wr_W
 
 def _hori_stab_force(s):
-    # Get the reynold's number
-    re = _rho(s.p_W[2])*PARAM.c_he*s.u_inf/_mu(s.p_W[2])
+    # Get the downwash angle induced from the wings
+    eta = PARAM.d_eta_d_alpha * 0.5 * (s.alpha_wl + s.alpha_wr)
 
-    # Calculate stall angle and 0 lift angle (estimates based on NACA2412)
-    a_s = min(0.0408*np.log(re) - 0.267, 0.297)
-    a_l0 = 0.0436 * (np.arctan(re/11880. - 10.52) / np.pi + 0.5)
+    # Get the lift and drag of the h stab (in local h stab flow)
+    LD_h = _L_and_D(PARAM.c_he, PARAM.s_h, PARAM.ar_h, PARAM.a0_h, 'NACA2412i',
+                        s.p_W[2], s.u_HE, s.alpha_he-eta, s.beta_he)
 
-    # Get the effective AoA based on downwash angle from the wings
-    eta = PARAM.d_eta_d_alpha * 0.5 * (s.alpha_l + s.alpha_r)
-    alpha_eff = s.alpha - eta
+    # Get the lift and drag of the elevator (in local h stab flow)
+    LD_e = _L_and_D(PARAM.c_he, PARAM.s_e, PARAM.ar_e, PARAM.a0_e, 'NACA2412i',
+                        s.p_W[2], s.u_HE, s.alpha_he-eta-s.delta, s.beta_he)
 
-    # Get the lift, induced drag, and form drag of the horizontal stab
-    # Induced drag is elliptical lift distribution assumption (Oswald factor=0)
-    # Skin drag is turbulent flow over thin plate assumption
-    # Form drag is flow over airfoil until stall, then transition to flat plate
-    cL = _cL(alpha_eff, s.beta, a_s, PARAM.a0_h, a_l0)
-    cDi = cL**2 / (np.pi*PARAM.ar_h)
-    cDf_form = (0.006 if alpha_eff < a_s
-                else abs(1.8*np.sin(alpha_eff))-0.284*np.cos(alpha_eff))
-    L_h = PARAM.s_h * cL * s.q
-    D_h = PARAM.s_h * (cDi + cDf_form) * s.q
-
-    # Get the lift and induced drag of the elevators
-    cL = _cL(s.alpha - eta - s.delta, s.beta, a_s, PARAM.a0_e, a_l0)
-    cDi = cL**2 / (np.pi*PARAM.ar_e)
-    cDf_form = (0.006 if alpha_eff-s.delta < a_s
-                else abs(1.8*np.sin(alpha_eff-s.delta)) -
-                0.284*np.cos(alpha_eff-s.delta))
-    L_e = PARAM.s_e * cL * s.q
-    D_e = PARAM.s_e * (cDi + cDf_form) * s.q
-
-    # Parasitic drag of stab and elevator
-    cDf_skin = 0.074*re**(-0.2)
-    D_he = (PARAM.s_h + PARAM.s_e) * cDf_skin * s.q
-
-    # Convert from lift and drag to world coords
-    return s.R['PW'] @ s.R['FP'] @ (-(D_h + D_e + D_he), 0.0, -(L_h + L_e))
+    # Convert from local flow coords to world coords
+    F_he_W = s.R_HE_W @ s.R_FHE_HE @ (-LD_h[1]-LD_e[1], 0.0, -LD_h[0]-LD_e[0])
+    return F_he_W
 
 def _vert_stab_force(s):
-    # Get the reynold's number
-    re = _rho(s.p_W[2])*PARAM.c_v*s.u_inf/_mu(s.p_W[2])
+    # Get the lift and drag of the v stab (in local v stab flow)
+    LD_v = _L_and_D(PARAM.c_v, PARAM.s_v, PARAM.ar_v, PARAM.a0_v, 'NACA0012',
+                    s.p_W[2], s.u_V, s.alpha_v, s.beta_v)
 
-    # Calculate stall angle and 0 lift angle (for NACA0012)
-    a_s = min(0.0408*np.log(re) - 0.267, 0.297)
-    a_l0 = 0.0
-
-    # Get the lift and drag of the left wing
-    # Note that alpha and beta are flipped for the vert stab
-    # Induced drag is elliptical lift distribution assumption (Oswald factor=0)
-    # Skin drag is turbulent flow over thin plate assumption
-    # Form drag is flow over airfoil until stall, then transition to flat plate
-    cL = _cL(s.beta, s.alpha, a_s, PARAM.a0_v, a_l0)
-    cDi = (PARAM.a0_v*(s.beta-a_l0))**2 / (np.pi*PARAM.ar_v)
-    cDf_skin = 0.074*re**(-0.2)
-    cDf_form = (0.006 if s.beta < a_s
-                else abs(1.8*np.sin(s.beta))-0.284*np.cos(s.beta))
-    L_v = PARAM.s_v * cL * s.q
-    D_v = PARAM.s_v * (cDi + cDf_skin + cDf_form) * s.q
-
-    # Convert from lift and drag to world coords
+    # Convert from local flow coords to world coords
     # Note that for vert stab, lift force is in -y instead of -z
-    return s.R['PW'] @ s.R['FP'] @ (-D_v, -L_v, 0.0)
+    F_v_W = s.R_V_W @ s.R_FV_V @ (-LD_v[1], -LD_v[0], 0.0)
+    return F_v_W
 
 def  _body_force(s):
     # Body lift is treated as though body is low-lift symmetric airfoil
@@ -564,16 +609,19 @@ def  _body_force(s):
     a_0 = 0.5
     a_s = np.inf
     a_l0 = 0.0
-    cL_alpha =  _cL(s.alpha, s.beta, a_s, a_0, a_l0)
-    cL_beta =  _cL(s.beta, s.alpha, a_s, a_0, a_l0)
-    L_alpha = 0.5*_rho(s.p_W[2])*PARAM.s_b*cL_alpha*s.u_inf**2
-    L_beta = 0.5*_rho(s.p_W[2])*PARAM.s_b*cL_beta*s.u_inf**2
+    cL_alpha = _cL(s.alpha_b, s.beta_b, a_s, a_0, a_l0)
+    cL_beta = _cL(s.beta_b, s.alpha_b, a_s, a_0, a_l0)
+    q = 0.5 * _rho(s.p_W[2]) * s.u_B * s.u_B
+    L_alpha = PARAM.s_b * cL_alpha * q
+    L_beta = PARAM.s_b * cL_beta * q
 
     # Assume body acts approximately like streamline body with cD_tot = 0.045
-    D = PARAM.s_b * 0.045 * s.q
+    D = PARAM.s_b * 0.045 * q
 
-    # Convert from lift and drag to world coords
-    return s.R['PW'] @ s.R['FP'] @ (-D, -L_beta, -L_alpha)
+    # Convert from local flow coords to world coords
+    # Note that for body, side forces are also generated
+    F_b_W = s.R_B_W @ s.R_FB_B @ (-D, -L_beta, -L_alpha)
+    return F_b_W
 
 def _prop_rps(P):
     # Prop RPS as a function of engine power
@@ -594,55 +642,55 @@ def _eta(u_P, P):
     return 0.0
 
 def _prop_force(s):
-    T = s.P * _eta(s.u_P, s.P) / s.u_inf
+    T = s.P * _eta(s.u_CoM, s.P) / s.u_inf
 
     # Convert from plane coords to world coords
-    return s.R['PW'] @ (T, 0.0, 0.0)
+    return s.R_CoM_W @ (T, 0.0, 0.0)
 
-def _pcL_W(s):
+def _r_cL_W(s):
     # Adjust dCL based on AoA for nonsymmetric surfaces (wings, hstab, ele)
     # Assume wings, hstab, and ele are all NACA2412 airfoils
-    # dcL moves fore by 10%c at 20 deg and aft by 10% at -20 deg AoA
-    ddcL_wl = min(max(0.286*PARAM.c_w*s.alpha_l, -.1*PARAM.c_w), .1*PARAM.c_w)
-    ddcL_wr = min(max(0.286*PARAM.c_w*s.alpha_r, -.1*PARAM.c_w), .1*PARAM.c_w)
-    ddcL_he = min(max(0.286*PARAM.c_he*s.alpha, -.1*PARAM.c_he), .1*PARAM.c_he)
-    rwl_Pl = (-PARAM.dcL_w+ddcL_wl, -0.5*PARAM.b_w, -PARAM.hcL_w)
-    rwr_Pr = (-PARAM.dcL_w+ddcL_wr,  0.5*PARAM.b_w, -PARAM.hcL_w)
-    rhe_P = (-PARAM.dcL_he+ddcL_he, 0.0, -PARAM.hcL_he)
-    rv_P = (-PARAM.dcL_v, 0.0, -PARAM.hcL_v)
-    rb_P = (-PARAM.dcL_b, 0.0, -PARAM.hcL_b)
-    return (s.R['PlW']@rwl_Pl, s.R['PrW']@rwr_Pr,
-            s.R['PW']@rhe_P, s.R['PW']@rv_P, s.R['PW']@rb_P)
+    # x_cL moves fore by 10%c at 20 deg AoA and aft by 10%c at -20 deg AoA
+    dx_wl = min(max(0.286*PARAM.c_w*s.alpha_wl, -.1*PARAM.c_w), .1*PARAM.c_w)
+    dx_wr = min(max(0.286*PARAM.c_w*s.alpha_wr, -.1*PARAM.c_w), .1*PARAM.c_w)
+    dx_he = min(max(0.286*PARAM.c_he*s.alpha_he, -.1*PARAM.c_he),.1*PARAM.c_he)
+    r_wl_W = s.R_WL_W @ (PARAM.x_w+dx_wl, -PARAM.y_w,  PARAM.z_w)
+    r_wr_W = s.R_WR_W @ (PARAM.x_w+dx_wr,  PARAM.y_w,  PARAM.z_w)
+    r_he_W = s.R_HE_W @ (PARAM.x_he+dx_he, PARAM.y_he, PARAM.z_he)
+    r_v_W = s.R_V_W @ (PARAM.x_v, PARAM.y_v, PARAM.z_v)
+    r_b_W = s.R_B_W @ (PARAM.x_b, PARAM.y_b, PARAM.z_b)
+    return (r_wl_W, r_wr_W, r_he_W, r_v_W, r_b_W)
 
-def _tau_LD(s, F_wl, F_wr, F_he, F_v, F_b):
-    pcL_wl, pcL_wr, pcL_he, pcL_v, pcL_b = _pcL_W(s)
-    return (np.cross(pcL_wl, F_wl) + np.cross(pcL_wr, F_wr) +
-            np.cross(pcL_he, F_he) + np.cross(pcL_v, F_v) +
-            np.cross(pcL_b, F_b))
+def _tau_LD(s, F_wl_W, F_wr_W, F_he_W, F_v_W, F_b_W):
+    r_wl_W, r_wr_W, r_he_W, r_v_W, r_b_W = _r_cL_W(s)
+    return (np.cross(r_wl_W, F_wl_W) + np.cross(r_wr_W, F_wr_W) +
+            np.cross(r_he_W, F_he_W) + np.cross(r_v_W, F_v_W) +
+            np.cross(r_b_W, F_b_W))
 
 def _tau_damping(s):
-    c1 = s.q * PARAM.s_w * PARAM.b_w**2 / (2.0 * s.u_inf)
-    c2 = s.q * PARAM.s_w * PARAM.c_w**2 / (2.0 * s.u_inf)
-    tau_z = (PARAM.cnr*s.omega_psi + PARAM.cnp*s.omega_phi) * c1
-    tau_y = (PARAM.cmq*s.omega_theta) * c2
-    tau_x = (PARAM.clr*s.omega_psi + PARAM.clp*s.omega_phi) * c1
-    return s.R['PW'] @ (tau_x, tau_y, tau_z)
+    # c1 = s.q * PARAM.s_w * PARAM.b_w**2 / (2.0 * s.u_inf)
+    # c2 = s.q * PARAM.s_w * PARAM.c_w**2 / (2.0 * s.u_inf)
+    # tau_z = (PARAM.cnr*s.omega_psi + PARAM.cnp*s.omega_phi) * c1
+    # tau_y = (PARAM.cmq*s.omega_theta) * c2
+    # tau_x = (PARAM.clr*s.omega_psi + PARAM.clp*s.omega_phi) * c1
+    # return s.R['PW'] @ (tau_x, tau_y, tau_z)
+    return np.array((0.0, 0.0, 0.0))
 
 def _net_aero_force_torque(s):
     # Get the forces
-    F_wl, F_wr  = _wing_forces(s)
-    F_he = _hori_stab_force(s)
-    F_v = _vert_stab_force(s)
-    F_b = _body_force(s)
-    F_p = _prop_force(s)
-    F_net = F_wl + F_wr + F_he + F_v + F_b + F_p
+    F_wl_W, F_wr_W  = _wing_forces(s)
+    F_he_W = _hori_stab_force(s)
+    F_v_W = _vert_stab_force(s)
+    F_b_W = _body_force(s)
+    F_p_W = _prop_force(s)
+    F_net_W = F_wl_W + F_wr_W + F_he_W + F_v_W + F_b_W + F_p_W
 
     # Get the net torque from the lift and drag of the surfaces
     # and from Euler rate-based damping moments
-    tau_LD = _tau_LD(s, F_wl, F_wr, F_he, F_v, F_b)
-    tau_damp = _tau_damping(s)
-    tau_net = tau_LD + tau_damp
-    return F_net, tau_net
+    tau_LD_W = _tau_LD(s, F_wl_W, F_wr_W, F_he_W, F_v_W, F_b_W)
+    tau_damp_W = _tau_damping(s)
+    tau_net_W = tau_LD_W + tau_damp_W
+    return F_net_W, tau_net_W
 
 def _state(plane, s):
     pybullet_state = plane.state
@@ -729,7 +777,7 @@ def _update_vis_env(proj, plane, s, prev_states, shake):
         cz_b = 500*shake*(prev_states['beta'][-2:][0]-s.beta)
         cz_h = shake*(np.mean(prev_states['h'][-50:])-s.p_W[2])
         cz_rand = shake*0.0008*(np.random.rand(3)*2-1)
-        p = s.R['PW']@(-11, -cz_b, -2-cz_a-cz_h)+cz_rand
+        p = s.R_CoM_W @( -11, -cz_b, -2-cz_a-cz_h) + cz_rand
         proj.visualizer.set_cam_position(p)
 
     # Rotate the earth according to the forward velocity,
