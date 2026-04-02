@@ -11,9 +11,16 @@ SPDX-License-Identifier: GPL-3.0-only
 #DEPENDENCIES
 ###############################################################################
 import os
-import numpy as np
+import math
 from warnings import warn
+import numpy as np
 from condynsate.misc.transforms import (Rbw_from_euler, Rbw_from_wxyz)
+
+###############################################################################
+#CACHES
+###############################################################################
+PATH_CACHE = set({})
+NAME_CACHE = set({})
 
 ###############################################################################
 #ARGUMENT CHECKING FUNCTIONS
@@ -70,12 +77,12 @@ def is_num(arg, arg_name=None):
     Returns
     -------
     bool
-        If arg is float castable and not inf and not nan.
+        If arg is float castable and not inf and not nan
 
     """
     # Check if float castable
     try:
-        float(arg)
+        cast_arg = float(arg)
     except (TypeError, ValueError):
         if not arg_name is None:
             msg = f"{arg_name} must be castable to <class 'float'>."
@@ -83,7 +90,7 @@ def is_num(arg, arg_name=None):
         return False
 
     # Check if not inf and not nan
-    is_inf_or_nan = np.isinf(float(arg)) or np.isnan(float(arg))
+    is_inf_or_nan = math.isinf(cast_arg) or math.isnan(cast_arg)
     if is_inf_or_nan and not arg_name is None:
         msg = f"{arg_name} cannot be inf or nan."
         warn(msg, UserWarning)
@@ -152,6 +159,10 @@ def name_valid(arg, arg_name=None):
         If arg string or tuple of strings.
 
     """
+    # Read the cache
+    if arg in NAME_CACHE:
+        return True
+
     # Tuple of strings case
     if isinstance(arg, (tuple, list, np.ndarray)):
         if not all(isinstance(name, str) for name in arg):
@@ -168,6 +179,7 @@ def name_valid(arg, arg_name=None):
         return False
 
     # All tests passed
+    NAME_CACHE.add(arg)
     return True
 
 def path_valid(arg, ftype=None, arg_name=None):
@@ -198,23 +210,29 @@ def path_valid(arg, ftype=None, arg_name=None):
             warn(msg, UserWarning)
         return False
 
-    # Check if file is in dirpath
-    split = list(os.path.split(arg))
-    try:
-        if split[0] == '':
-            split[0] = '.'
-        if not split[1] in os.listdir(split[0]):
+    # Check if arg is already cached
+    if not arg in PATH_CACHE:
+
+        # Check if file is in dirpath
+        split = list(os.path.split(arg))
+        try:
+            if split[0] == '':
+                split[0] = '.'
+            if not split[1] in os.listdir(split[0]):
+                if not arg_name is None:
+                    msg = f"The file pointed to by {arg_name} does not exist."
+                    warn(msg, UserWarning)
+                return False
+
+        # Check if file exists
+        except FileNotFoundError:
             if not arg_name is None:
-                msg = f"The file pointed to by {arg_name} does not exist."
+                msg = f"The dir pointed to by {arg_name} does not exist."
                 warn(msg, UserWarning)
             return False
 
-    # Check if file exists
-    except FileNotFoundError:
-        if not arg_name is None:
-            msg = f"The parent file pointed to by {arg_name} does not exist."
-            warn(msg, UserWarning)
-        return False
+        # If the path points to a valid file, add it to the cache
+        PATH_CACHE.add(arg)
 
     # Check file extension
     if not ftype is None and not arg.endswith(ftype):

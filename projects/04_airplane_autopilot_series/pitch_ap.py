@@ -58,7 +58,7 @@ class _PlaneParams():
         # Distance from CoM to wing and tail center of lift (at 0 AoA)
         # positive in front of, to the right of, and below CoM
         self.params['x_w'] = -0.156  # Axial distance (wing) [m]
-        self.params['y_w'] = 6.48    # Lateral distance (right wing) [m]
+        self.params['y_w'] = 4.05    # Lateral distance (right wing) [m]
         self.params['z_w'] = -0.971  # Vertical distance (wing) [m]
         self.params['x_he'] = -4.59  # Axial distance (hori stab + ele) [m]
         self.params['y_he'] = 0.0    # Lateral distance (hori stab + ele) [m]
@@ -92,27 +92,59 @@ class _PlaneParams():
         return self.params[key]
 PARAM = _PlaneParams()
 
-def _RX(x):
-    return np.array([[1, 0,          0        ],
-                     [0, np.cos(x), -np.sin(x)],
-                     [0, np.sin(x),  np.cos(x)]])
-def _RY(x):
-    return np.array([[ np.cos(x), 0, np.sin(x)],
-                     [ 0,         1, 0        ],
-                     [-np.sin(x), 0, np.cos(x)]])
-def _RZ(x):
-    return np.array([[np.cos(x), -np.sin(x), 0],
-                     [np.sin(x),  np.cos(x), 0],
-                     [0,          0,         1]])
+def _RYZ(y, z):
+    cy, cz = np.cos(y), np.cos(z)
+    sy, sz = np.sin(y), np.sin(z)
+    return np.array([[cy*cz, -cy*sz, sy ],
+                     [sz,     cz,    0.0],
+                     [-sy*cz, sy*sz, cy ]])
+
+def _RXYZ(x, y, z):
+    cx, cy, cz = np.cos(x), np.cos(y), np.cos(z)
+    sx, sy, sz = np.sin(x), np.sin(y), np.sin(z)
+    return np.array([[cy*cz,          -cy*sz,           sy   ],
+                     [cx*sz+sx*sy*cz,  cx*cz-sx*sy*sz, -sx*cy],
+                     [sx*sz-cx*sy*cz,  sx*cz+cx*sy*sz,  cx*cy]])
+
+def _cross(va, vb, ret_np=True):
+    a1, a2, a3 = va
+    b1, b2, b3 = vb
+    if ret_np:
+        return np.array((a2*b3-a3*b2, a3*b1-a1*b3, a1*b2-a2*b1))
+    return (a2*b3-a3*b2, a3*b1-a1*b3, a1*b2-a2*b1)
+
+def _norm3(v3):
+    return np.sqrt(v3[0]*v3[0] + v3[1]*v3[1] + v3[2]*v3[2])
+
+def _g(h):
+    # Newtonian gravity
+    return 3.986025446e14 / ((6.371e6+h)*(6.371e6+h))
+
+def _rho(h):
+    # Ideal gas law applied to barometric formula
+    return 1.225*np.exp(-h/10363.)
+
+def _T(h):
+    # Standard atmosphere temperature model
+    if h < 10000:
+        return 288.2 - 0.00649*h
+    return 223.3
+
+def _mu(h):
+    # Sutherland's law
+    return 1.458e-6*_T(h)**(1.5) / (_T(h) + 110.4)
+
 class _SimVars():
     R : dict
     state : dict
+    params : dict
     _dt : float
 
     def __init__(self, state0, input0, dt):
         # Build the empty state and rotation dicts
-        self.state = {}
         self.R = {}
+        self.state = {}
+        self.params = {}
 
         # Define the time step
         self._dt = dt
@@ -128,7 +160,7 @@ class _SimVars():
         # relevant rotations
         self.state['alpha'] = state0['alpha']
         self.state['beta'] = state0['beta']
-        self.R['CoM_F'] = _RY(self.state['alpha'])@_RZ(self.state['beta'])
+        self.R['CoM_F'] = _RYZ(self.state['alpha'], self.state['beta'])
         self.R['F_CoM'] = self.R['CoM_F'].T
 
         # Set the initial world velocity and position
@@ -144,6 +176,9 @@ class _SimVars():
         self.state['earth_pitch'] = 0.0
         self.state['earth_roll'] = 0.0
 
+        # Calculate the gravity, density, temperature, and viscosity
+        self._update_params()
+
         # Calculate the local flow velocity at the center of mass
         self._update_velocities()
 
@@ -154,8 +189,10 @@ class _SimVars():
         self._update_flow_rot_mats()
 
     def __getattr__(self, key):
-        if key.lower().startswith('r_'):
+        if key.startswith('R_'):
             return self.R[key[2:]]
+        elif key.startswith('param_'):
+            return self.params[key[6:]]
         return self.state[key]
 
     def _update_euler_angs(self, state):
@@ -168,11 +205,11 @@ class _SimVars():
 
     def _update_plane_rot_mats(self):
         r, p, y = self.state['phi'], self.state['theta'], self.state['psi']
-        self.R['W_CoM'] = _RX(r)@_RY(np.pi-p)@_RZ(np.pi+y)
+        self.R['W_CoM'] = _RXYZ(r, np.pi-p, np.pi+y)
         self.R['CoM_W'] = self.R['W_CoM'].T
-        self.R['W_WL'] = _RX(r+PARAM.dihedral_w)@_RY(np.pi-p)@_RZ(np.pi+y)
+        self.R['W_WL'] = _RXYZ(r+PARAM.dihedral_w, np.pi-p, np.pi+y)
         self.R['WL_W'] = self.R['W_WL'].T
-        self.R['W_WR'] = _RX(r-PARAM.dihedral_w)@_RY(np.pi-p)@_RZ(np.pi+y)
+        self.R['W_WR'] = _RXYZ(r-PARAM.dihedral_w, np.pi-p, np.pi+y)
         self.R['WR_W'] = self.R['W_WR'].T
         self.R['W_HE'] = self.R['W_CoM']
         self.R['HE_W'] = self.R['CoM_W']
@@ -183,7 +220,7 @@ class _SimVars():
 
     def _apply_force(self, F_aero_net):
         # Get the net force by adding gravity
-        F_gravity = np.array([0,0,-_g(self.state['p_W'][2])*PARAM.mass])
+        F_gravity = np.array([0.0, 0.0, -self.params['g']*PARAM.mass])
         F_net = F_aero_net + F_gravity
 
         # Apply accelerations and velocities
@@ -211,13 +248,18 @@ class _SimVars():
         d = self.state['u_W'][1]*self._dt / (self.state['p_W'][2]+R_PLANET)
         self.state['earth_roll'] += d
 
+    def _update_params(self):
+        self.params['g'] = _g(self.state['p_W'][2])
+        self.params['rho'] = _rho(self.state['p_W'][2])
+        self.params['T'] = _T(self.state['p_W'][2])
+        self.params['mu'] = _mu(self.state['p_W'][2])
+
     def _update_velocities(self):
         # Update the local flow velocity at the center of mass
         self.state['u_CoM'] = self.R['W_CoM'] @ self.state['u_W']
 
         # Update the flow velocity and dynamic pressure
-        self.state['u_inf'] = np.linalg.norm(self.state['u_W'])
-        self.state['q'] = 0.5*_rho(self.state['p_W'][2])*self.state['u_inf']**2
+        self.state['u_inf'] = _norm3(self.state['u_W'])
 
     def _update_alpha_beta(self, ):
         # Update the center of mass local flow angles
@@ -234,7 +276,7 @@ class _SimVars():
 
         # Get the induced velocity at the origin of the local flow frame
         # in the local coordinates
-        i_LOC = R_CoM_LOC @ np.cross(omega_CoM_CoM, O_LOC_CoM)
+        i_LOC = R_CoM_LOC @ _cross(omega_CoM_CoM, O_LOC_CoM, ret_np=False)
 
         # Return the flow velocity in local coordinates
         return R_CoM_LOC @ self.state['u_CoM'] + i_LOC
@@ -248,16 +290,19 @@ class _SimVars():
                            self.R['W_WL']@self.R['CoM_W'])
         u_WR = self._u_LOC((PARAM.x_w, PARAM.y_w, PARAM.z_w),
                            self.R['W_WR']@self.R['CoM_W'])
-        u_HE = self._u_LOC((PARAM.x_he, PARAM.y_he, PARAM.z_he), np.eye(3))
-        u_V = self._u_LOC((PARAM.x_v, PARAM.y_v, PARAM.z_v), np.eye(3))
-        u_B = self._u_LOC((PARAM.x_b, PARAM.y_b, PARAM.z_b), np.eye(3))
+        eye3 = np.array([[1.0, 0.0, 0.0],
+                         [0.0, 1.0, 0.0],
+                         [0.0, 0.0, 1.0]])
+        u_HE = self._u_LOC((PARAM.x_he, PARAM.y_he, PARAM.z_he), eye3)
+        u_V = self._u_LOC((PARAM.x_v, PARAM.y_v, PARAM.z_v), eye3)
+        u_B = self._u_LOC((PARAM.x_b, PARAM.y_b, PARAM.z_b), eye3)
 
         # Save the magnitude of the local surface velocities
-        self.state['u_WL'] = np.linalg.norm(u_WL)
-        self.state['u_WR'] = np.linalg.norm(u_WR)
-        self.state['u_HE'] = np.linalg.norm(u_HE)
-        self.state['u_V'] = np.linalg.norm(u_V)
-        self.state['u_B'] = np.linalg.norm(u_B)
+        self.state['u_WL'] = _norm3(u_WL)
+        self.state['u_WR'] = _norm3(u_WR)
+        self.state['u_HE'] = _norm3(u_HE)
+        self.state['u_V'] = _norm3(u_V)
+        self.state['u_B'] = _norm3(u_B)
 
         # Update the local flow angles at each of the surfaces
         self.state['alpha_wl'] = np.arctan2(u_WL[2], u_WL[0])
@@ -272,17 +317,17 @@ class _SimVars():
         self.state['beta_b'] = np.arcsin(u_B[1] / self.state['u_B'])
 
     def _update_flow_rot_mats(self):
-        self.R['CoM_F'] = _RY(self.state['alpha'])@_RZ(self.state['beta'])
+        self.R['CoM_F'] = _RYZ(self.state['alpha'], self.state['beta'])
         self.R['F_CoM'] = self.R['CoM_F'].T
-        self.R['WL_FWL']=_RY(self.state['alpha_wl'])@_RZ(self.state['beta_wl'])
+        self.R['WL_FWL'] = _RYZ(self.state['alpha_wl'], self.state['beta_wl'])
         self.R['FWL_WL'] = self.R['WL_FWL'].T
-        self.R['WR_FWR']=_RY(self.state['alpha_wr'])@_RZ(self.state['beta_wr'])
+        self.R['WR_FWR'] = _RYZ(self.state['alpha_wr'], self.state['beta_wr'])
         self.R['FWR_WR'] = self.R['WR_FWR'].T
-        self.R['HE_FHE']=_RY(self.state['alpha_he'])@_RZ(self.state['beta_he'])
+        self.R['HE_FHE'] = _RYZ(self.state['alpha_he'], self.state['beta_he'])
         self.R['FHE_HE'] = self.R['HE_FHE'].T
-        self.R['V_FV'] = _RY(self.state['alpha_v'])@_RZ(self.state['beta_v'])
+        self.R['V_FV'] = _RYZ(self.state['alpha_v'], self.state['beta_v'])
         self.R['FV_V'] = self.R['V_FV'].T
-        self.R['B_FB'] = _RY(self.state['alpha_b'])@_RZ(self.state['beta_b'])
+        self.R['B_FB'] = _RYZ(self.state['alpha_b'], self.state['beta_b'])
         self.R['FB_B'] = self.R['B_FB'].T
 
     def step(self, F_aero_net, state, delta_des, P_des):
@@ -292,6 +337,7 @@ class _SimVars():
         self._apply_force(F_aero_net)
         self._update_inputs(delta_des, P_des)
         self._update_world_rot()
+        self._update_params()
 
         # Step 2
         self._update_velocities()
@@ -419,7 +465,7 @@ def _load_vis_env(proj, state0):
     proj.visualizer.set_dirnlight(on=False)
 
     # Look at the plane
-    R = _RX(state0['phi'])@_RY(np.pi-state0['theta'])@_RZ(np.pi+state0['psi'])
+    R = _RXYZ(state0['phi'], np.pi-state0['theta'], np.pi+state0['psi'])
     proj.visualizer.set_cam_position(R.T@(-11, 0, -2))
     proj.visualizer.set_cam_target((0, 0, 0))
 
@@ -455,7 +501,7 @@ def _make(**kwargs):
     # Create the project
     proj = Project(keyboard=False, visualizer=kwargs['real_time'],
                    simulator_gravity = (0.,0.,0.),
-                   simulator_dt = 0.001,)
+                   simulator_dt = 1.0/250.0,)
 
     # Load the visual environment
     if kwargs['real_time']:
@@ -484,79 +530,79 @@ def _await(proj, t=5.0):
         sleep(t)
     proj.refresh_visualizer()
 
-def _g(h):
-    # Newtonian gravity
-    return 3.986025446e14 / (6.371e6+h)**2
+def _cL(alpha, beta, a_s, a_0, a_l0):
+    alpha_abs = abs(alpha)
 
-def _rho(h):
-    # Ideal gas law applied to barometric formula
-    return 1.225*np.exp(-h/10363.)
-
-def _T(h):
-    # Standard atmosphere temperature model
-    if h < 10000:
-        return 288.2 - 0.00649*h
-    return 223.3
-
-def _mu(h):
-    return 1.458e-6*_T(h)**(1.5) / (_T(h) + 110.4)
-
-def _cL(alpha_eff, beta, a_s, a_0, a_l0):
-    # Add random buffeting near the stall region
+    # Add random buffeting when within +- 3 degrees of stall
     buffet = 0.0
-    if abs(abs(alpha_eff) - a_s) <= 0.0524:
-        buffet = -0.3*((abs(alpha_eff)-a_s)+0.0524)*9.55*np.random.rand()
+    if abs(alpha_abs - a_s) <= 0.0524:
+        buffet = -0.3 * ((alpha_abs - a_s) + 0.0524) * 9.55 * np.random.rand()
 
     # No stall
-    if abs(alpha_eff) <= a_s:
-
+    if alpha_abs <= a_s:
         # Add a cos beta as a first order crab angle correction term
-        return np.cos(beta)*a_0*(alpha_eff-a_l0) + buffet
+        return np.cos(beta) * a_0 * (alpha - a_l0) + buffet
 
     # Positive stalling region
     # Assume stall starts at a_s where cL decreases to 50% at 3 deg past a_s
-    if 0 < alpha_eff < a_s+0.0524:
+    if 0 < alpha < a_s + 0.0524:
         a = 182.4*a_0*(a_l0-a_s-0.1047)
         b = -364.8*a_0*(a_l0*a_s-a_s**2-0.1047*a_s-0.0027)
         c = 182.4*a_0*(a_l0*(a_s**2-0.0055)-a_s**2*(a_s+0.1047))
 
         # Add a cos beta as a first order crab angle correction term
-        return np.cos(beta)*(a*alpha_eff**2 + b*alpha_eff + c) + buffet
+        return np.cos(beta) * (a * alpha**2 + b * alpha + c) + buffet
 
     # Negative stalling region
     # Assume stall starts at -a_s where cL decreases to 50% at 3 deg past -a_s
-    if -a_s-0.0524 < alpha_eff < 0:
+    if -a_s - 0.0524 < alpha < 0:
         a = 182.4*a_0*(a_l0+a_s+0.1047)
         b = 364.8*a_0*(a_l0*a_s+a_s**2+0.1047*a_s+0.0027)
         c = 182.4*a_0*(a_l0*(a_s**2-0.0055)+a_s**2*(a_s+0.1047))
 
         # Add a cos beta as a first order crab angle correction term
-        return np.cos(beta)*(a*alpha_eff**2 + b*alpha_eff + c) + buffet
+        return np.cos(beta) * (a * alpha**2 + b * alpha + c) + buffet
 
     # Complete stall
     # Any angle of attack outside of [-a_s-3deg, a_s+3deg] produces no lift
     return 0.0
 
-def _L_and_D(c, s, ar, a0, typ, h, u_inf, alpha, beta):
+def _L_and_D(rho, mu, c, s, ar, a0, typ, h, u_inf, alpha, beta):
     # Get the reynold's number and dynamic pressure
-    re = _rho(h) * c * u_inf / _mu(h)
-    q = 0.5 * _rho(h) * u_inf * u_inf
+    re = rho * c * u_inf / mu
+    q = 0.5 * rho * u_inf * u_inf
 
-    # Calculate stall angle and 0 lift angle
-    a_s = min(0.0408*np.log(re) - 0.267, 0.244)
+    # Calculate stall angle (Assume all airfoils stall at around 17 deg)
+    # though very low reynolds number result in lower stall angles all the
+    # way to 10 deg
+    re_e = min(max(re, 50_000), 1_000_000)
+    a_s=min(max(-2.333e-18*re_e**3+3.674e-12*re_e**2-3.499e-7*re_e+0.0086,0),1)
+    a_s = a_s*np.deg2rad(7) + np.deg2rad(10)
+
+    # Calculate the 0 lift angle of attack where, for all airfoils, at very
+    # low reynold's number, a_l0 is 0, and at normal flight reynold's numbers
+    # a_l0 is whatever is defined for a specific airfoil
+    a_l0 = min(max(-1.11e-12*re_e*re_e + 2.22e-6*re_e - 0.108, 0.0), 1.0)
     if typ == 'NACA2412':
-        a_l0=max(min(-.0436*(-1.11e-12*re*re + 2.22e-6*re - .108), 0), -.0436)
+        a_l0 *= -0.0436
     elif typ == 'NACA2412i':
-        a_l0=max(min(.0436*(-1.11e-12*re*re + 2.22e-6*re - .108), .0436), 0)
+        a_l0 *= 0.0436
     elif typ == 'NACA0012':
-        a_l0=0.0
+        a_l0 = 0.0
+    else:
+        a_l0 = 0.0
 
     # Get the lift and drag coefficients
     cL = _cL(alpha, beta, a_s, a0, a_l0)
     cDi = cL*cL / (np.pi * ar)
+
+    # Turbulent flow of thin plate skin friction
     cDf_skin = 0.074 * re**(-0.2)
-    cDf_form = (0.006 if abs(alpha) < a_s
-                else abs(1.8*np.sin(alpha))-0.284*np.cos(alpha))
+
+    # Form drag is that of streamlined body below stall, then
+    # transitions to that of a detached flow, rotated, thin plate after stall
+    cDf_form = (0.006 if abs(alpha) < a_s else
+                abs(1.8*np.sin(alpha)) - 0.284*np.cos(alpha))
 
     # Get the total lift and drag
     L = 0.5 * s * cL * q
@@ -565,12 +611,14 @@ def _L_and_D(c, s, ar, a0, typ, h, u_inf, alpha, beta):
 
 def _wing_forces(s):
     # Get the lift and drag of the left wing (in local left wing flow)
-    LD_wl = _L_and_D(PARAM.c_w, PARAM.s_w, PARAM.ar_w, PARAM.a0_w, 'NACA2412',
-                         s.p_W[2], s.u_WL, s.alpha_wl, s.beta_wl)
+    LD_wl = _L_and_D(s.param_rho, s.param_mu,
+                     PARAM.c_w, PARAM.s_w, PARAM.ar_w, PARAM.a0_w, 'NACA2412',
+                     s.p_W[2], s.u_WL, s.alpha_wl, s.beta_wl)
 
     # Get the lift and drag of the right wing (in local right wing flow)
-    LD_wr = _L_and_D(PARAM.c_w, PARAM.s_w, PARAM.ar_w, PARAM.a0_w, 'NACA2412',
-                         s.p_W[2], s.u_WR, s.alpha_wr, s.beta_wr)
+    LD_wr = _L_and_D(s.param_rho, s.param_mu,
+                     PARAM.c_w, PARAM.s_w, PARAM.ar_w, PARAM.a0_w, 'NACA2412',
+                     s.p_W[2], s.u_WR, s.alpha_wr, s.beta_wr)
 
     # Convert from local flow coords to world coords
     F_wl_W = s.R_WL_W @ s.R_FWL_WL @ (-LD_wl[1], 0.0, -LD_wl[0])
@@ -582,12 +630,14 @@ def _hori_stab_force(s):
     eta = PARAM.d_eta_d_alpha * 0.5 * (s.alpha_wl + s.alpha_wr)
 
     # Get the lift and drag of the h stab (in local h stab flow)
-    LD_h = _L_and_D(PARAM.c_he, PARAM.s_h, PARAM.ar_h, PARAM.a0_h, 'NACA2412i',
-                        s.p_W[2], s.u_HE, s.alpha_he-eta, s.beta_he)
+    LD_h = _L_and_D(s.param_rho, s.param_mu,
+                    PARAM.c_he, PARAM.s_h, PARAM.ar_h, PARAM.a0_h, 'NACA2412i',
+                    s.p_W[2], s.u_HE, s.alpha_he-eta, s.beta_he)
 
     # Get the lift and drag of the elevator (in local h stab flow)
-    LD_e = _L_and_D(PARAM.c_he, PARAM.s_e, PARAM.ar_e, PARAM.a0_e, 'NACA2412i',
-                        s.p_W[2], s.u_HE, s.alpha_he-eta-s.delta, s.beta_he)
+    LD_e = _L_and_D(s.param_rho, s.param_mu,
+                    PARAM.c_he, PARAM.s_e, PARAM.ar_e, PARAM.a0_e, 'NACA2412i',
+                    s.p_W[2], s.u_HE, s.alpha_he-eta-s.delta, s.beta_he)
 
     # Convert from local flow coords to world coords
     F_he_W = s.R_HE_W @ s.R_FHE_HE @ (-LD_h[1]-LD_e[1], 0.0, -LD_h[0]-LD_e[0])
@@ -595,8 +645,9 @@ def _hori_stab_force(s):
 
 def _vert_stab_force(s):
     # Get the lift and drag of the v stab (in local v stab flow)
-    LD_v = _L_and_D(PARAM.c_v, PARAM.s_v, PARAM.ar_v, PARAM.a0_v, 'NACA0012',
-                    s.p_W[2], s.u_V, s.alpha_v, s.beta_v)
+    LD_v = _L_and_D(s.param_rho, s.param_mu,
+                    PARAM.c_v, PARAM.s_v, PARAM.ar_v, PARAM.a0_v, 'NACA0012',
+                    s.p_W[2], s.u_V, s.beta_v, s.alpha_v)
 
     # Convert from local flow coords to world coords
     # Note that for vert stab, lift force is in -y instead of -z
@@ -611,7 +662,7 @@ def  _body_force(s):
     a_l0 = 0.0
     cL_alpha = _cL(s.alpha_b, s.beta_b, a_s, a_0, a_l0)
     cL_beta = _cL(s.beta_b, s.alpha_b, a_s, a_0, a_l0)
-    q = 0.5 * _rho(s.p_W[2]) * s.u_B * s.u_B
+    q = 0.5 * s.param_rho * s.u_B * s.u_B
     L_alpha = PARAM.s_b * cL_alpha * q
     L_beta = PARAM.s_b * cL_beta * q
 
@@ -642,9 +693,8 @@ def _eta(u_P, P):
     return 0.0
 
 def _prop_force(s):
-    T = s.P * _eta(s.u_CoM, s.P) / s.u_inf
-
     # Convert from plane coords to world coords
+    T = s.P * _eta(s.u_CoM, s.P) / s.u_inf
     return s.R_CoM_W @ (T, 0.0, 0.0)
 
 def _r_cL_W(s):
@@ -663,9 +713,9 @@ def _r_cL_W(s):
 
 def _tau_LD(s, F_wl_W, F_wr_W, F_he_W, F_v_W, F_b_W):
     r_wl_W, r_wr_W, r_he_W, r_v_W, r_b_W = _r_cL_W(s)
-    return (np.cross(r_wl_W, F_wl_W) + np.cross(r_wr_W, F_wr_W) +
-            np.cross(r_he_W, F_he_W) + np.cross(r_v_W, F_v_W) +
-            np.cross(r_b_W, F_b_W))
+    return (_cross(r_wl_W, F_wl_W) + _cross(r_wr_W, F_wr_W) +
+            _cross(r_he_W, F_he_W) + _cross(r_v_W, F_v_W) +
+            _cross(r_b_W, F_b_W))
 
 def _tau_damping(s):
     # c1 = s.q * PARAM.s_w * PARAM.b_w**2 / (2.0 * s.u_inf)
@@ -718,7 +768,7 @@ def _turbulence(turb_param, t):
         for p, s, o in zip(*turb_param)]
     ts=[0.07*s*(0.25*(np.sin(10.0/p*(t - o)) + np.sin(15.708/p*(t - o))) + 0.5)
         for p, s, o in zip(*turb_param)]
-    return np.array(tl) + np.array(ts)
+    return np.array((tl[0]+ts[0], tl[1]+ts[1], tl[2]+ts[2]))
 
 def _mass(obj):
     mass = 0.0
@@ -826,7 +876,8 @@ def _sim_loop(controller, program_nmuber, proj, plane, **kwargs):
 
         # Calculate the net force and torque on the plane
         F_aero_net, tau_aero_net = _net_aero_force_torque(simvars)
-        F_aero_net += _turbulence(turb, proj.simtime)
+        if kwargs['turb_mag'] != 0.0:
+            F_aero_net += _turbulence(turb, proj.simtime)
 
         # Apply only the torque. We ignore the forces
         # because motion is handled by moving the planet instead of the plane.
@@ -926,4 +977,4 @@ def ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    data = run(ctrlr, 1)
+    data = run(ctrlr, 1, time=10.0, shake=True, real_time=False)

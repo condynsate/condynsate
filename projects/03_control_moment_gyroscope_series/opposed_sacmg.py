@@ -212,18 +212,19 @@ def _sim_loop(proj, cmg, program, get_torque, time, real_time):
             data['theta_des'].append(theta_des)
 
         # Move the earth to simulate an orbit
-        earth_pitch -= (np.pi*2)/(2*3600)*proj.simulator.dt
-        earth_x = np.array((np.sin(earth_pitch)*1.02*R_EARTH,
-                            0.0,
-                            -np.cos(earth_pitch)*1.02*R_EARTH,))
-        proj.visualizer.set_transform('planet',
-                                      pitch=-np.deg2rad(13),
-                                      roll=np.deg2rad(28.47),
-                                      scale=(R_EARTH*2,)*3,
-                                      position=earth_x)
-        proj.visualizer.set_ptlight_1(position=(np.sin(earth_pitch)*12,
-                                                0.0,
-                                                -np.cos(earth_pitch)*12))
+        if real_time:
+            earth_pitch -= (np.pi*2)/(2*3600)*proj.simulator.dt
+            earth_x = np.array((np.sin(earth_pitch)*1.02*R_EARTH,
+                                0.0,
+                                -np.cos(earth_pitch)*1.02*R_EARTH,))
+            proj.visualizer.set_transform('planet',
+                                          pitch=-np.deg2rad(13),
+                                          roll=np.deg2rad(28.47),
+                                          scale=(R_EARTH*2,)*3,
+                                          position=earth_x)
+            proj.visualizer.set_ptlight_1(position=(np.sin(earth_pitch)*12,
+                                                    0.0,
+                                                    -np.cos(earth_pitch)*12))
 
         # Take a simulation step
         proj.step(real_time=real_time)
@@ -296,4 +297,4 @@ def c(x,y):
     return 0.0
 
 if __name__ == "__main__":
-    run(0.7854, 1, c, time=120.0)
+    run(0.7854, 1, c, time=10.0, real_time=True)

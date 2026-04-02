@@ -176,7 +176,7 @@ class Body():
         for link_name, link in self.links.items():
             i = link_ids.index(link.visual_data['id'])
 
-            # Each position and orientation is poss and oris is the position and
+            # Each position and orientation is the position and
             # orientation of the link frame origin (defined by the stl).
             # We must now convert each link frame to its visual frame.
             poss[i] = t.pa_to_pb(t.Rbw_from_wxyz(oris[i]), poss[i],

@@ -116,6 +116,7 @@ class Visualizer():
         self._thread = Thread(target=self._main_loop)
         self._thread.daemon = True
         self._thread.start()
+        return 0
 
     def _main_loop(self):
         """
@@ -133,13 +134,14 @@ class Visualizer():
             # Time since last frame was rendered
             dt = (cv2.getTickCount()-self._last_refresh)/cv2.getTickFrequency()
             if dt < self.frame_delta:
-                time.sleep(0.0083) # Remove CPU stress (120 FPS)
+                # time.sleep(0.008333) # Remove CPU stress (120 FPS)
                 continue
 
             # Aquire mutex lock to read flags and shared buffer
             actions = []
             priorities = []
             with self._LOCK:
+
                 # If visualizer is closed unexpectedly, end main loop then
                 # return failure
                 if self._socket.closed:
@@ -207,7 +209,7 @@ class Visualizer():
             return 4
         return 5
 
-    def _queue_action(self, fnc, scene_path, args, kwargs={}):
+    def _queue_action(self, fnc, scene_path, args, kwargs=dict({})):
         """
         Queues a function argument pair to the scene object at position
         scene_path for execution on the next frame time.
@@ -817,9 +819,6 @@ class Visualizer():
         ])
         self._socket.recv()
 
-        # v = (float(t[0]), float(t[1]), float(t[2]))
-        # self._scene.set_cam_target(v)
-
     def set_cam_target(self, t):
         """
         Set the XYZ position of the point the camera is looking at.
@@ -1072,7 +1071,7 @@ class Visualizer():
                       }
         return geo.MeshPhongMaterial(**mat_kwargs)
 
-    def _add_object(self, name, path, material_kwargs):
+    def _add_object(self, name, path, mat_kwargs):
         """
         Adds an object to the scene.
 
@@ -1087,7 +1086,7 @@ class Visualizer():
         path : string
             Path pointing to the file that describes the object's
             geometry. The file may be of type .obj, .stl, or .dae.
-        material_kwargs : dict
+        mat_kwargs : dict
             The material kwargs of the object being added. Includes arguments
             tex_path, color, shininess, and opacity.
 
@@ -1096,21 +1095,42 @@ class Visualizer():
         None.
 
         """
-        # Add the .obj to the scene
+        # Get the defaults
+        tex_path = mat_kwargs.get('tex_path', None)
+        tex_wrap = mat_kwargs.get('tex_wrap', [1000, 1000])
+        tex_repeat = mat_kwargs.get('tex_repeat', [1, 1])
+        color = mat_kwargs.get('color', (1.0, 1.0, 1.0))
+        shininess = mat_kwargs.get('shininess', 0.01)
+        opacity = mat_kwargs.get('opacity', 1.0)
+        emissive_color = mat_kwargs.get('emissive_color', (0.0, 0.0, 0.0))
+
+        # Add the object to the scene
         scene_path = get_scene_path(name)
         geometry = self._get_geometry(path)
         self._objects[scene_path] = {
-            'geometry':geometry,
-            'tex_path':material_kwargs['tex_path'],
-            'tex_wrap':material_kwargs['tex_wrap'],
-            'tex_repeat':material_kwargs['tex_repeat'],
-            'color':material_kwargs['color'],
-            'shininess':material_kwargs['shininess'],
-            'opacity':material_kwargs['opacity'],
-            'emissive_color':material_kwargs['emissive_color'],
-            'trans_matrix':np.eye(4)
+            'geometry' : geometry,
+            'tex_path' : tex_path,
+            'tex_wrap' : tex_wrap,
+            'tex_repeat' : tex_repeat,
+            'color' : color,
+            'shininess' : shininess,
+            'opacity' : opacity,
+            'emissive_color' : emissive_color,
+            'position' : (0.0, 0.0, 0.0),
+            'wxyz_quat' : (1.0, 0.0, 0.0, 0.0),
+            'yaw' : 0.0,
+            'pitch' : 0.0,
+            'roll' : 0.0,
+            'scale' : (1.0, 1.0, 1.0),
+            'trans_matrix' : np.eye(4),
             }
-        material = self._get_material(**material_kwargs)
+        material = self._get_material(tex_path = tex_path,
+                                      tex_wrap = tex_wrap,
+                                      tex_repeat = tex_repeat,
+                                      color = color,
+                                      shininess = shininess,
+                                      opacity = opacity,
+                                      emissive_color = emissive_color,)
         self._scene[scene_path].set_object(geometry, material)
 
     def add_object(self, name, path, **kwargs):
@@ -1184,16 +1204,18 @@ class Visualizer():
             0 if successful, -1 if something went wrong.
 
         """
-        # Check the args
+        # Check the name
         if not name_valid(name, arg_name='name'):
-            return -1
-        if not path_valid(path, ftype=('.obj', '.dae', '.stl'), arg_name=path):
             return -1
 
         # If the object is already there, do not add it again
         scene_path = get_scene_path(name)
         if scene_path in self._objects:
             return 0
+
+        # Ensure valid path (robust but very slow)
+        if not path_valid(path, ftype=('.obj', '.dae', '.stl'), arg_name=path):
+            return -1
 
         # Sanitize the kwargs
         material_kwargs = self._read_material_kwargs(kwargs)
@@ -1209,7 +1231,7 @@ class Visualizer():
         args = (name, transform_kwargs, )
         return self._queue_action(self._set_transform, scene_path, args)
 
-    def _set_transform(self, name, transform):
+    def _set_transform(self, name, trans_kwargs):
         """
         Applies transform to a scene object relative to it's original origin.
 
@@ -1221,7 +1243,7 @@ class Visualizer():
             ('foo', 'bar') would insert a new object to the scene at location
             /Scene/foo/bar while 'baz' would insert the object at
             /Scene/baz
-        transform : dict
+        trans_kwargs : dict
             Defines the transform. Has keys 'position', 'wxyz_quat',
             'yaw', 'pitch', 'roll', and 'scale'. yaw, pitch, and roll are in
             radians
@@ -1239,25 +1261,36 @@ class Visualizer():
             return
 
         # Get the transformation matrix
-        position = transform['position']
-        wxyz_quat = transform['wxyz_quat']
-        yaw = transform['yaw']
-        pitch = transform['pitch']
-        roll = transform['roll']
-        scale = transform['scale']
+        position = trans_kwargs.get('position',
+                              self._objects[scene_path]['position'])
+        wxyz_quat = trans_kwargs.get('wxyz_quat',
+                               self._objects[scene_path]['wxyz_quat'])
+        yaw = trans_kwargs.get('yaw',
+                         self._objects[scene_path]['yaw'])
+        pitch = trans_kwargs.get('pitch',
+                           self._objects[scene_path]['pitch'])
+        roll = trans_kwargs.get('roll',
+                          self._objects[scene_path]['roll'])
+        scale = trans_kwargs.get('scale',
+                           self._objects[scene_path]['scale'])
         args = (position, wxyz_quat, yaw, pitch, roll, scale, )
-        trans_matrix = homogeneous_transform(*args)
+        mat = homogeneous_transform(*args)
 
         # Check if a transform is needed
-        cur_trans_matrix = self._objects[scene_path]['trans_matrix']
-        if np.allclose(trans_matrix, cur_trans_matrix):
+        if np.allclose(mat, self._objects[scene_path]['trans_matrix']):
             return
 
         # Apply the transform
-        self._scene[scene_path].set_transform(trans_matrix)
+        self._scene[scene_path].set_transform(mat)
 
-        # Update the store state
-        self._objects[scene_path]['trans_matrix'] = trans_matrix
+        # Update the stored states
+        self._objects[scene_path]['position'] = position
+        self._objects[scene_path]['wxyz_quat'] = wxyz_quat
+        self._objects[scene_path]['yaw'] = yaw
+        self._objects[scene_path]['pitch'] = pitch
+        self._objects[scene_path]['roll'] = roll
+        self._objects[scene_path]['scale'] = scale
+        self._objects[scene_path]['trans_matrix'] = mat
 
     def _read_transform_kwargs(self, kwargs):
         """
@@ -1271,46 +1304,47 @@ class Visualizer():
         Returns
         -------
         sanitized : dict
-            The sanitized kwargs with default values set for non user defined
-            keys.
+            The sanitized kwargs
 
         """
-        # Set the default transform kwargs
-        sanitized = {'position' : (0.0, 0.0, 0.0),
-                     'wxyz_quat' : (1.0, 0.0, 0.0, 0.0),
-                     'yaw' : 0.0,
-                     'pitch' : 0.0,
-                     'roll' : 0.0,
-                     'scale' : (1.0, 1.0, 1.0)}
-
-        # Validate each key given by user
+        san = {}
         for key, val in kwargs.items():
-            k = key.lower()
-
             # Validate the position
-            if k == 'position':
-                if not is_nvector(val, 3, arg_name=key):
-                    continue
-                sanitized[key] = val
+            if key=='position' and not val is None:
+                if is_nvector(val, 3, arg_name=key):
+                    san[key] = tuple(float(v) for v in val)
+                continue
 
             # Validate the wxyz_quat
-            elif k == 'wxyz_quat':
-                if not is_nvector(val, 4, arg_name=key):
-                    continue
-                sanitized[key] = tuple(float(max(-1, min(x, 1))) for x in val)
+            if key=='wxyz_quat' and not val is None:
+                if is_nvector(val, 4, arg_name='key'):
+                    san[key] = tuple(float(min(max(v, -1), 1)) for v in val)
+                continue
 
-            # Validate the roll, pitch, and yaw
-            elif k in ('yaw', 'pitch', 'roll'):
-                if not is_num(val, arg_name=key):
-                    continue
-                sanitized[key] = float(max(-180, min(val, 180)))
+            # Validate the yaw
+            if key=='yaw' and not val is None:
+                if is_num(val, arg_name=key):
+                    san[key] = float(max(-180, min(val, 180)))
+                continue
+
+            # Validate the pitch
+            if key=='pitch' and not val is None:
+                if is_num(val, arg_name=key):
+                    san[key] = float(max(-90, min(val, 90)))
+                continue
+
+            # Validate the roll
+            if key=='roll' and not val is None:
+                if is_num(val, arg_name=key):
+                    san[key] = float(max(-180, min(val, 180)))
+                continue
 
             # Validate the scale
-            elif k == 'scale':
-                if not is_nvector(val, 3, arg_name=key):
-                    continue
-                sanitized[key] = tuple(float(max(0, x)) for x in val)
-        return sanitized
+            if key=='scale' and not val is None:
+                if is_nvector(val, 3, arg_name=key):
+                    san[key] = tuple(float(max(v, 0)) for v in val)
+                continue
+        return san
 
     def set_transform(self, name, **kwargs):
         """
@@ -1376,72 +1410,61 @@ class Visualizer():
         Returns
         -------
         sanitized : dict
-            The sanitized kwargs with default values set for non user defined
-            keys.
+            The sanitized kwargs
 
         """
-        # Set default values
-        sanitized = {'tex_path' : None,
-                     'tex_wrap' : [1001, 1001],
-                     'tex_repeat' : [1, 1],
-                     'color' : (1.0, 1.0, 1.0),
-                     'shininess' : 0.01,
-                     'opacity' : 1.0,
-                     'emissive_color' : (0.0, 0.0, 0.0)}
-
-        # Validate each key given by user
+        san = {}
         for key, val in kwargs.items():
-            k = key.lower()
-
-            # Validate the texture path
-            if k == 'tex_path':
-                if val is None:
+            # Validate tex_path
+            if key=='tex_path' and not val is None:
+                ext = ('.png', '.jpg')
+                if (type(val) in (list, tuple, np.ndarray)
+                    and all(path_valid(v, ext, arg_name=key) for v in val)):
+                    san[key] = tuple(str(v) for v in val)
                     continue
-                c1 = ((is_instance(val, tuple) or is_instance(val, list)) and
-                      all(path_valid(v, ('.png','.jpg'), v) for v in val))
-                c2 = (is_instance(val, str)
-                      and path_valid(val, ('.png','.jpg'), val))
-                if c1 or c2:
-                         sanitized[key] = val
+                if path_valid(val, ext, arg_name=key):
+                    san[key] = str(val)
+                    continue
 
             # Validate the texture wrap
-            if k == 'tex_wrap':
-                if not is_nvector(val, 2, arg_name=key):
-                    continue
-                sanitized[key] = (int(val[0]), int(val[1]))
+            if key=='tex_wrap' and not val is None:
+                if is_nvector(val, 2, arg_name=key):
+                    san[key] = tuple(int(v) for v in val)
+                continue
 
             # Validate the texture repeat
-            if k == 'tex_repeat':
-                if not is_nvector(val, 2, arg_name=key):
-                    continue
-                sanitized[key] = (int(val[0]), int(val[1]))
+            if key=='tex_repeat' and not val is None:
+                if is_nvector(val, 2, arg_name=key):
+                    san[key] = tuple(int(max(v, 1)) for v in val)
+                continue
 
             # Validate the color
-            elif k == 'color':
-                if not is_nvector(val, 3, arg_name=key):
-                    continue
-                sanitized[key] = tuple(float(max(0, min(c, 1))) for c in val)
-
-            # Validate the and opacity
-            elif k == 'opacity':
-                if not is_num(val, arg_name=key):
-                    continue
-                sanitized[key] = float(max(0, min(val, 1)))
+            if key=='color' and not val is None:
+                if is_nvector(val, 3, arg_name=key):
+                    san[key] = tuple(float(min(max(v, 0), 1)) for v in val)
+                continue
 
             # Validate the shininess
-            elif k == 'shininess':
-                if not is_num(val, arg_name=key):
-                    continue
-                sanitized[key] = float(max(0, min(500*val, 500)))
+            if key=='shininess' and not val is None:
+                if is_num(val, arg_name=key):
+                    san[key] = float(min(max(val, 0), 1))
+                continue
 
-            # Validate the color
-            elif k == 'emissive_color':
-                if not is_nvector(val, 3, arg_name=key):
-                    continue
-                sanitized[key] = tuple(float(max(0, min(e, 1))) for e in val)
-        return sanitized
+            # Validate the opacity
+            if key=='opacity' and not val is None:
+                if is_num(val, arg_name=key):
+                    san[key] = float(min(max(val, 0), 1))
+                continue
 
-    def _set_material(self, name, material_kwargs):
+            # Validate the emissive color
+            if key=='emissive_color' and not val is None:
+                if is_nvector(val, 3, arg_name=key):
+                    san[key] = tuple(float(min(max(v, 0), 1)) for v in val)
+                continue
+
+        return san
+
+    def _set_material(self, name, mat_kwargs):
         """
         Sets the material of a scene object.
 
@@ -1468,36 +1491,51 @@ class Visualizer():
             warn(msg, UserWarning)
             return
 
+        # Read the kwargs
+        tex_path = mat_kwargs.get('tex_path',
+                                  self._objects[scene_path]['tex_path'])
+        tex_wrap = mat_kwargs.get('tex_wrap',
+                                  self._objects[scene_path]['tex_wrap'])
+        tex_repeat = mat_kwargs.get('tex_repeat',
+                                    self._objects[scene_path]['tex_repeat'])
+        color = mat_kwargs.get('color',
+                               self._objects[scene_path]['color'])
+        shininess = mat_kwargs.get('shininess',
+                                   self._objects[scene_path]['shininess'])
+        opacity = mat_kwargs.get('opacity',
+                                 self._objects[scene_path]['opacity'])
+        emissive_color = mat_kwargs.get('emissive_color',
+                                self._objects[scene_path]['emissive_color'])
+
         # Check if a change is needed
-        cur_tex_path = self._objects[scene_path]['tex_path']
-        cur_tex_wrap = self._objects[scene_path]['tex_wrap']
-        cur_tex_repeat = self._objects[scene_path]['tex_repeat']
-        cur_color = self._objects[scene_path]['color']
-        cur_shininess = self._objects[scene_path]['shininess']
-        cur_opacity = self._objects[scene_path]['opacity']
-        cur_emissive_color = self._objects[scene_path]['emissive_color']
-        if (cur_tex_path == material_kwargs['tex_path'] and
-            cur_tex_wrap == material_kwargs['tex_wrap'] and
-            cur_tex_repeat == material_kwargs['tex_repeat'] and
-            cur_color == material_kwargs['color'] and
-            cur_shininess == material_kwargs['shininess'] and
-            cur_opacity == material_kwargs['opacity'] and
-            cur_emissive_color == material_kwargs['emissive_color']):
+        if (self._objects[scene_path]['tex_path'] == tex_path and
+            self._objects[scene_path]['tex_wrap'] == tex_wrap and
+            self._objects[scene_path]['tex_repeat'] == tex_repeat and
+            self._objects[scene_path]['color'] == color and
+            self._objects[scene_path]['shininess'] == shininess and
+            self._objects[scene_path]['opacity'] == opacity and
+            self._objects[scene_path]['emissive_color'] == emissive_color):
             return
 
         # Apply the new material
         geometry = self._objects[scene_path]['geometry']
-        material = self._get_material(**material_kwargs)
+        material = self._get_material(tex_path = tex_path,
+                                      tex_wrap = tex_wrap,
+                                      tex_repeat = tex_repeat,
+                                      color = color,
+                                      shininess = shininess,
+                                      opacity = opacity,
+                                      emissive_color = emissive_color,)
         self._scene[scene_path].set_object(geometry, material)
 
-        # Update the store material
-        self._objects[scene_path]['tex_path'] = material_kwargs['tex_path']
-        self._objects[scene_path]['tex_wrap'] = material_kwargs['tex_wrap']
-        self._objects[scene_path]['tex_repeat'] = material_kwargs['tex_repeat']
-        self._objects[scene_path]['color'] = material_kwargs['color']
-        self._objects[scene_path]['shininess'] = material_kwargs['shininess']
-        self._objects[scene_path]['opacity'] = material_kwargs['opacity']
-        self._objects[scene_path]['emissive_color'] = material_kwargs['emissive_color']
+        # Update the stored material
+        self._objects[scene_path]['tex_path'] = tex_path
+        self._objects[scene_path]['tex_wrap'] = tex_wrap
+        self._objects[scene_path]['tex_repeat'] = tex_repeat
+        self._objects[scene_path]['color'] = color
+        self._objects[scene_path]['shininess'] = shininess
+        self._objects[scene_path]['opacity'] = opacity
+        self._objects[scene_path]['emissive_color'] = emissive_color
 
     def set_material(self, name, **kwargs):
         """
@@ -1551,6 +1589,7 @@ class Visualizer():
         # Queue transforming the object
         material_kwargs = self._read_material_kwargs(kwargs)
         scene_path = get_scene_path(name)
+
         args = (name, material_kwargs, )
         return self._queue_action(self._set_material, scene_path, args)
 

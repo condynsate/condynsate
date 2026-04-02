@@ -211,7 +211,7 @@ def euler_from_wxyz(wxyz):
 
     return (float(yaw), float(pitch), float(roll))
 
-def Rbw_from_wxyz(wxyz):
+def Rbw_from_wxyz(wxyz, as_np=True):
     """
     Converts a wxyz quaternion into a rotation matrix
 

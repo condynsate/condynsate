@@ -385,7 +385,7 @@ class Project:
                 return 0
             self.refresh_visualizer()
             self.refresh_animator()
-            time.sleep(0.01)
+            time.sleep(0.005)
 
     def await_anykeys(self, timeout=None):
         """
@@ -421,7 +421,7 @@ class Project:
                 return pressed
             self.refresh_visualizer()
             self.refresh_animator()
-            time.sleep(0.01)
+            time.sleep(0.005)
 
     def terminate(self):
         """
