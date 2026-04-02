@@ -220,7 +220,6 @@ def _sim_loop(proj, cmg, program, get_torque, time, real_time):
             proj.visualizer.set_transform('planet',
                                           pitch=-np.deg2rad(13),
                                           roll=np.deg2rad(28.47),
-                                          scale=(R_EARTH*2,)*3,
                                           position=earth_x)
             proj.visualizer.set_ptlight_1(position=(np.sin(earth_pitch)*12,
                                                     0.0,

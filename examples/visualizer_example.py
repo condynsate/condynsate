@@ -54,10 +54,7 @@ if __name__ == "__main__":
                           position=p,
                           roll=roll,
                           pitch=pitch,
-                          yaw=yaw,
-                          scale=(0.5, 0.5, 0.5), # You must reset the scale
-                          # lest it return to default (1,1,1)
-                          )
+                          yaw=yaw,)
 
         # Select a new color to apply to the cube and apply it
         color = (0.121+np.sin(5*t),

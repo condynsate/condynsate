@@ -193,7 +193,7 @@
 	<joint name="fuselage_to_nosecone" type="continuous">
         <parent link = "fuselage" />
         <child link = "nosecone" />
-        <origin rpy="0 0 0" xyz = "2.0309 0 0.271" />
+        <origin rpy="0 0 0" xyz = "2.0834, 0, 0.26758" />
 		<axis xyz = "1 0 0" />
     </joint>
 	

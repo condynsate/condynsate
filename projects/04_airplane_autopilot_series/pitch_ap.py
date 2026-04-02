@@ -14,7 +14,7 @@ from condynsate import Project
 from condynsate import __assets__ as assets
 import numpy as np
 
-R_PLANET = 6371000
+R_PLANET = 637100
 @dataclass()
 class _PlaneParams():
     params : dict
@@ -423,51 +423,51 @@ def _read_kwargs(**kwargs):
 def _load_planet(proj, state0):
     n_repeat = int(np.sqrt((4*np.pi*R_PLANET**2)/5.827e8)//2)*2+1
     tex_paths = [v for k,v in assets.items()
-                 if k.startswith('countryside_225sqmi_28')]
+                 if k.startswith('countryside_225sqmi_')]
     tex_paths = sorted(tex_paths)
     proj.visualizer.add_object('ground',
                                assets['sphere_1_center_origin.stl'],
                                scale=(2*R_PLANET,)*3,
                                tex_path=tex_paths,
-                               tex_wrap=[1000, 1000],
                                tex_repeat=[n_repeat, n_repeat],
                                emissive_color=(0.15, 0.15, 0.15),
                                position=(0.0, 0.0, -R_PLANET-state0['h']),)
 
-def _load_sun(proj):
-    for i in range(10):
-        proj.visualizer.add_object(f'sun_{i}',
-                                   assets['sphere_1_center_origin.stl'],
-                                   scale=((5.+.25*i)*0.01745*.1*R_PLANET,)*3,
-                                   color=(1.0, 1.0, 1.0),
-                                   emissive_color=(1.0, 1.0, 1.0),
-                                   opacity=0.5-0.05*i,
-                                   position=np.array([.7,-.7,.1])*0.1*R_PLANET)
+def _load_sky(proj):
+    proj.visualizer.add_object('skybox',
+                               assets['sphere_1_center_origin.stl'],
+                               scale=(R_PLANET*5*2, )*3,
+                               tex_path=assets['skybox_day.jpg'],
+                               roll=1.5708,
+                               position=(0.0, 0.0, -R_PLANET))
+
 def _load_vis_env(proj, state0):
-    # Increase render distance to the horizon
-    dist_to_hori = 1.1*np.sqrt(2*R_PLANET*state0['h'])
-    proj.visualizer.set_cam_frustum(far=max(dist_to_hori, 0.1005*R_PLANET))
+    # Increase render distance to the skybox
+    proj.visualizer.set_cam_frustum(far=5.1*R_PLANET)
 
     # Load the ground and sun
     _load_planet(proj, state0)
-    _load_sun(proj)
+    _load_sky(proj)
 
     # Set the scene lighting
     proj.visualizer.set_background(bottom=(1.0, 1.0, 1.0))
-    proj.visualizer.set_ptlight_1(on=True, position=(1.0, -1.0, -12),
-                                  intensity=0.05, shadow=True, distance=50)
-    proj.visualizer.set_spotlight(on=True, position=(12.6, -12.6, 1.8),
-                                  angle=0.35, intensity=1.5, distance=50,
+    exp = int(np.ceil(np.log10(R_PLANET)))
+    proj.visualizer.set_ptlight_1(on=True, intensity=1, shadow=True,
+                            position=(10**exp/1.5, -10**exp/1.5, 10**exp/3.0),
+                            distance=10**(exp+1.1))
+    proj.visualizer.set_spotlight(on=True, position=(0, 0, -10),
+                                  angle=0.51, intensity=0.2, distance=13,
                                   shadow=True)
-    proj.visualizer.set_amblight(on=True, intensity=0.6)
+    proj.visualizer.set_amblight(on=True, intensity=0.5)
     proj.visualizer.set_ptlight_2(on=False)
     proj.visualizer.set_dirnlight(on=False)
     proj.visualizer.set_dirnlight(on=False)
 
     # Look at the plane
     R = _RXYZ(state0['phi'], np.pi-state0['theta'], np.pi+state0['psi'])
-    proj.visualizer.set_cam_position(R.T@(-11, 0, -2))
+    proj.visualizer.set_cam_position(R.T@(-25, 0, -5))
     proj.visualizer.set_cam_target((0, 0, 0))
+    proj.visualizer.set_cam_zoom(2.5)
 
     # Make the grid and axes invisible
     proj.visualizer.set_axes(False)
@@ -717,15 +717,6 @@ def _tau_LD(s, F_wl_W, F_wr_W, F_he_W, F_v_W, F_b_W):
             _cross(r_he_W, F_he_W) + _cross(r_v_W, F_v_W) +
             _cross(r_b_W, F_b_W))
 
-def _tau_damping(s):
-    # c1 = s.q * PARAM.s_w * PARAM.b_w**2 / (2.0 * s.u_inf)
-    # c2 = s.q * PARAM.s_w * PARAM.c_w**2 / (2.0 * s.u_inf)
-    # tau_z = (PARAM.cnr*s.omega_psi + PARAM.cnp*s.omega_phi) * c1
-    # tau_y = (PARAM.cmq*s.omega_theta) * c2
-    # tau_x = (PARAM.clr*s.omega_psi + PARAM.clp*s.omega_phi) * c1
-    # return s.R['PW'] @ (tau_x, tau_y, tau_z)
-    return np.array((0.0, 0.0, 0.0))
-
 def _net_aero_force_torque(s):
     # Get the forces
     F_wl_W, F_wr_W  = _wing_forces(s)
@@ -738,9 +729,7 @@ def _net_aero_force_torque(s):
     # Get the net torque from the lift and drag of the surfaces
     # and from Euler rate-based damping moments
     tau_LD_W = _tau_LD(s, F_wl_W, F_wr_W, F_he_W, F_v_W, F_b_W)
-    tau_damp_W = _tau_damping(s)
-    tau_net_W = tau_LD_W + tau_damp_W
-    return F_net_W, tau_net_W
+    return F_net_W, tau_LD_W
 
 def _state(plane, s):
     pybullet_state = plane.state
@@ -823,24 +812,19 @@ def _update_vis_env(proj, plane, s, prev_states, shake):
 
     # Position the camera
     if shake > 0.0:
-        cz_a = 500*shake*(prev_states['alpha'][-2:][0]-s.alpha)
-        cz_b = 500*shake*(prev_states['beta'][-2:][0]-s.beta)
+        cz_a = 400*shake*(prev_states['alpha'][-2:][0]-s.alpha)
+        cz_b = 400*shake*(prev_states['beta'][-2:][0]-s.beta)
         cz_h = shake*(np.mean(prev_states['h'][-50:])-s.p_W[2])
-        cz_rand = shake*0.0008*(np.random.rand(3)*2-1)
-        p = s.R_CoM_W @( -11, -cz_b, -2-cz_a-cz_h) + cz_rand
-        proj.visualizer.set_cam_position(p)
+        cz_rand = shake*0.0001*(np.random.rand(3)*2-1)
+        p = s.R_CoM_W @( 0, -cz_b, -cz_a-cz_h) + cz_rand
+        proj.visualizer.set_cam_target(p)
 
     # Rotate the earth according to the forward velocity,
     # and move the earth according to the altitude
     proj.visualizer.set_transform('ground',
                                   pitch = s.earth_pitch,
                                   roll = s.earth_roll,
-                                  scale = (2*R_PLANET, )*3,
                                   position=(0,0,-R_PLANET-s.p_W[2]))
-
-    # Increase render distance to the horizon
-    far = max(1.1*np.sqrt(2*R_PLANET*s.p_W[2]), 0.1005*R_PLANET)
-    proj.visualizer.set_cam_frustum(far=far)
 
 def _sim_loop(controller, program_nmuber, proj, plane, **kwargs):
     # Generate a set of turbulence parameters based on the selected seed
@@ -977,4 +961,4 @@ def ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    data = run(ctrlr, 1, time=10.0, shake=True, real_time=False)
+    data = run(ctrlr, 0)

@@ -1087,8 +1087,9 @@ class Visualizer():
             Path pointing to the file that describes the object's
             geometry. The file may be of type .obj, .stl, or .dae.
         mat_kwargs : dict
-            The material kwargs of the object being added. Includes arguments
-            tex_path, color, shininess, and opacity.
+            The material kwargs of the object being added. Can include
+            tex_path, tex_wrap, tex_repeat, color, shininess, opacity, and
+            emissive_color.
 
         Returns
         -------
@@ -1157,11 +1158,9 @@ class Visualizer():
             the object being added. Is only applied correctly if object is
             of type .obj or .dae. .stl files do not support proper
             texturing and attempting to apply texture to .stl may result in
-            unexpected viual results. If None, no texture is applied. The
-            default is None
+            unexpected viual results.
         tex_wrap : 2 tuple of ints
-            The threejs repeat type for texture. [1001,1001] for flat,
-            [1000,1000] for round.
+            The threejs repeat type for texture. The default is [1000, 1000].
         tex_repeat : 2 tuple of ints
             Number of times to repeat texture in U, V directions.
         color : 3vec of floats
@@ -1365,22 +1364,21 @@ class Visualizer():
         ------------
         position : 3vec of floats, optional
             The extrinsic position to set.
-            The default value is (0., 0., 0.)
         wxyz_quat : 4vec of floats, optional
             The extrinsic rotation to set as defined by a quaternion.
-            The default value is (1., 0., 0., 0.)
+            When not set, maintains previous value.
         yaw : float, optional
             The intrinsic yaw angle to set in radians. Defined about the
-            object's Z axis. The default value is 0.0.
+            object's Z axis. When not set, maintains previous value.
         pitch : float, optional
             The intrinsic pitch angle to set in radians. Defined about the
-            object's Y axis. The default value is 0.0.
+            object's Y axis. When not set, maintains previous value.
         roll : float, optional
             The intrinsic roll angle to set in radians. Defined about the
-            object's X axis. The default value is 0.0.
+            object's X axis. When not set, maintains previous value.
         scale : 3vec of floats, optional
-            The intrinsic scale of the object. When not set, defaults to
-            (1., 1., 1.).
+            The intrinsic scale of the object. When not set, maintains previous
+            value.
 
         Returns
         -------
@@ -1558,23 +1556,28 @@ class Visualizer():
             the object being added. Is only applied correctly if object is
             of type .obj or .dae. .stl files do not support proper
             texturing and attempting to apply texture to .stl may result in
-            unexpected viual results. If None, no texture is applied.
+            unexpected viual results. When not set, no maintains previous state.
         tex_wrap : 2 tuple of ints
             The threejs repeat type for texture. [1001,1001] for flat,
-            [1000,1000] for round.
+            [1000,1000] for round. When not set, no maintains previous state.
         tex_repeat : 2 tuple of ints
             Number of times to repeat texture in U, V directions.
+            When not set, no maintains previous state.
         color : 3vec of floats
             The color to apply to the object being added. In the form of
             (R, G, B) where all elements range from 0.0 to 1.0.
+            When not set, no maintains previous state.
         shininess : float
             The shininess of the object being added. Ranges from 0.0 to 1.0.
+            When not set, no maintains previous state.
         opacity : float
             The opacity of the object being added. Ranges from 0.0 to 1.0.
+            When not set, no maintains previous state.
         emissive_color : 3vec of floats
             The color of the light the object is emiting. In the form of
             (R, G, B) where all elements range from 0.0 to 1.0. A value of
-            (0.0, 0.0, 0.0) results in no emmision.
+            (0.0, 0.0, 0.0) results in no emmision. When not set, no maintains
+            previous state.
 
         Returns
         -------
