@@ -1,96 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-This module implements the backend for the airplane project. In this
-project, we use develop FLC/IAS autopilot.
+This module implements the backend for the airplane project.
 """
 """
 © Copyright, 2026 G. Schaer.
 SPDX-License-Identifier: GPL-3.0-only
 """
-from dataclasses import dataclass
 from time import sleep
 from time import time as now
 from condynsate import Project
 from condynsate import __assets__ as assets
 import numpy as np
+from cessna_172 import Cessna_172
 
 R_PLANET = 637100
-@dataclass()
-class _PlaneParams():
-    params : dict
-
-    def __init__(self):
-        self.params = {}
-
-        # Wing param
-        self.params['a0_w'] = 5.01          # cL slope wrt AoA [1/rad]
-        self.params['s_w'] = 16.2           # Projected top-down area [m^2]
-        self.params['c_w'] = 1.49           # Mean aerodynamic chord [m]
-        self.params['ar_w'] = 7.52          # Aspect ratio [-]
-        self.params['b_w'] = 10.9           # Span [m]
-        self.params['dihedral_w'] = 0.0297  # Diheadral angle [rad]
-        self.params['d_eta_d_alpha'] = 0.25 # Downwash angle slope wrt AoA [-]
-
-        # Horizontal stab param
-        self.params['a0_h'] = 4.817 # cL slope wrt AoA [1/rad]
-        self.params['s_h'] = 2.00   # Projected top-down area [m^2]
-        self.params['ar_h'] = 6.32  # Aspect ratio [-]
-
-        # Elevator param
-        self.params['a0_e'] = 5.230 # cL slope wrt AoA [1/rad]
-        self.params['s_e'] = 1.35   # Projected top-down area [m^2]
-        self.params['ar_e'] = 9.37  # Aspect ratio [-]
-
-        # Combined horizontal and elevator parameters
-        self.params['c_he'] = 0.942 # Mean aerodynamic chord [m]
-
-        # Combined vertical stab and rudder parameters
-        # Jone's theory estimate for a0
-        self.params['a0_v'] = 1.63 # cL slope wrt AoA [1/rad]
-        self.params['s_v'] = 1.73  # Projected side area [m^2]
-        self.params['ar_v'] = 1.04 # Aspect ratio [-]
-        self.params['c_v'] = 1.17  # Mean aerodynamic chord [m]
-
-        # Body parameters
-        self.params['s_b'] = 5.59   # Project side area [m^2]
-        self.params['mass'] = 964.0 # Mass [kg]
-
-        # Distance from CoM to wing and tail center of lift (at 0 AoA)
-        # positive in front of, to the right of, and below CoM
-        self.params['x_w'] = -0.156  # Axial distance (wing) [m]
-        self.params['y_w'] = 4.05    # Lateral distance (right wing) [m]
-        self.params['z_w'] = -0.971  # Vertical distance (wing) [m]
-        self.params['x_he'] = -4.59  # Axial distance (hori stab + ele) [m]
-        self.params['y_he'] = 0.0    # Lateral distance (hori stab + ele) [m]
-        self.params['z_he'] = 0.0288 # Vertical distance (hori stab + ele) [m]
-        self.params['x_v'] = -4.76   # Axial distance (v stab + rud) [m]
-        self.params['y_v'] = 0.0     # Lateral distance (v stab + rud) [m]
-        self.params['z_v'] = -0.260  # Vertical distance (v stab + rud) [m]
-        self.params['x_b'] = -0.608  # Axial distance (fuselage) [m]
-        self.params['y_b'] = 0.0     # Lateral distance (fuselage) [m]
-        self.params['z_b'] = -0.127  # Vertical distance (fuselage) [m]
-
-        # Input limits
-        self.params['delta_mn'] = -0.332 # Max downward deflection of ele [rad]
-        self.params['delta_mx'] = 0.384  # Max upward deflection of ele [rad]
-        self.params['delta_rate'] = 0.26 # Max deflection rate of ele [rad/s]
-        self.params['P_mx'] = 1.342e5    # Max engine power setting [kW]
-        self.params['P_rate'] = 3.4e4    # Max engine power setting rate [kW/s]
-
-        # Prop sizing
-        self.params['P_rpm_max'] = 2700.0     # RPM of prop at 100% power [rpm]
-        self.params['prop_diameter'] = 1.905  # Diameter of prop [m]
-
-        # Moment stability derivatives
-        self.params['cnr'] = -0.099 # Yaw damping wrt yaw rate
-        self.params['cnp'] = -0.03  # Yaw damping wrt roll rate
-        self.params['cmq'] = -12.4  # Pitch damping wrt pitch rate
-        self.params['clr'] = 0.096  # Roll damping wrt yaw rate
-        self.params['clp'] = -0.47  # Roll damping wrt roll rate
-
-    def __getattr__(self, key):
-        return self.params[key]
-PARAM = _PlaneParams()
+PARAM = Cessna_172()
 
 def _RYZ(y, z):
     cy, cz = np.cos(y), np.cos(z)
@@ -567,7 +491,7 @@ def _cL(alpha, beta, a_s, a_0, a_l0):
     # Any angle of attack outside of [-a_s-3deg, a_s+3deg] produces no lift
     return 0.0
 
-def _L_and_D(rho, mu, c, s, ar, a0, typ, h, u_inf, alpha, beta):
+def _L_D(rho, mu, c, s, ar, a0, typ, h, u_inf, alpha, beta):
     # Get the reynold's number and dynamic pressure
     re = rho * c * u_inf / mu
     q = 0.5 * rho * u_inf * u_inf
@@ -611,14 +535,14 @@ def _L_and_D(rho, mu, c, s, ar, a0, typ, h, u_inf, alpha, beta):
 
 def _wing_forces(s):
     # Get the lift and drag of the left wing (in local left wing flow)
-    LD_wl = _L_and_D(s.param_rho, s.param_mu,
-                     PARAM.c_w, PARAM.s_w, PARAM.ar_w, PARAM.a0_w, 'NACA2412',
-                     s.p_W[2], s.u_WL, s.alpha_wl, s.beta_wl)
+    LD_wl = _L_D(s.param_rho, s.param_mu,
+                 PARAM.c_w, PARAM.s_w, PARAM.ar_w, PARAM.a0_w, PARAM.typ_w,
+                 s.p_W[2], s.u_WL, s.alpha_wl, s.beta_wl)
 
     # Get the lift and drag of the right wing (in local right wing flow)
-    LD_wr = _L_and_D(s.param_rho, s.param_mu,
-                     PARAM.c_w, PARAM.s_w, PARAM.ar_w, PARAM.a0_w, 'NACA2412',
-                     s.p_W[2], s.u_WR, s.alpha_wr, s.beta_wr)
+    LD_wr = _L_D(s.param_rho, s.param_mu,
+                 PARAM.c_w, PARAM.s_w, PARAM.ar_w, PARAM.a0_w, PARAM.typ_w,
+                 s.p_W[2], s.u_WR, s.alpha_wr, s.beta_wr)
 
     # Convert from local flow coords to world coords
     F_wl_W = s.R_WL_W @ s.R_FWL_WL @ (-LD_wl[1], 0.0, -LD_wl[0])
@@ -630,14 +554,14 @@ def _hori_stab_force(s):
     eta = PARAM.d_eta_d_alpha * 0.5 * (s.alpha_wl + s.alpha_wr)
 
     # Get the lift and drag of the h stab (in local h stab flow)
-    LD_h = _L_and_D(s.param_rho, s.param_mu,
-                    PARAM.c_he, PARAM.s_h, PARAM.ar_h, PARAM.a0_h, 'NACA2412i',
-                    s.p_W[2], s.u_HE, s.alpha_he-eta, s.beta_he)
+    LD_h = _L_D(s.param_rho, s.param_mu,
+                PARAM.c_he, PARAM.s_h, PARAM.ar_h, PARAM.a0_h, PARAM.typ_he,
+                s.p_W[2], s.u_HE, s.alpha_he-eta, s.beta_he)
 
     # Get the lift and drag of the elevator (in local h stab flow)
-    LD_e = _L_and_D(s.param_rho, s.param_mu,
-                    PARAM.c_he, PARAM.s_e, PARAM.ar_e, PARAM.a0_e, 'NACA2412i',
-                    s.p_W[2], s.u_HE, s.alpha_he-eta-s.delta, s.beta_he)
+    LD_e = _L_D(s.param_rho, s.param_mu,
+                PARAM.c_he, PARAM.s_e, PARAM.ar_e, PARAM.a0_e, PARAM.typ_he,
+                s.p_W[2], s.u_HE, s.alpha_he-eta-s.delta, s.beta_he)
 
     # Convert from local flow coords to world coords
     F_he_W = s.R_HE_W @ s.R_FHE_HE @ (-LD_h[1]-LD_e[1], 0.0, -LD_h[0]-LD_e[0])
@@ -645,9 +569,9 @@ def _hori_stab_force(s):
 
 def _vert_stab_force(s):
     # Get the lift and drag of the v stab (in local v stab flow)
-    LD_v = _L_and_D(s.param_rho, s.param_mu,
-                    PARAM.c_v, PARAM.s_v, PARAM.ar_v, PARAM.a0_v, 'NACA0012',
-                    s.p_W[2], s.u_V, s.beta_v, s.alpha_v)
+    LD_v = _L_D(s.param_rho, s.param_mu,
+                PARAM.c_v, PARAM.s_v, PARAM.ar_v, PARAM.a0_v, PARAM.typ_v,
+                s.p_W[2], s.u_V, s.beta_v, s.alpha_v)
 
     # Convert from local flow coords to world coords
     # Note that for vert stab, lift force is in -y instead of -z
