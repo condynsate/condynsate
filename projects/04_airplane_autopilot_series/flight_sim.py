@@ -136,7 +136,7 @@ class _FlightModel:
     def _L_D(self, atmosphere, wing, state):
         # Get the reynold's number and dynamic pressure
         re = atmosphere['rho'] * wing['c'] * state['V'] / atmosphere['mu']
-        q = 0.5 * atmosphere['rho'] * state['V'] * state['V']
+        q_S = 0.5 * atmosphere['rho'] * state['V'] * state['V'] * wing['S']
 
         # Calculate stall and 0 lift angles
         alpha_L0 = self._alpha_L0(re, wing['typ'])
@@ -158,8 +158,8 @@ class _FlightModel:
                         0.284*math.cos(state['alpha']))
 
         # Get the total lift and drag
-        L = 0.5 * wing['S'] * cL * q
-        D = 0.5 * wing['S'] * (cDi + cDf_skin + cDf_form) * q
+        L = cL * q_S
+        D = (cDi + cDf_skin + cDf_form) * q_S
         return L, D
 
     def _wing_forces(self, sim):
@@ -384,11 +384,15 @@ class FlightSim:
         self._state['alpha'] = state0['alpha']
         self._state['beta'] = state0['beta']
         self._R['CoM_F'] = RYZ(self.alpha, self.beta)
-        self._R['F_CoM'] = self.R_CoM_F.T
+        self._R['F_CoM'] = self._R['CoM_F'].T
 
         # Set the initial world velocity and position
-        self._state['v_W'] = self.R_CoM_W@self.R_F_CoM@(state0['V_inf'],0,0)
+        v_F = (state0['V_inf'], 0, 0)
+        self._state['v_W'] = self._R['CoM_W']@self._R['F_CoM']@v_F
         self._state['p_W'] = (0, 0, state0['h'])
+
+        # Set the initial g force on the pilot to 0.0
+        self._state['g_force_W'] = (0.0, 0.0, 0.0)
 
         # Set the initial inputs
         self._state['delta_e'] = input0['delta_e']
@@ -511,17 +515,17 @@ class FlightSim:
         self._R['W_CoM'] = RXYZ(r, math.pi-p, math.pi+y)
         self._R['W_WL'] = RXYZ(r+self._params.dihedral_w, 3.14159-p, 3.14159+y)
         self._R['W_WR'] = RXYZ(r-self._params.dihedral_w, 3.14159-p, 3.14159+y)
-        self._R['CoM_W'] = self.R_W_CoM.T
-        self._R['WL_W'] = self.R_W_WL.T
-        self._R['WR_W'] = self.R_W_WR.T
+        self._R['CoM_W'] = self._R['W_CoM'].T
+        self._R['WL_W'] = self._R['W_WL'].T
+        self._R['WR_W'] = self._R['W_WR'].T
 
         # Alias the identical ones
-        self._R['W_HE'] = self.R_W_CoM
-        self._R['W_V'] =  self.R_W_CoM
-        self._R['W_B'] =  self.R_W_CoM
-        self._R['HE_W'] = self.R_CoM_W
-        self._R['V_W'] =  self.R_CoM_W
-        self._R['B_W'] =  self.R_CoM_W
+        self._R['W_HE'] = self._R['W_CoM']
+        self._R['W_V'] =  self._R['W_CoM']
+        self._R['W_B'] =  self._R['W_CoM']
+        self._R['HE_W'] = self._R['CoM_W']
+        self._R['V_W'] =  self._R['CoM_W']
+        self._R['B_W'] =  self._R['CoM_W']
 
     def _apply_force(self, F_aero_net, F_turbulence):
         # Get the net force by adding gravity
@@ -529,8 +533,12 @@ class FlightSim:
         F_net = F_aero_net + F_turbulence + F_gravity
 
         # Apply accelerations and velocities
+        acceleration = (F_net / self._params.mass)
         self._state['v_W'] += (F_net / self._params.mass) * self._dt
-        self._state['p_W'] += self.v_W * self._dt
+        self._state['p_W'] += self._state['v_W'] * self._dt
+
+        # Update the gforce sensor
+        self._state['g_force_W'] = -acceleration/9.81 + (0.0, 0.0, 1.0)
 
     def _update_inputs(self, delta_e_des, P_des):
         # Store the desired values
@@ -540,7 +548,7 @@ class FlightSim:
         # Update the elevator angle
         clipped_delta_e = min(max(delta_e_des, self._params.delta_e_min),
                               self._params.delta_e_max)
-        d_delta_e = clipped_delta_e - self.delta_e
+        d_delta_e = clipped_delta_e - self._state['delta_e']
         if abs(d_delta_e) <= self._params.delta_e_rate * self._dt:
             self._state['delta_e'] += d_delta_e
         else:
@@ -549,7 +557,7 @@ class FlightSim:
             self._state['delta_e'] += d_delta_e
 
         # Update the power setting
-        d_P = min(max(P_des, 0.0), self._params.P_max) - self.P
+        d_P = min(max(P_des, 0.0), self._params.P_max) - self._state['P']
         if abs(d_P) <= self._params.P_rate * self._dt:
             self._state['P'] += d_P
         else:
@@ -557,13 +565,13 @@ class FlightSim:
             self._state['P'] += self._params.P_rate*sign*self._dt
 
     def _update_world_rot(self):
-        d_pitch = -self.v_W[0] * self._dt / (self.p_W[2] + self._r_planet)
-        self._state['earth_pitch'] += d_pitch
-        d_roll = self.v_W[1] * self._dt / (self.p_W[2] + self._r_planet)
-        self._state['earth_roll'] += d_roll
+        d_pitch = -self._state['v_W'][0]/(self._state['p_W'][2]+self._r_planet)
+        self._state['earth_pitch'] += d_pitch * self._dt
+        d_roll = self._state['v_W'][1]/(self._state['p_W'][2]+self._r_planet)
+        self._state['earth_roll'] += d_roll * self._dt
 
     def _update_atmo(self):
-        h = self.p_W[2]
+        h = self._state['p_W'][2]
         self._atmosphere['g'] = g(h)
         self._atmosphere['rho'] = rho(h)
         self._atmosphere['T'] = temperature(h)
@@ -571,15 +579,16 @@ class FlightSim:
 
     def _update_velocities(self):
         # Update the local flow velocity at the center of mass
-        self._state['v_CoM'] = self.R_W_CoM @ self.v_W
+        self._state['v_CoM'] = self._R['W_CoM'] @ self._state['v_W']
 
         # Update the flow velocity and dynamic pressure
-        self._state['V_inf'] = norm3(self.v_W)
+        self._state['V_inf'] = norm3(self._state['v_W'])
 
     def _update_alpha_beta(self):
         # Update the center of mass local flow angles
-        self._state['alpha'] = math.atan2(self.v_CoM[2], self.v_CoM[0])
-        self._state['beta'] = math.asin((self.v_CoM[1] / self.V_inf))
+        v_CoM = self._state['v_CoM']
+        self._state['alpha'] = math.atan2(v_CoM[2], v_CoM[0])
+        self._state['beta'] = math.asin((v_CoM[1] / self._state['V_inf']))
 
     def _update_local_flow_angs(self):
         # Get the origins of the center of lift for each surface
@@ -591,12 +600,14 @@ class FlightSim:
 
         # Get the rotation of each surface in plane CoM coordinates
         # HE, V, and B are all not rotated
-        R_CoM_WL = self.R_W_WL@self.R_CoM_W
-        R_CoM_WR = self.R_W_WR@self.R_CoM_W
+        R_CoM_WL = self._R['W_WL']@self._R['CoM_W']
+        R_CoM_WR = self._R['W_WR']@self._R['CoM_W']
 
         # Get the rotation rate of the plane's center of mass about the world
         # in the plane's coordinate's
-        omega_CoM_CoM = (self.omega_phi, self.omega_theta, self.omega_psi)
+        omega_CoM_CoM = (self._state['omega_phi'],
+                         self._state['omega_theta'],
+                         self._state['omega_psi'])
 
         # Calculate the induced velocity at each of the surfaces from the
         # plane's rotation in surface coords
@@ -607,11 +618,11 @@ class FlightSim:
         vi_b_B   = cross(omega_CoM_CoM, O_B_CoM)
 
         # Get the total flow velocity at each surface in the surface coords
-        v_wl_WL = R_CoM_WL @ self.v_CoM + vi_wl_WL
-        v_wr_WR = R_CoM_WL @ self.v_CoM + vi_wr_WR
-        v_he_HE = self.v_CoM + vi_he_HE
-        v_v_V   = self.v_CoM + vi_v_V
-        v_b_B   = self.v_CoM + vi_b_B
+        v_wl_WL = R_CoM_WL @ self._state['v_CoM'] + vi_wl_WL
+        v_wr_WR = R_CoM_WL @ self._state['v_CoM'] + vi_wr_WR
+        v_he_HE = self._state['v_CoM'] + vi_he_HE
+        v_v_V   = self._state['v_CoM'] + vi_v_V
+        v_b_B   = self._state['v_CoM'] + vi_b_B
 
         # Save the magnitude of the local surface velocities
         self._state['V_wl'] = norm3(v_wl_WL)
@@ -622,31 +633,31 @@ class FlightSim:
 
         # Update the local flow angles at each of the surfaces
         self._state['alpha_wl'] = math.atan2(v_wl_WL[2], v_wl_WL[0])
-        self._state['beta_wl'] = math.asin(v_wl_WL[1] / self.V_wl)
+        self._state['beta_wl'] = math.asin(v_wl_WL[1] / self._state['V_wl'])
         self._state['alpha_wr'] = math.atan2(v_wr_WR[2], v_wr_WR[0])
-        self._state['beta_wr'] = math.asin(v_wr_WR[1] / self.V_wr)
+        self._state['beta_wr'] = math.asin(v_wr_WR[1] / self._state['V_wr'])
         self._state['alpha_he'] = math.atan2(v_he_HE[2], v_he_HE[0])
-        self._state['beta_he'] = math.asin(v_he_HE[1] / self.V_he)
+        self._state['beta_he'] = math.asin(v_he_HE[1] / self._state['V_he'])
         #BECAUSE V STAB ROTATED, ALPHA AND BETA ARE FLIPPED
-        self._state['alpha_v'] = math.asin(v_v_V[1] / self.V_v)
+        self._state['alpha_v'] = math.asin(v_v_V[1] / self._state['V_v'])
         self._state['beta_v'] = math.atan2(v_v_V[2], v_v_V[0])
         self._state['alpha_b'] = math.atan2(v_b_B[2], v_b_B[0])
-        self._state['beta_b'] = math.asin(v_b_B[1] / self.V_b)
+        self._state['beta_b'] = math.asin(v_b_B[1] / self._state['V_b'])
 
     def _update_flow_rot_mats(self):
-        self._R['CoM_F'] = RYZ(self.alpha, self.beta)
-        self._R['WL_FWL'] = RYZ(self.alpha_wl, self.beta_wl)
-        self._R['WR_FWR'] = RYZ(self.alpha_wr, self.beta_wr)
-        self._R['HE_FHE'] = RYZ(self.alpha_he, self.beta_he)
-        self._R['V_FV'] = RYZ(self.alpha_v, self.beta_v)
-        self._R['B_FB'] = RYZ(self.alpha_b, self.beta_b)
+        self._R['CoM_F'] = RYZ(self._state['alpha'],self._state['beta'])
+        self._R['WL_FWL'] = RYZ(self._state['alpha_wl'],self._state['beta_wl'])
+        self._R['WR_FWR'] = RYZ(self._state['alpha_wr'],self._state['beta_wr'])
+        self._R['HE_FHE'] = RYZ(self._state['alpha_he'],self._state['beta_he'])
+        self._R['V_FV'] = RYZ(self._state['alpha_v'],self._state['beta_v'])
+        self._R['B_FB'] = RYZ(self._state['alpha_b'],self._state['beta_b'])
 
-        self._R['F_CoM'] = self.R_CoM_F.T
-        self._R['FWL_WL'] = self.R_WL_FWL.T
-        self._R['FWR_WR'] = self.R_WR_FWR.T
-        self._R['FHE_HE'] = self.R_HE_FHE.T
-        self._R['FV_V'] = self.R_V_FV.T
-        self._R['FB_B'] = self.R_B_FB.T
+        self._R['F_CoM'] = self._R['CoM_F'].T
+        self._R['FWL_WL'] = self._R['WL_FWL'].T
+        self._R['FWR_WR'] = self._R['WR_FWR'].T
+        self._R['FHE_HE'] = self._R['HE_FHE'].T
+        self._R['FV_V'] = self._R['V_FV'].T
+        self._R['FB_B'] = self._R['B_FB'].T
 
     def step(self, rotation_state, delta_e_des, P_des):
         # Step 0
@@ -678,25 +689,26 @@ class FlightSim:
 
     def telem(self):
         telem = {'time' : self._t,
-                 'h' : self.p_W[2],
-                 'V_inf' : self.V_inf,
-                 'p_W' : self.p_W,
-                 'v_W' : self.v_W,
-                 'v_CoM' : self.v_CoM,
-                 'R_CoM_W' : self.R_CoM_W,
-                 'alpha' : self.alpha,
-                 'beta' : self.beta,
-                 'omega_psi' : self.omega_psi,
-                 'omega_theta' : self.omega_theta,
-                 'omega_phi' : self.omega_phi,
-                 'psi' : self.psi,
-                 'theta' : self.theta,
-                 'phi' : self.phi,
-                 'delta_e' : self.delta_e,
-                 'P' : self.P,
-                 'delta_e_des' : self.delta_e_des,
-                 'P_des' : self.P_des,
+                 'h' : self._state['p_W'][2],
+                 'V_inf' : self._state['V_inf'],
+                 'p_W' : self._state['p_W'],
+                 'v_W' : self._state['v_W'],
+                 'g_force_W' : self._state['g_force_W'],
+                 'v_CoM' : self._state['v_CoM'],
+                 'R_CoM_W' : self._R['CoM_W'],
+                 'alpha' : self._state['alpha'],
+                 'beta' : self._state['beta'],
+                 'omega_psi' : self._state['omega_psi'],
+                 'omega_theta' : self._state['omega_theta'],
+                 'omega_phi' : self._state['omega_phi'],
+                 'psi' : self._state['psi'],
+                 'theta' : self._state['theta'],
+                 'phi' : self._state['phi'],
+                 'delta_e' : self._state['delta_e'],
+                 'P' : self._state['P'],
+                 'delta_e_des' : self._state['delta_e_des'],
+                 'P_des' : self._state['P_des'],
                  'engine_rpm' : 60.0*self._model.prop_rps(self),
-                 'earth_pitch' : self.earth_pitch,
-                 'earth_roll' : self.earth_roll,}
+                 'earth_pitch' : self._state['earth_pitch'],
+                 'earth_roll' : self._state['earth_roll'],}
         return telem

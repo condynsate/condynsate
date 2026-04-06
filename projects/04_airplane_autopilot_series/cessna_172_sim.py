@@ -258,7 +258,7 @@ def _rotation_state(plane):
                       'phi' : pybullet_state.ypr[2],}
     return rotation_state
 
-def _update_vis_env(proj, plane, telem, prev_states, shake):
+def _update_vis_env(proj, plane, telem, shake):
     # Set the elevator deflection
     plane.joints['fuselage_to_elevator'].set_state(angle = telem['delta_e'])
 
@@ -268,11 +268,7 @@ def _update_vis_env(proj, plane, telem, prev_states, shake):
 
     # Position the camera
     if shake > 0.0:
-        cz_a = 400*shake*(prev_states['alpha'][-2:][0]-telem['alpha'])
-        cz_b = 400*shake*(prev_states['beta'][-2:][0]-telem['beta'])
-        cz_h = shake*(np.mean(prev_states['h'][-50:])-telem['h'])
-        cz_rand = shake*0.0001*(np.random.rand(3)*2-1)
-        p = telem['R_CoM_W'] @( 0, -cz_b, -cz_a-cz_h) + cz_rand
+        p = shake * telem['g_force_W']
         proj.visualizer.set_cam_target(p)
 
     # Rotate the earth according to the forward velocity,
@@ -318,7 +314,7 @@ def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
 
         # Update the visuals
         if kwargs['real_time']:
-            _update_vis_env(proj, plane, telem, data, kwargs['shake'])
+            _update_vis_env(proj, plane, telem, kwargs['shake'])
 
         # Update the data
         data.step(telem, h_des)
@@ -410,4 +406,4 @@ def ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    data = run(ctrlr, 1)
+    data = run(ctrlr, 3)
