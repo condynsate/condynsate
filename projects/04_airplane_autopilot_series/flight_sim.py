@@ -32,10 +32,10 @@ def RXYZ(x, y, z):
                      (cx*sz+sx*sy*cz,  cx*cz-sx*sy*sz, -sx*cy),
                      (sx*sz-cx*sy*cz,  sx*cz+cx*sy*sz,  cx*cy)))
 
-def cross(va, vb):
-    a1, a2, a3 = va
-    b1, b2, b3 = vb
-    return (a2*b3-a3*b2, a3*b1-a1*b3, a1*b2-a2*b1)
+def cross(a, b):
+    a0, a1, a2 = a
+    b0, b1, b2 = b
+    return (a1*b2-a2*b1, a2*b0-a0*b2, a0*b1-a1*b0)
 
 def norm3(v3):
     return math.sqrt(v3[0]*v3[0] + v3[1]*v3[1] + v3[2]*v3[2])
@@ -272,18 +272,34 @@ class _FlightModel:
         den = const + 3.177
         return num / den
 
-    def _prop_efficiency(self, sim):
-        # Ideal prop efficiency based on advance ratio for a 20 degree angle prop
-        J = sim.v_CoM[0] / (self.prop_rps(sim)*self.p.prop_D)
-        if 0 <= J < 0.87:
-            return -1.097*J*J + 1.908*J
-        if 0.87 <= J <= 1.05:
-            return -25.62*J*J + 44.57*J - 18.56
-        return 0.0
+    def _cT(self, sim, n):
+        # Based on monotonic decrease, linear cT(J) curve
+        n_max = self.p.rpm_max/60.0
+        n_75 = 0.925*self.p.rpm_max/60.0
+        D = self.p.prop_D
+        V_c = self.p.V_cruise
+        b = self.p.T_max / (1.225*n_max**2*D**4)
+        m = self.p.T_cruise/(1.225*V_c*n_75*D**3) - b*n_75*D/V_c
+        J = sim.v_CoM[0] / (n*self.p.prop_D)
+        return min(max(m*J + b, 0.0), b)
+
+    # def _prop_efficiency(self, sim):
+    #     # Ideal prop efficiency based on advance ratio
+    #     # for a 20 degree angle prop
+    #     J = sim.v_CoM[0] / (self.prop_rps(sim)*self.p.prop_D)
+    #     if 0 <= J < 0.87:
+    #         return -1.097*J*J + 1.908*J
+    #     if 0.87 <= J <= 1.05:
+    #         return -25.62*J*J + 44.57*J - 18.56
+    #     return 0.0
 
     def _prop_force(self, sim):
+        # Calculate the thrust
+        n = self.prop_rps(sim)
+        T = sim.rho * n**2 * self.p.prop_D**4 * self._cT(sim, n)
+        # T = sim.P * self._prop_efficiency(sim) / sim.V_inf
+
         # Convert from plane coords to world coords
-        T = sim.P * self._prop_efficiency(sim) / sim.V_inf
         return sim.R_CoM_W @ (T, 0.0, 0.0)
 
     def _r_CoM2CoL_W(self, sim):

@@ -406,4 +406,4 @@ def ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    data = run(ctrlr, 3)
+    data = run(ctrlr, 0, real_time=False, time=60)
