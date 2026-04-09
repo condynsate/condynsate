@@ -36,10 +36,14 @@ class _SimData():
                      'theta':[],
                      'phi':[],
                      'delta_e_des':[],
+                     'delta_r_des':[],
+                     'delta_a_des':[],
                      'P_des':[],
                      'delta_e':[],
+                     'delta_r':[],
+                     'delta_a':[],
                      'P':[],
-                     'engine_rpm':[],
+                     'prop_rpm':[],
                      'h_des':[],}
 
     def __dict__(self):
@@ -67,10 +71,14 @@ class _SimData():
         self._data['theta'].append(float(telem['theta']))
         self._data['phi'].append(float(telem['phi']))
         self._data['delta_e'].append(float(telem['delta_e']))
+        self._data['delta_r'].append(float(telem['delta_r']))
+        self._data['delta_a'].append(float(telem['delta_a']))
         self._data['P'].append(float(telem['P']))
         self._data['delta_e_des'].append(float(telem['delta_e_des']))
+        self._data['delta_r_des'].append(float(telem['delta_r_des']))
+        self._data['delta_a_des'].append(float(telem['delta_a_des']))
         self._data['P_des'].append(float(telem['P_des']))
-        self._data['engine_rpm'].append(float(telem['engine_rpm']))
+        self._data['prop_rpm'].append(float(telem['prop_rpm']))
         self._data['h_des'].append(float(h_des))
 
 def _read_kwargs(**kwargs):
@@ -85,6 +93,8 @@ def _read_kwargs(**kwargs):
               'theta' : kwargs.get('theta', 0.05923),
               'phi' : kwargs.get('phi', 0.0)}
     input0 = {'delta_e' : kwargs.get('delta_e', 0.06592),
+              'delta_r' : kwargs.get('delta_r', 0.0),
+              'delta_a' : kwargs.get('delta_a', 0.0),
               'P' : kwargs.get('P', 62160.),}
     kwargs = {'state0' : state0,
               'input0' : input0,
@@ -155,16 +165,19 @@ def _load_vis_env(proj, telem):
 
 def _set_init_conds(plane, telem):
     # Rotate the prop
-    omega = telem['engine_rpm'] * 0.1047
+    omega = telem['prop_rpm'] * 0.1047
     plane.joints['fuselage_to_nosecone'].set_initial_state(omega=omega)
 
     # Set the initial control surfaces
     plane.joints['fuselage_to_flaps'].set_initial_state(angle=0)
-    plane.joints['fuselage_to_r_aileron'].set_initial_state(angle=0)
-    plane.joints['fuselage_to_l_aileron'].set_initial_state(angle=0)
     plane.joints['fuselage_to_elevator'].set_initial_state(
         angle=telem['delta_e'])
-    plane.joints['fuselage_to_rudder'].set_initial_state(angle=0)
+    plane.joints['fuselage_to_rudder'].set_initial_state(
+        angle=telem['delta_r'])
+    plane.joints['fuselage_to_r_aileron'].set_initial_state(
+        angle=telem['delta_a'])
+    plane.joints['fuselage_to_l_aileron'].set_initial_state(
+        angle=telem['delta_a'])
 
     # Apply initial state
     plane.set_initial_state(yaw = -telem['psi'],
@@ -261,9 +274,12 @@ def _rotation_state(plane):
 def _update_vis_env(proj, plane, telem, shake):
     # Set the elevator deflection
     plane.joints['fuselage_to_elevator'].set_state(angle = telem['delta_e'])
+    plane.joints['fuselage_to_rudder'].set_state(angle = telem['delta_r'])
+    plane.joints['fuselage_to_r_aileron'].set_state(angle = telem['delta_a'])
+    plane.joints['fuselage_to_l_aileron'].set_state(angle = telem['delta_a'])
 
     # Update the prop speed
-    omega = telem['engine_rpm'] * 0.1047
+    omega = telem['prop_rpm'] * 0.1047
     plane.joints['fuselage_to_nosecone'].set_state(omega=omega)
 
     # Position the camera
@@ -277,6 +293,21 @@ def _update_vis_env(proj, plane, telem, shake):
                                   pitch = telem['earth_pitch'],
                                   roll = telem['earth_roll'],
                                   position=(0,0,-R_PLANET-telem['h']))
+
+def _get_keypresses(proj):
+    delta_e = 0.0 # Torque applied to outermost ring
+    delta_e -= 0.25 * float(proj.keyboard.is_pressed('w'))
+    delta_e += 0.25 * float(proj.keyboard.is_pressed('s'))
+
+    delta_r = 0.0 # Torque applied to the middle ring
+    delta_r -= 0.25 * float(proj.keyboard.is_pressed('q'))
+    delta_r += 0.25 * float(proj.keyboard.is_pressed('e'))
+
+    delta_a = 0.0 # Torque applied to the inner ring
+    delta_a -= 0.25 * float(proj.keyboard.is_pressed('a'))
+    delta_a += 0.25 * float(proj.keyboard.is_pressed('d'))
+
+    return delta_e, delta_r, delta_a
 
 def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
     # Make structure to hold simulation data
@@ -299,12 +330,14 @@ def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
 
         # Get the controller inputs
         delta_e_des, P_des = controller(telem, h_des)
+        # delta_e_des, delta_r_des, delta_a_des = _get_keypresses(proj)
 
         # Step the simulation. Use the flight sim calculated aero torques
         # to rotate the airplane in the Pybullet engine
         tau_aero_net = flightsim.step(_rotation_state(plane),
                                       delta_e_des,
-                                      P_des)
+                                      0.0,
+                                      0.0, P_des)
         plane.apply_torque(tau_aero_net)
         proj.step(real_time=kwargs['real_time'], stable_step=False)
 
@@ -406,4 +439,4 @@ def ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    data = run(ctrlr, 0, real_time=False, time=60)
+    data = run(ctrlr, 2, real_time=True, time=120)

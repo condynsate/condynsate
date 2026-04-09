@@ -166,27 +166,44 @@ class _FlightModel:
         # Build the arguments
         atmosphere = {'rho' : sim.rho,
                       'mu' : sim.mu}
-        wing = {'c' : self.p.c_w,
-                'S' : self.p.S_w,
+        wing = {'c' : self.p.c_wa,
+                'S' : 0.5 * self.p.S_w, # half due to seperated wings calc
                 'AR' : self.p.AR_w,
                 'alpha_0' : self.p.alpha_0_w,
-                'typ' : self.p.typ_w}
+                'typ' : self.p.typ_wa}
+        aileron = {'c' : self.p.c_wa,
+                   'S' : self.p.S_a,
+                   'AR' : self.p.AR_a,
+                   'alpha_0' : self.p.alpha_0_a,
+                   'typ' : self.p.typ_wa}
         state_wl = {'V' : sim.V_wl,
                     'alpha' : sim.alpha_wl,
                     'beta' : sim.beta_wl}
         state_wr = {'V' : sim.V_wr,
                     'alpha' : sim.alpha_wr,
                     'beta' : sim.beta_wr}
+        state_al = {'V' : sim.V_wl,
+                    'alpha' : sim.alpha_wl + sim.delta_a,
+                    'beta' : sim.beta_wl}
+        state_ar = {'V' : sim.V_wr,
+                    'alpha' : sim.alpha_wr - sim.delta_a,
+                    'beta' : sim.beta_wr}
 
         # Get the lift and drag of the left wing (in local left wing flow)
         LD_wl = self._L_D(atmosphere, wing, state_wl)
 
+        # Get the lift and drag of the left aileron (in local left wing flow)
+        LD_al = self._L_D(atmosphere, aileron, state_al)
+
         # Get the lift and drag of the right wing (in local right wing flow)
         LD_wr = self._L_D(atmosphere, wing, state_wr)
 
+        # Get the lift and drag of the right state_wl (in local right wing flow)
+        LD_ar = self._L_D(atmosphere, aileron, state_ar)
+
         # Convert from local flow coords to world coords
-        F_wl_W = sim.R_WL_W @ sim.R_FWL_WL @ (-LD_wl[1], 0.0, -LD_wl[0])
-        F_wr_W = sim.R_WR_W @ sim.R_FWR_WR @ (-LD_wr[1], 0.0, -LD_wr[0])
+        F_wl_W=sim.R_WL_W@sim.R_FWL_WL@(-LD_wl[1]-LD_al[1],0,-LD_wl[0]-LD_al[0])
+        F_wr_W=sim.R_WR_W@sim.R_FWR_WR@(-LD_wr[1]-LD_ar[1],0,-LD_wr[0]-LD_ar[0])
         return F_wl_W, F_wr_W
 
     def _h_stab_ele_forces(self, sim):
@@ -227,21 +244,32 @@ class _FlightModel:
         # Build the arguments
         atmosphere = {'rho' : sim.rho,
                       'mu' : sim.mu}
-        v_stab = {'c' : self.p.c_v,
+        v_stab = {'c' : self.p.c_vr,
                   'S' : self.p.S_v,
                   'AR' : self.p.AR_v,
                   'alpha_0' : self.p.alpha_0_v,
-                  'typ' : self.p.typ_v}
+                  'typ' : self.p.typ_vr}
+        rud = {'c' : self.p.c_vr,
+               'S' : self.p.S_r,
+               'AR' : self.p.AR_r,
+               'alpha_0' : self.p.alpha_0_r,
+               'typ' : self.p.typ_vr}
         state_v = {'V' : sim.V_v,
                    'alpha' : sim.alpha_v,
+                   'beta' : sim.beta_v}
+        state_r = {'V' : sim.V_v,
+                   'alpha' : sim.alpha_v + sim.delta_r,
                    'beta' : sim.beta_v}
 
         # Get the lift and drag of the v stab (in local v stab flow)
         LD_v = self._L_D(atmosphere, v_stab, state_v)
 
+        # Get the lift and drag of the rudder (in local v stab flow)
+        LD_r = self._L_D(atmosphere, rud, state_r)
+
         # Convert from local flow coords to world coords
         # Note that for vert stab, lift force is in -y instead of -z
-        return sim.R_V_W @ sim.R_FV_V @ (-LD_v[1], -LD_v[0], 0.0)
+        return sim.R_V_W@sim.R_FV_V@(-LD_v[1]-LD_r[1], -LD_v[0]-LD_r[0], 0.0)
 
     def  _body_force(self, sim):
         # Body lift is treated as though body is low-lift symmetric airfoil
@@ -283,16 +311,6 @@ class _FlightModel:
         J = sim.v_CoM[0] / (n*self.p.prop_D)
         return min(max(m*J + b, 0.0), b)
 
-    # def _prop_efficiency(self, sim):
-    #     # Ideal prop efficiency based on advance ratio
-    #     # for a 20 degree angle prop
-    #     J = sim.v_CoM[0] / (self.prop_rps(sim)*self.p.prop_D)
-    #     if 0 <= J < 0.87:
-    #         return -1.097*J*J + 1.908*J
-    #     if 0.87 <= J <= 1.05:
-    #         return -25.62*J*J + 44.57*J - 18.56
-    #     return 0.0
-
     def _prop_force(self, sim):
         # Calculate the thrust
         n = self.prop_rps(sim)
@@ -306,10 +324,10 @@ class _FlightModel:
         # Adjust dCL based on AoA for nonsymmetric surfaces (wings, hstab, ele)
         # Assume wings, hstab, and ele are all NACA2412 airfoils
         # x_cL moves fore by 10%c at 20 deg AoA and aft by 10%c at -20 deg AoA
-        dx_wl = 0.286*self.p.c_w*sim.alpha_wl
-        dx_wl = min(max(dx_wl, -.1*self.p.c_w), .1*self.p.c_w)
-        dx_wr = 0.286*self.p.c_w*sim.alpha_wr
-        dx_wr = min(max(dx_wr, -.1*self.p.c_w), .1*self.p.c_w)
+        dx_wl = 0.286*self.p.c_wa*sim.alpha_wl
+        dx_wl = min(max(dx_wl, -.1*self.p.c_wa), .1*self.p.c_wa)
+        dx_wr = 0.286*self.p.c_wa*sim.alpha_wr
+        dx_wr = min(max(dx_wr, -.1*self.p.c_wa), .1*self.p.c_wa)
         dx_he = 0.286*self.p.c_he*sim.alpha_he
         dx_he = min(max(dx_he, -.1*self.p.c_he),.1*self.p.c_he)
 
@@ -370,6 +388,8 @@ class FlightSim:
                                        'V_inf' : 0.0,
                                        'h' : 0.0,})
         input0 = kwargs.get('input0', {'delta_e' : 0.0,
+                                       'delta_r' : 0.0,
+                                       'delta_a' : 0.0,
                                        'P' : 0.0})
         params = kwargs.get('params', Cessna172())
         dt = kwargs.get('dt', 0.01)
@@ -412,8 +432,12 @@ class FlightSim:
 
         # Set the initial inputs
         self._state['delta_e'] = input0['delta_e']
+        self._state['delta_r'] = input0['delta_r']
+        self._state['delta_a'] = input0['delta_a']
         self._state['P'] = input0['P']
         self._state['delta_e_des'] = input0['delta_e']
+        self._state['delta_r_des'] = input0['delta_r']
+        self._state['delta_a_des'] = input0['delta_a']
         self._state['P_des'] = input0['P']
 
         # Set the rotations of the planet to 0
@@ -556,9 +580,11 @@ class FlightSim:
         # Update the gforce sensor
         self._state['g_force_W'] = -acceleration/9.81 + (0.0, 0.0, 1.0)
 
-    def _update_inputs(self, delta_e_des, P_des):
+    def _update_inputs(self, delta_e_des, delta_r_des, delta_a_des, P_des):
         # Store the desired values
         self._state['delta_e_des'] = delta_e_des
+        self._state['delta_r_des'] = delta_r_des
+        self._state['delta_a_des'] = delta_a_des
         self._state['P_des'] = P_des
 
         # Update the elevator angle
@@ -571,6 +597,28 @@ class FlightSim:
             sign = math.copysign(1, d_delta_e)
             d_delta_e = self._params.delta_e_rate*sign*self._dt
             self._state['delta_e'] += d_delta_e
+
+        # Update the rudder angle
+        clipped_delta_r = min(max(delta_r_des, -self._params.delta_r_max),
+                              self._params.delta_r_max)
+        d_delta_r = clipped_delta_r - self._state['delta_r']
+        if abs(d_delta_r) <= self._params.delta_r_rate * self._dt:
+            self._state['delta_r'] += d_delta_r
+        else:
+            sign = math.copysign(1, d_delta_r)
+            d_delta_r = self._params.delta_r_rate*sign*self._dt
+            self._state['delta_r'] += d_delta_r
+
+        # Update the aileron angle
+        clipped_delta_a = min(max(delta_a_des, -self._params.delta_a_max),
+                              self._params.delta_a_max)
+        d_delta_a = clipped_delta_a - self._state['delta_a']
+        if abs(d_delta_a) <= self._params.delta_a_rate * self._dt:
+            self._state['delta_a'] += d_delta_a
+        else:
+            sign = math.copysign(1, d_delta_a)
+            d_delta_a = self._params.delta_a_rate*sign*self._dt
+            self._state['delta_a'] += d_delta_a
 
         # Update the power setting
         d_P = min(max(P_des, 0.0), self._params.P_max) - self._state['P']
@@ -675,7 +723,7 @@ class FlightSim:
         self._R['FV_V'] = self._R['V_FV'].T
         self._R['FB_B'] = self._R['B_FB'].T
 
-    def step(self, rotation_state, delta_e_des, P_des):
+    def step(self, rotation_state, delta_e_des, delta_r_des, delta_a_des, P_des):
         # Step 0
         F_aero_net, tau_aero_net = self._model.net_aero_force_torque(self)
         F_turbulence = self._get_turbulence()
@@ -684,7 +732,7 @@ class FlightSim:
         self._update_euler_angs(rotation_state)
         self._update_plane_rot_mats()
         self._apply_force(F_aero_net, F_turbulence)
-        self._update_inputs(delta_e_des, P_des)
+        self._update_inputs(delta_e_des, delta_r_des, delta_a_des, P_des)
         self._update_world_rot()
         self._update_atmo()
 
@@ -721,10 +769,14 @@ class FlightSim:
                  'theta' : self._state['theta'],
                  'phi' : self._state['phi'],
                  'delta_e' : self._state['delta_e'],
+                 'delta_r' : self._state['delta_r'],
+                 'delta_a' : self._state['delta_a'],
                  'P' : self._state['P'],
                  'delta_e_des' : self._state['delta_e_des'],
+                 'delta_r_des' : self._state['delta_r_des'],
+                 'delta_a_des' : self._state['delta_a_des'],
                  'P_des' : self._state['P_des'],
-                 'engine_rpm' : 60.0*self._model.prop_rps(self),
+                 'prop_rpm' : 60.0*self._model.prop_rps(self),
                  'earth_pitch' : self._state['earth_pitch'],
                  'earth_roll' : self._state['earth_roll'],}
         return telem
