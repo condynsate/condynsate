@@ -56,12 +56,12 @@ class Cessna172(Params):
 
         # Vertical stab parameters
         self.params['alpha_0_v'] = 1.95 # cL slope wrt AoA [1/rad]
-        self.params['S_v'] = 1.04       # Projected side area [m^2]
+        self.params['S_v'] = 1.41       # Projected side area [m^2]
         self.params['AR_v'] = 1.37      # Aspect ratio [-]
 
         # Rudder parameters
         self.params['alpha_0_r'] = 3.67 # cL slope wrt AoA [1/rad]
-        self.params['S_r'] = 0.690      # Projected side area [m^2]
+        self.params['S_r'] = 0.750      # Projected side area [m^2]
         self.params['AR_r'] = 3.55      # Aspect ratio [-]
 
         # Combined v stab and rudder parameters
@@ -80,9 +80,9 @@ class Cessna172(Params):
         self.params['x_he'] = -4.59  # Axial distance (hori stab + ele) [m]
         self.params['y_he'] = 0.0    # Lateral distance (hori stab + ele) [m]
         self.params['z_he'] = 0.0288 # Vertical distance (hori stab + ele) [m]
-        self.params['x_v'] = -4.76   # Axial distance (v stab + rud) [m]
+        self.params['x_v'] = -4.81   # Axial distance (v stab + rud) [m]
         self.params['y_v'] = 0.0     # Lateral distance (v stab + rud) [m]
-        self.params['z_v'] = -0.260  # Vertical distance (v stab + rud) [m]
+        self.params['z_v'] = -0.281  # Vertical distance (v stab + rud) [m]
         self.params['x_b'] = -0.608  # Axial distance (fuselage) [m]
         self.params['y_b'] = 0.0     # Lateral distance (fuselage) [m]
         self.params['z_b'] = -0.127  # Vertical distance (fuselage) [m]

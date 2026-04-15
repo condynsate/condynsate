@@ -25,12 +25,12 @@ def RYZ(y, z):
                      (sz,     cz,    0.0),
                      (-sy*cz, sy*sz, cy )))
 
-def RXYZ(x, y, z):
-    cx, cy, cz = math.cos(x), math.cos(y), math.cos(z)
-    sx, sy, sz = math.sin(x), math.sin(y), math.sin(z)
-    return np.array(((cy*cz,          -cy*sz,           sy   ),
-                     (cx*sz+sx*sy*cz,  cx*cz-sx*sy*sz, -sx*cy),
-                     (sx*sz-cx*sy*cz,  sx*cz+cx*sy*sz,  cx*cy)))
+def RBW(r, p, y):
+    cr, cp, cy = np.cos(r), np.cos(p), np.cos(y)
+    sr, sp, sy = np.sin(r), np.sin(p), np.sin(y)
+    return np.array(((cp*cy, cy*sp*sr-cr*sy, cr*cy*sp+sr*sy),
+                     (cp*sy, cr*cy+sp*sr*sy, cr*sp*sy-cy*sr),
+                     (-sp,   cp*sr,          cp*cr)))
 
 def cross(a, b):
     a0, a1, a2 = a
@@ -80,6 +80,7 @@ class _FlightModel:
         if alpha_abs <= alpha_s:
             # Add a cos beta as a first order crab angle correction term
             return math.cos(beta) * alpha_0 * (alpha - alpha_L0) + buffet
+            # return alpha_0 * (alpha - alpha_L0) + buffet
 
         # Positive stalling region
         # Assume stall starts at a_s. cL decreases to 50% at 3 deg past a_s
@@ -91,6 +92,7 @@ class _FlightModel:
 
             # Add a cos beta as a first order crab angle correction term
             return math.cos(beta) * (a * alpha*alpha + b * alpha + c) + buffet
+            # return (a * alpha*alpha + b * alpha + c) + buffet
 
         # Negative stalling region
         # Assume stall starts at -a_s. cL decreases to 50% at 3 deg past -a_s
@@ -102,6 +104,7 @@ class _FlightModel:
 
             # Add a cos beta as a first order crab angle correction term
             return math.cos(beta) * (a * alpha*alpha + b * alpha + c) + buffet
+            # return (a * alpha*alpha + b * alpha + c) + buffet
 
         # Complete stall
         # Any angle of attack outside of [-a_s-3deg, a_s+3deg] produces no lift
@@ -202,9 +205,9 @@ class _FlightModel:
         LD_ar = self._L_D(atmosphere, aileron, state_ar)
 
         # Convert from local flow coords to world coords
-        F_wl_W=sim.R_WL_W@sim.R_FWL_WL@(-LD_wl[1]-LD_al[1],0,-LD_wl[0]-LD_al[0])
-        F_wr_W=sim.R_WR_W@sim.R_FWR_WR@(-LD_wr[1]-LD_ar[1],0,-LD_wr[0]-LD_ar[0])
-        return F_wl_W, F_wr_W
+        F_wl_CoM = sim.R_FWL_CoM @ (-LD_wl[1]-LD_al[1], 0.0, -LD_wl[0]-LD_al[0])
+        F_wr_CoM = sim.R_FWR_CoM @ (-LD_wr[1]-LD_ar[1], 0.0, -LD_wr[0]-LD_ar[0])
+        return F_wl_CoM, F_wr_CoM
 
     def _h_stab_ele_forces(self, sim):
         # Get the downwash angle induced from the wings
@@ -237,8 +240,7 @@ class _FlightModel:
         LD_e = self._L_D(atmosphere, ele, state_e)
 
         # Convert from local flow coords to world coords
-        F_he_FHE = (-LD_h[1]-LD_e[1], 0.0, -LD_h[0]-LD_e[0])
-        return sim.R_HE_W @ sim.R_FHE_HE @ F_he_FHE
+        return sim.R_FHE_CoM @ (-LD_h[1]-LD_e[1], 0.0, -LD_h[0]-LD_e[0])
 
     def _vert_stab_force(self, sim):
         # Build the arguments
@@ -268,13 +270,12 @@ class _FlightModel:
         LD_r = self._L_D(atmosphere, rud, state_r)
 
         # Convert from local flow coords to world coords
-        # Note that for vert stab, lift force is in -y instead of -z
-        return sim.R_V_W@sim.R_FV_V@(-LD_v[1]-LD_r[1], -LD_v[0]-LD_r[0], 0.0)
+        return sim.R_FV_CoM @ (-LD_v[1]-LD_r[1], 0.0, -LD_v[0]-LD_r[0])
 
     def  _body_force(self, sim):
         # Body lift is treated as though body is low-lift symmetric airfoil
         # with no stall angle
-        alpha_0 = 0.5
+        alpha_0 = 0.1
         alpha_L0 = 0.0
         alpha_s = math.inf
         cL_alpha=self._cL(sim.alpha_b, sim.beta_b, alpha_0, alpha_L0, alpha_s)
@@ -288,7 +289,7 @@ class _FlightModel:
 
         # Convert from local flow coords to world coords
         # Note that for body, side forces are also generated
-        return sim.R_B_W @ sim.R_FB_B @ (-D, -L_beta, -L_alpha)
+        return sim.R_FB_CoM @ (-D, -L_beta, -L_alpha)
 
     def prop_rps(self, sim):
         # Prop RPS as a function of engine power
@@ -315,12 +316,11 @@ class _FlightModel:
         # Calculate the thrust
         n = self.prop_rps(sim)
         T = sim.rho * n**2 * self.p.prop_D**4 * self._cT(sim, n)
-        # T = sim.P * self._prop_efficiency(sim) / sim.V_inf
 
         # Convert from plane coords to world coords
-        return sim.R_CoM_W @ (T, 0.0, 0.0)
+        return (T, 0.0, 0.0)
 
-    def _r_CoM2CoL_W(self, sim):
+    def _r_CoM2CoL_CoM(self, sim):
         # Adjust dCL based on AoA for nonsymmetric surfaces (wings, hstab, ele)
         # Assume wings, hstab, and ele are all NACA2412 airfoils
         # x_cL moves fore by 10%c at 20 deg AoA and aft by 10%c at -20 deg AoA
@@ -337,29 +337,61 @@ class _FlightModel:
         r_v_CoM = (self.p.x_v, self.p.y_v, self.p.z_v)
         r_b_CoM = (self.p.x_b, self.p.y_b, self.p.z_b)
 
-        return (sim.R_CoM_W @ r_wl_CoM, sim.R_CoM_W @ r_wr_CoM,
-                sim.R_CoM_W @ r_he_CoM, sim.R_CoM_W @ r_v_CoM,
-                sim.R_CoM_W @ r_b_CoM)
+        return (r_wl_CoM, r_wr_CoM, r_he_CoM, r_v_CoM, r_b_CoM)
 
-    def _tau_LD(self, sim, forces):
-        rs = self._r_CoM2CoL_W(sim)
-        lst = (cross(r, F) for (r,F) in zip(rs, forces))
-        return tuple(map(sum, zip(*lst)))
+    def _tau_LD(self, sim, forces_CoM):
+        rs_CoM = self._r_CoM2CoL_CoM(sim)
+        taus_CoM = (cross(r, F) for (r,F) in zip(rs_CoM, forces_CoM))
+        return tuple(map(sum, zip(*taus_CoM)))
 
     def net_aero_force_torque(self, sim):
         # Get the forces
-        F_wl_W, F_wr_W  = self._wing_forces(sim)
-        F_he_W = self._h_stab_ele_forces(sim)
-        F_v_W = self._vert_stab_force(sim)
-        F_b_W = self._body_force(sim)
-        F_p_W = self._prop_force(sim)
-        F_net_W = F_wl_W + F_wr_W + F_he_W + F_v_W + F_b_W + F_p_W
+        F_wl_CoM, F_wr_CoM  = self._wing_forces(sim)
+        F_he_CoM = self._h_stab_ele_forces(sim)
+        F_v_CoM = self._vert_stab_force(sim)
+        F_b_CoM = self._body_force(sim)
+        F_p_CoM = self._prop_force(sim)
+        F_net_CoM = F_wl_CoM+F_wr_CoM+F_he_CoM+F_v_CoM+F_b_CoM+F_p_CoM
 
         # Get the net torque from the lift and drag of the surfaces
         # and from Euler rate-based damping moments
-        forces = (F_wl_W, F_wr_W, F_he_W, F_v_W, F_b_W)
-        tau_LD_W = self._tau_LD(sim, forces)
-        return F_net_W, tau_LD_W
+        forces_CoM = (F_wl_CoM, F_wr_CoM, F_he_CoM, F_v_CoM, F_b_CoM)
+        rs_CoM = self._r_CoM2CoL_CoM(sim)
+        taus_CoM = tuple(cross(r, F) for (r,F) in zip(rs_CoM, forces_CoM))
+        tau_LD_CoM = tuple(map(sum, zip(*taus_CoM)))
+
+        print('F_LFT_CoM = ('+', '.join(f'{x:.2f}' for x in F_wl_CoM)+')')
+        print('F_RGT_CoM = ('+', '.join(f'{x:.2f}' for x in F_wr_CoM)+')')
+        print('F_HSB_CoM = ('+', '.join(f'{x:.2f}' for x in F_he_CoM)+')')
+        print('F_VSB_CoM = ('+', '.join(f'{x:.2f}' for x in F_v_CoM)+')')
+        print('F_BOD_CoM = ('+', '.join(f'{x:.2f}' for x in F_b_CoM)+')')
+        print('F_PRP_CoM = ('+', '.join(f'{x:.2f}' for x in F_p_CoM)+')')
+        print('F_NET_CoM = ('+', '.join(f'{x:.2f}' for x in F_net_CoM)+')', end='\n\n')
+
+        print('TAU_LFT_CoM = ('+', '.join(f'{x:.2f}' for x in taus_CoM[0])+')')
+        print('TAU_RGT_CoM = ('+', '.join(f'{x:.2f}' for x in taus_CoM[1])+')')
+        print('TAU_HSB_CoM = ('+', '.join(f'{x:.2f}' for x in taus_CoM[2])+')')
+        print('TAU_VSB_CoM = ('+', '.join(f'{x:.2f}' for x in taus_CoM[3])+')')
+        print('TAU_BOD_CoM = ('+', '.join(f'{x:.2f}' for x in taus_CoM[4])+')')
+        print('TAU_NET_CoM = ('+', '.join(f'{x:.2f}' for x in tau_LD_CoM)+')', end='\n\n')
+
+        print(f'COM_AOA = {np.rad2deg(sim.alpha):.2f}')
+        print(f'LFT_AOA = {np.rad2deg(sim.alpha_wl):.2f}')
+        print(f'RGT_AOA = {np.rad2deg(sim.alpha_wr):.2f}')
+        print(f'HSB_AOA = {np.rad2deg(sim.alpha_he):.2f}')
+        print(f'VSB_AOA = {np.rad2deg(sim.alpha_v):.2f}')
+        print(f'BOD_AOA = {np.rad2deg(sim.alpha_b):.2f}')
+        print(f'COM_BET = {np.rad2deg(sim.beta):.2f}')
+        print(f'LFT_BET = {np.rad2deg(sim.beta_wl):.2f}')
+        print(f'RGT_BET = {np.rad2deg(sim.beta_wr):.2f}')
+        print(f'HSB_BET = {np.rad2deg(sim.beta_he):.2f}')
+        print(f'VSB_BET = {np.rad2deg(sim.beta_v):.2f}')
+        print(f'BOM_BET = {np.rad2deg(sim.beta_b):.2f}', end='\n\n')
+
+        print('V_CoM = ('+', '.join(f'{x:.2f}' for x in sim.v_CoM)+')')
+        print('V_WLD = ('+', '.join(f'{x:.2f}' for x in sim.R_CoM_W@sim.v_CoM)+')', end='\n\n')
+
+        return sim.R_CoM_W @ F_net_CoM, sim.R_CoM_W @ tau_LD_CoM
 
 ###############################################################################
 #FLIGHTSIM CLASS
@@ -419,12 +451,11 @@ class FlightSim:
         # relevant rotations
         self._state['alpha'] = state0['alpha']
         self._state['beta'] = state0['beta']
-        self._R['CoM_F'] = RYZ(self.alpha, self.beta)
-        self._R['F_CoM'] = self._R['CoM_F'].T
+        self._R['F_CoM'] = RYZ(-self._state['alpha'], self._state['beta'])
 
         # Set the initial world velocity and position
-        v_F = (state0['V_inf'], 0, 0)
-        self._state['v_W'] = self._R['CoM_W']@self._R['F_CoM']@v_F
+        v_plane_F = (state0['V_inf'], 0, 0)
+        self._state['v_W'] = self._R['CoM_W'] @ self._R['F_CoM'] @ v_plane_F
         self._state['p_W'] = (0, 0, state0['h'])
 
         # Set the initial g force on the pilot to 0.0
@@ -550,22 +581,30 @@ class FlightSim:
         self._state['phi'] = rotation_state['phi']
 
     def _update_plane_rot_mats(self):
+        # Coordinates of center of mass of plane
         r, p, y = self.phi, self.theta, self.psi
+        self._R['CoM_W'] = ((1, 0 ,0), (0, -1, 0), (0, 0, -1)) @ RBW(r, p, y)
+        self._R['W_CoM'] = self._R['CoM_W'].T
 
-        self._R['W_CoM'] = RXYZ(r, math.pi-p, math.pi+y)
-        self._R['W_WL'] = RXYZ(r+self._params.dihedral_w, 3.14159-p, 3.14159+y)
-        self._R['W_WR'] = RXYZ(r-self._params.dihedral_w, 3.14159-p, 3.14159+y)
-        self._R['CoM_W'] = self._R['W_CoM'].T
-        self._R['WL_W'] = self._R['W_WL'].T
-        self._R['WR_W'] = self._R['W_WR'].T
-
-        # Alias the identical ones
-        self._R['W_HE'] = self._R['W_CoM']
-        self._R['W_V'] =  self._R['W_CoM']
-        self._R['W_B'] =  self._R['W_CoM']
-        self._R['HE_W'] = self._R['CoM_W']
-        self._R['V_W'] =  self._R['CoM_W']
-        self._R['B_W'] =  self._R['CoM_W']
+        # Orientation of wings and v stab
+        # All other surfaces are aligned with CoM of plane
+        cos = math.cos(self._params.dihedral_w)
+        sin = math.sin(self._params.dihedral_w)
+        self._R['WL_CoM'] = np.array([[ 1.0, 0.0,  0.0 ],
+                                      [ 0.0, cos, -sin ],
+                                      [ 0.0, sin,  cos ]])
+        self._R['WR_CoM'] = np.array([[ 1.0, 0.0,  0.0 ],
+                                      [ 0.0, cos,  sin ],
+                                      [ 0.0, -sin, cos ]])
+        self._R['V_CoM'] = np.array([[ 1.0,  0.0, 0.0 ],
+                                     [ 0.0,  0.0, 1.0 ],
+                                     [ 0.0, -1.0, 0.0 ]])
+        self._R['CoM_WL'] = self._R['WL_CoM'].T
+        self._R['CoM_WR'] = self._R['WR_CoM'].T
+        self._R['CoM_V']  = self._R['V_CoM'].T
+        self._R['WL_W'] = self._R['CoM_W'] @ self._R['WL_CoM']
+        self._R['WR_W'] = self._R['CoM_W'] @ self._R['WR_CoM']
+        self._R['V_W'] =  self._R['CoM_W'] @ self._R['V_CoM']
 
     def _apply_force(self, F_aero_net, F_turbulence):
         # Get the net force by adding gravity
@@ -662,11 +701,6 @@ class FlightSim:
         O_V_CoM  = (self._params.x_v,  self._params.y_v,  self._params.z_v)
         O_B_CoM  = (self._params.x_b,  self._params.y_b,  self._params.z_b)
 
-        # Get the rotation of each surface in plane CoM coordinates
-        # HE, V, and B are all not rotated
-        R_CoM_WL = self._R['W_WL']@self._R['CoM_W']
-        R_CoM_WR = self._R['W_WR']@self._R['CoM_W']
-
         # Get the rotation rate of the plane's center of mass about the world
         # in the plane's coordinate's
         omega_CoM_CoM = (self._state['omega_phi'],
@@ -674,19 +708,13 @@ class FlightSim:
                          self._state['omega_psi'])
 
         # Calculate the induced velocity at each of the surfaces from the
-        # plane's rotation in surface coords
-        vi_wl_WL = R_CoM_WL @ cross(omega_CoM_CoM, O_WL_CoM)
-        vi_wr_WR = R_CoM_WR @ cross(omega_CoM_CoM, O_WR_CoM)
-        vi_he_HE = cross(omega_CoM_CoM, O_HE_CoM)
-        vi_v_V   = cross(omega_CoM_CoM, O_V_CoM)
-        vi_b_B   = cross(omega_CoM_CoM, O_B_CoM)
-
-        # Get the total flow velocity at each surface in the surface coords
-        v_wl_WL = R_CoM_WL @ self._state['v_CoM'] + vi_wl_WL
-        v_wr_WR = R_CoM_WL @ self._state['v_CoM'] + vi_wr_WR
-        v_he_HE = self._state['v_CoM'] + vi_he_HE
-        v_v_V   = self._state['v_CoM'] + vi_v_V
-        v_b_B   = self._state['v_CoM'] + vi_b_B
+        # plane's rotation in surface coords then get the total flow velocity
+        # at each surface in the surface coords.
+        v_wl_WL = self._R['CoM_WL'] @ (self._state['v_CoM'] + cross(omega_CoM_CoM, O_WL_CoM))
+        v_wr_WR = self._R['CoM_WR'] @ (self._state['v_CoM'] + cross(omega_CoM_CoM, O_WR_CoM))
+        v_v_V   = self._R['CoM_V']  @ (self._state['v_CoM'] + cross(omega_CoM_CoM, O_V_CoM))
+        v_he_HE = self._state['v_CoM'] + cross(omega_CoM_CoM, O_HE_CoM)
+        v_b_B   = self._state['v_CoM'] + cross(omega_CoM_CoM, O_B_CoM)
 
         # Save the magnitude of the local surface velocities
         self._state['V_wl'] = norm3(v_wl_WL)
@@ -702,26 +730,24 @@ class FlightSim:
         self._state['beta_wr'] = math.asin(v_wr_WR[1] / self._state['V_wr'])
         self._state['alpha_he'] = math.atan2(v_he_HE[2], v_he_HE[0])
         self._state['beta_he'] = math.asin(v_he_HE[1] / self._state['V_he'])
-        #BECAUSE V STAB ROTATED, ALPHA AND BETA ARE FLIPPED
-        self._state['alpha_v'] = math.asin(v_v_V[1] / self._state['V_v'])
-        self._state['beta_v'] = math.atan2(v_v_V[2], v_v_V[0])
+        self._state['alpha_v'] = math.atan2(v_v_V[2], v_v_V[0])
+        self._state['beta_v'] = math.asin(v_v_V[1] / self._state['V_v'])
         self._state['alpha_b'] = math.atan2(v_b_B[2], v_b_B[0])
         self._state['beta_b'] = math.asin(v_b_B[1] / self._state['V_b'])
 
     def _update_flow_rot_mats(self):
-        self._R['CoM_F'] = RYZ(self._state['alpha'],self._state['beta'])
-        self._R['WL_FWL'] = RYZ(self._state['alpha_wl'],self._state['beta_wl'])
-        self._R['WR_FWR'] = RYZ(self._state['alpha_wr'],self._state['beta_wr'])
-        self._R['HE_FHE'] = RYZ(self._state['alpha_he'],self._state['beta_he'])
-        self._R['V_FV'] = RYZ(self._state['alpha_v'],self._state['beta_v'])
-        self._R['B_FB'] = RYZ(self._state['alpha_b'],self._state['beta_b'])
-
-        self._R['F_CoM'] = self._R['CoM_F'].T
-        self._R['FWL_WL'] = self._R['WL_FWL'].T
-        self._R['FWR_WR'] = self._R['WR_FWR'].T
-        self._R['FHE_HE'] = self._R['HE_FHE'].T
-        self._R['FV_V'] = self._R['V_FV'].T
-        self._R['FB_B'] = self._R['B_FB'].T
+        self._R['F_CoM']   = RYZ(-self._state['alpha'],
+                                  self._state['beta'])
+        self._R['FWL_CoM'] = self._R['WL_CoM'] @ RYZ(-self._state['alpha_wl'],
+                                                      self._state['beta_wl'])
+        self._R['FWR_CoM'] = self._R['WR_CoM'] @ RYZ(-self._state['alpha_wr'],
+                                                      self._state['beta_wr'])
+        self._R['FHE_CoM'] = RYZ(-self._state['alpha_he'],
+                                  self._state['beta_he'])
+        self._R['FB_CoM']  = RYZ(-self._state['alpha_b'],
+                                  self._state['beta_b'])
+        self._R['FV_CoM']  = self._R['V_CoM'] @ RYZ(-self._state['alpha_v'],
+                                                     self._state['beta_v'])
 
     def step(self, rotation_state, delta_e_des, delta_r_des, delta_a_des, P_des):
         # Step 0

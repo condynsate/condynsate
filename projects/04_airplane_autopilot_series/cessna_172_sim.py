@@ -8,6 +8,7 @@ SPDX-License-Identifier: GPL-3.0-only
 """
 from time import sleep
 from time import time as now
+from collections import deque
 from condynsate import Project
 from condynsate import __assets__ as assets
 import numpy as np
@@ -82,20 +83,20 @@ class _SimData():
         self._data['h_des'].append(float(h_des))
 
 def _read_kwargs(**kwargs):
-    state0 = {'h' : kwargs.get('h', 2000.0),
-              'V_inf' : kwargs.get('V_inf', 47.82),
-              'alpha' : kwargs.get('alpha', 0.05923),
+    state0 = {'h' : kwargs.get('h', 2003.63),
+              'V_inf' : kwargs.get('V_inf', 48.7124),
+              'alpha' : kwargs.get('alpha', 0.0566943),
               'beta' : kwargs.get('beta', 0.0),
               'omega_psi' : kwargs.get('omega_psi', 0.0),
               'omega_theta' : kwargs.get('omega_theta', 0.0),
               'omega_phi' : kwargs.get('omega_phi', 0.0),
               'psi' : kwargs.get('psi', 0.0),
-              'theta' : kwargs.get('theta', 0.05923),
+              'theta' : kwargs.get('theta', 0.0566974),
               'phi' : kwargs.get('phi', 0.0)}
-    input0 = {'delta_e' : kwargs.get('delta_e', 0.06592),
+    input0 = {'delta_e' : kwargs.get('delta_e', 0.0313281),
               'delta_r' : kwargs.get('delta_r', 0.0),
               'delta_a' : kwargs.get('delta_a', 0.0),
-              'P' : kwargs.get('P', 62160.),}
+              'P' : kwargs.get('P', 59859.3),}
     kwargs = {'state0' : state0,
               'input0' : input0,
               'dt' : DT,
@@ -189,7 +190,7 @@ def _set_init_conds(plane, telem):
 
 def _make(**kwargs):
     # Create the project
-    proj = Project(keyboard=False, visualizer=kwargs['real_time'],
+    proj = Project(keyboard=True, visualizer=kwargs['real_time'],
                    simulator_gravity = (0.,0.,0.),
                    simulator_dt = DT,)
 
@@ -271,7 +272,7 @@ def _rotation_state(plane):
                       'phi' : pybullet_state.ypr[2],}
     return rotation_state
 
-def _update_vis_env(proj, plane, telem, shake):
+def _update_vis_env(proj, plane, telem, shake, cam_target_history):
     # Set the elevator deflection
     plane.joints['fuselage_to_elevator'].set_state(angle = telem['delta_e'])
     plane.joints['fuselage_to_rudder'].set_state(angle = telem['delta_r'])
@@ -284,8 +285,12 @@ def _update_vis_env(proj, plane, telem, shake):
 
     # Position the camera
     if shake > 0.0:
-        p = shake * telem['g_force_W']
+        cam_target_history.append(shake * np.arctan(telem['g_force_W']/shake))
+        while len(cam_target_history) > int(10.0 / shake):
+            cam_target_history.popleft()
+        p = np.mean(cam_target_history, axis=0)
         proj.visualizer.set_cam_target(p)
+    # proj.visualizer.set_cam_position(telem['R_CoM_W']@(-25, 0, -5))
 
     # Rotate the earth according to the forward velocity,
     # and move the earth according to the altitude
@@ -295,17 +300,17 @@ def _update_vis_env(proj, plane, telem, shake):
                                   position=(0,0,-R_PLANET-telem['h']))
 
 def _get_keypresses(proj):
-    delta_e = 0.0 # Torque applied to outermost ring
-    delta_e -= 0.25 * float(proj.keyboard.is_pressed('w'))
-    delta_e += 0.25 * float(proj.keyboard.is_pressed('s'))
+    delta_e = 0.0
+    delta_e -= 0.25 * float(proj.keyboard.is_pressed('i'))
+    delta_e += 0.25 * float(proj.keyboard.is_pressed('k'))
 
-    delta_r = 0.0 # Torque applied to the middle ring
-    delta_r -= 0.25 * float(proj.keyboard.is_pressed('q'))
-    delta_r += 0.25 * float(proj.keyboard.is_pressed('e'))
+    delta_r = 0.0
+    delta_r -= 0.25 * float(proj.keyboard.is_pressed('a'))
+    delta_r += 0.25 * float(proj.keyboard.is_pressed('d'))
 
-    delta_a = 0.0 # Torque applied to the inner ring
-    delta_a -= 0.25 * float(proj.keyboard.is_pressed('a'))
-    delta_a += 0.25 * float(proj.keyboard.is_pressed('d'))
+    delta_a = 0.0
+    delta_a -= 0.25 * float(proj.keyboard.is_pressed('j'))
+    delta_a += 0.25 * float(proj.keyboard.is_pressed('l'))
 
     return delta_e, delta_r, delta_a
 
@@ -323,21 +328,21 @@ def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
 
     # Run a simulation loop
     start = now()
+    cam_tag = deque()
     while proj.simtime <= kwargs['duration']:
         # Crash condition (will strike ground in 0.5 seconds)
         if telem['h'] + 0.5*telem['v_W'][2] <= 0.0:
             break
 
         # Get the controller inputs
-        delta_e_des, P_des = controller(telem, h_des)
-        # delta_e_des, delta_r_des, delta_a_des = _get_keypresses(proj)
+        _, _ = controller(telem, h_des)
+        delta_e_des, delta_a_des, delta_r_des = _get_keypresses(proj)
 
         # Step the simulation. Use the flight sim calculated aero torques
         # to rotate the airplane in the Pybullet engine
+        0.0313281
         tau_aero_net = flightsim.step(_rotation_state(plane),
-                                      delta_e_des,
-                                      0.0,
-                                      0.0, P_des)
+                                      delta_e_des, delta_a_des, delta_r_des, 59859.3)
         plane.apply_torque(tau_aero_net)
         proj.step(real_time=kwargs['real_time'], stable_step=False)
 
@@ -347,7 +352,7 @@ def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
 
         # Update the visuals
         if kwargs['real_time']:
-            _update_vis_env(proj, plane, telem, kwargs['shake'])
+            _update_vis_env(proj, plane, telem, kwargs['shake'], cam_tag)
 
         # Update the data
         data.step(telem, h_des)
@@ -439,4 +444,4 @@ def ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    data = run(ctrlr, 2, real_time=True, time=120)
+    data = run(ctrlr, 0, real_time=True, time=360, psi=np.deg2rad(45))

@@ -278,22 +278,28 @@ def Rbw_from_euler(yaw, pitch, roll):
         takes vectors in body coordinates to world coordinates .
 
     """
-    cr = np.cos(roll)
-    sr = np.sin(roll)
-    cp = np.cos(pitch)
-    sp = np.sin(pitch)
-    cy = np.cos(yaw)
-    sy = np.sin(yaw)
-    Rr = np.array([[ 1.,  0.,  0.],
-                    [ 0.,  cr,  sr],
-                    [ 0., -sr,  cr]])
-    Rp = np.array([[ cp,  0., -sp],
-                    [ 0.,  1.,  0.],
-                    [ sp,  0.,  cp]])
-    Ry = np.array([[ cy,  sy,  0.],
-                    [-sy,  cy,  0.],
-                    [ 0.,  0.,  1.]])
-    return (Rr@Rp@Ry).T
+    # cr = np.cos(roll)
+    # sr = np.sin(roll)
+    # cp = np.cos(pitch)
+    # sp = np.sin(pitch)
+    # cy = np.cos(yaw)
+    # sy = np.sin(yaw)
+    # Rr = np.array([[ 1.,  0.,  0.],
+    #                 [ 0.,  cr,  sr],
+    #                 [ 0., -sr,  cr]])
+    # Rp = np.array([[ cp,  0., -sp],
+    #                 [ 0.,  1.,  0.],
+    #                 [ sp,  0.,  cp]])
+    # Ry = np.array([[ cy,  sy,  0.],
+    #                 [-sy,  cy,  0.],
+    #                 [ 0.,  0.,  1.]])
+    # return (Rr@Rp@Ry).T
+
+    cr, cp, cy = np.cos(roll), np.cos(pitch), np.cos(yaw)
+    sr, sp, sy = np.sin(roll), np.sin(pitch), np.sin(yaw)
+    return np.array(((cp*cy, cy*sp*sr-cr*sy, cr*cy*sp+sr*sy),
+                     (cp*sy, cr*cy+sp*sr*sy, cr*sp*sy-cy*sr),
+                     (-sp,   cp*sr,          cp*cr)))
 
 def Rab_to_Rba(Rab):
     """
