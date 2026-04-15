@@ -468,4 +468,4 @@ def _ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    dat = run(_ctrlr, 1, real_time=True, chase=True, time=60.)
+    dat = run(_ctrlr, 1, real_time=False, chase=True, time=60.)
