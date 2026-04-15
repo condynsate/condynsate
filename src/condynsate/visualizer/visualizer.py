@@ -12,6 +12,7 @@ SPDX-License-Identifier: GPL-3.0-only
 ###############################################################################
 import sys
 import os
+import math
 meshcat_path = os.path.join(os.path.dirname(__file__), r'meshcat-python\src')
 sys.path.append(meshcat_path)
 
@@ -267,7 +268,7 @@ class Visualizer():
 
         # Set the default lights
         self.set_spotlight(on=False, intensity=0.1, distance=0, shadow=False,
-                           position=(-4.9,0.5,4.0), angle=np.pi/2.4)
+                           position=(-4.9,0.5,4.0), angle=1.3089969389957472)
         self.set_ptlight_1(on=True, intensity=0.5, distance=0, shadow=True,
                            position=(-3,0.5,2.5))
         self.set_ptlight_2(on=True, intensity=0.4, distance=0, shadow=True,
@@ -378,12 +379,12 @@ class Visualizer():
         """
         # Set the top color
         if not top is None:
-            top = [float(np.clip(float(t), 0.0, 1.0)) for t in top]
+            top = [min(max(float(t), 0.0), 1.0) for t in top]
             self._scene["/Background"].set_property('top_color', top)
 
         # Set the bottom color
         if not bottom is None:
-            bottom = [float(np.clip(float(b), 0.0, 1.0)) for b in bottom]
+            bottom = [min(max(float(b), 0.0), 1.0) for b in bottom]
             self._scene["/Background"].set_property('bottom_color', bottom)
 
     def set_background(self, top=None, bottom=None):
@@ -860,7 +861,7 @@ class Visualizer():
 
         """
         # Ensure zoom in (0, 100]
-        zoom = np.clip(zoom, 0.0001, 100.0)
+        zoom = min(max(zoom, 0.0001), 100.0)
         scene_path = "/Cameras/default/rotated/<object>"
         self._scene[scene_path].set_property('zoom', zoom)
 
@@ -1039,8 +1040,8 @@ class Visualizer():
             if is_instance(tex_path, tuple) or is_instance(tex_path, list):
                 is_jpg = tex_path[0].endswith(('.jpg', 'jpeg'))
                 is_png = tex_path[0].endswith('.png')
-                n = int(np.sqrt(len(tex_path)))
-                if np.isclose(n - np.sqrt(len(tex_path)), 0.0):
+                n = int(math.sqrt(len(tex_path)))
+                if np.isclose(n - math.sqrt(len(tex_path)), 0.0):
                     if is_jpg:
                         texture = geo.JpgImage.from_files(tex_path, n, n)
                     elif is_png:

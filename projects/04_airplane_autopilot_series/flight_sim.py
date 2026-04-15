@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=wrong-import-position
+# pylint: disable=invalid-name
+# pylint: disable=pointless-string-statement
 """
 This module implements the backend for the airplane project.
 """
@@ -18,48 +21,48 @@ from plane_parameters import Params, Cessna172
 ###############################################################################
 #MATH OPERATION FUNCTIONS
 ###############################################################################
-def RYZ(y, z):
+def _RYZ(y, z):
     cy, cz = math.cos(y), math.cos(z)
     sy, sz = math.sin(y), math.sin(z)
     return np.array(((cy*cz, -cy*sz, sy ),
                      (sz,     cz,    0.0),
                      (-sy*cz, sy*sz, cy )))
 
-def RBW(r, p, y):
-    cr, cp, cy = np.cos(r), np.cos(p), np.cos(y)
-    sr, sp, sy = np.sin(r), np.sin(p), np.sin(y)
+def _RBW(r, p, y):
+    cr, cp, cy = math.cos(r), math.cos(p), math.cos(y)
+    sr, sp, sy = math.sin(r), math.sin(p), math.sin(y)
     return np.array(((cp*cy, cy*sp*sr-cr*sy, cr*cy*sp+sr*sy),
                      (cp*sy, cr*cy+sp*sr*sy, cr*sp*sy-cy*sr),
                      (-sp,   cp*sr,          cp*cr)))
 
-def cross(a, b):
+def _cross(a, b):
     a0, a1, a2 = a
     b0, b1, b2 = b
     return (a1*b2-a2*b1, a2*b0-a0*b2, a0*b1-a1*b0)
 
-def norm3(v3):
+def _norm3(v3):
     return math.sqrt(v3[0]*v3[0] + v3[1]*v3[1] + v3[2]*v3[2])
 
 ###############################################################################
 #STANDARD ATMOSPHERIC MODEL FUNCTIONS
 ###############################################################################
-def g(h):
+def _g(h):
     # Newtonian gravity
     return 3.986025446e14 / ((6.371e6+h)*(6.371e6+h))
 
-def rho(h):
+def _rho(h):
     # Ideal gas law applied to barometric formula
     return 1.225*math.exp(-h/10363.)
 
-def temperature(h):
+def _temperature(h):
     # Standard atmosphere temperature model
     if h < 10000:
         return 288.2 - 0.00649*h
     return 223.3
 
-def mu(h):
+def _mu(h):
     # Sutherland's law
-    return 1.458e-6*temperature(h)**(1.5) / (temperature(h) + 110.4)
+    return 1.458e-6*_temperature(h)**(1.5) / (_temperature(h) + 110.4)
 
 ###############################################################################
 #FLIGHT MODEL CLASS
@@ -115,6 +118,11 @@ class _FlightModel:
         # though very low reynolds number result in lower stall angles all the
         # way to 10 deg
         x = min(max(re, 50_000), 1_000_000)
+
+        # Fast return for high Reynold's num
+        if x == 1_000_000:
+            return 0.2966693209247442 # 16.9979 degreees
+
         alpha_s = -2.333e-18*x*x*x + 3.674e-12*x*x - 3.499e-7*x + 0.0086
         alpha_s = min(max(alpha_s,0),1)*math.radians(7) + math.radians(10)
         return alpha_s
@@ -124,8 +132,13 @@ class _FlightModel:
         # low reynold's number, a_l0 is 0, and at normal flight reynold's numbers
         # a_l0 is whatever is defined for a specific airfoil
         x = min(max(re, 50_000), 1_000_000)
-        alpha_L0 = -1.11e-12*x*x + 2.22e-6*x - 0.108
-        alpha_L0 = min(max(alpha_L0, 0.0), 1.0)
+
+        # Fast calculation for high Reynold's num
+        if x == 1_000_000:
+            alpha_L0 = 1.0
+        else:
+            alpha_L0 = -1.11e-12*x*x + 2.22e-6*x - 0.108
+            alpha_L0 = min(max(alpha_L0, 0.0), 1.0)
         if typ == 'NACA2412':
             alpha_L0 *= -0.0436
         elif typ == 'NACA2412i':
@@ -281,17 +294,34 @@ class _FlightModel:
         cL_alpha=self._cL(sim.alpha_b, sim.beta_b, alpha_0, alpha_L0, alpha_s)
         cL_beta=self._cL(sim.beta_b, sim.alpha_b, alpha_0, alpha_L0, alpha_s)
         q = 0.5 * sim.rho * sim.V_b * sim.V_b
-        L_alpha = self.p.S_b * cL_alpha * q
-        L_beta = self.p.S_b * cL_beta * q
+        S_b = self.p.S_b
+        L_alpha = S_b * cL_alpha * q
+        L_beta = S_b * cL_beta * q
 
         # Assume body acts approximately like streamline body with cD_tot = 0.045
-        D = self.p.S_b * 0.045 * q
+        D = S_b * 0.045 * q
 
         # Convert from local flow coords to world coords
         # Note that for body, side forces are also generated
         return sim.R_FB_CoM @ (-D, -L_beta, -L_alpha)
 
     def prop_rps(self, sim):
+        """
+        Returns the propeller speed in revolutions per second.
+
+        Parameters
+        ----------
+        sim : FlightSim
+            A flight simulator from which the engine parameters and
+            current engine power are extracted. These are used to calculate
+            the propeller speed.
+
+        Returns
+        -------
+        prop_rps : float
+            The propeller speed in revolutions per second.
+
+        """
         # Prop RPS as a function of engine power
         # (0% power = 0.25*rps_max)
         # (75% power = 0.925*rps_max)
@@ -324,15 +354,20 @@ class _FlightModel:
         # Adjust dCL based on AoA for nonsymmetric surfaces (wings, hstab, ele)
         # Assume wings, hstab, and ele are all NACA2412 airfoils
         # x_cL moves fore by 10%c at 20 deg AoA and aft by 10%c at -20 deg AoA
-        dx_wl = 0.286*self.p.c_wa*sim.alpha_wl
-        dx_wl = min(max(dx_wl, -.1*self.p.c_wa), .1*self.p.c_wa)
-        dx_wr = 0.286*self.p.c_wa*sim.alpha_wr
-        dx_wr = min(max(dx_wr, -.1*self.p.c_wa), .1*self.p.c_wa)
-        dx_he = 0.286*self.p.c_he*sim.alpha_he
-        dx_he = min(max(dx_he, -.1*self.p.c_he),.1*self.p.c_he)
+        c_wa = self.p.c_wa
+        dx_wl = 0.286*c_wa*sim.alpha_wl
+        dx_wl = min(max(dx_wl, -.1*c_wa), .1*c_wa)
+        dx_wr = 0.286*c_wa*sim.alpha_wr
+        dx_wr = min(max(dx_wr, -.1*c_wa), .1*c_wa)
+        c_he = self.p.c_he
+        dx_he = 0.286*c_he*sim.alpha_he
+        dx_he = min(max(dx_he, -.1*c_he),.1*c_he)
 
-        r_wl_CoM = (self.p.x_w+dx_wl, -self.p.y_w,  self.p.z_w)
-        r_wr_CoM = (self.p.x_w+dx_wr,  self.p.y_w,  self.p.z_w)
+        x_w = self.p.x_w
+        y_w = self.p.y_w
+        z_w = self.p.z_w
+        r_wl_CoM = (x_w+dx_wl, -y_w,  z_w)
+        r_wr_CoM = (x_w+dx_wr,  y_w,  z_w)
         r_he_CoM = (self.p.x_he+dx_he, self.p.y_he, self.p.z_he)
         r_v_CoM = (self.p.x_v, self.p.y_v, self.p.z_v)
         r_b_CoM = (self.p.x_b, self.p.y_b, self.p.z_b)
@@ -341,10 +376,28 @@ class _FlightModel:
 
     def _tau_LD(self, sim, forces_CoM):
         rs_CoM = self._r_CoM2CoL_CoM(sim)
-        taus_CoM = (cross(r, F) for (r,F) in zip(rs_CoM, forces_CoM))
+        taus_CoM = (_cross(r, F) for (r,F) in zip(rs_CoM, forces_CoM))
         return tuple(map(sum, zip(*taus_CoM)))
 
     def net_aero_force_torque(self, sim):
+        """
+        Gets the net aerodynamic forces and torque on the plane (about the
+        center of mass) in world coordinates.
+
+        Parameters
+        ----------
+        sim : FlightSim
+            A flight simulator from which the current flight conditions,
+            surface displacements, and engine settings are extracted.
+
+        Returns
+        -------
+        F_W
+            The net aerodynamic force (N).
+        tau_W
+            The net aerodynamic torque (Nm).
+
+        """
         # Get the forces
         F_wl_CoM, F_wr_CoM  = self._wing_forces(sim)
         F_he_CoM = self._h_stab_ele_forces(sim)
@@ -357,39 +410,8 @@ class _FlightModel:
         # and from Euler rate-based damping moments
         forces_CoM = (F_wl_CoM, F_wr_CoM, F_he_CoM, F_v_CoM, F_b_CoM)
         rs_CoM = self._r_CoM2CoL_CoM(sim)
-        taus_CoM = tuple(cross(r, F) for (r,F) in zip(rs_CoM, forces_CoM))
+        taus_CoM = tuple(_cross(r, F) for (r,F) in zip(rs_CoM, forces_CoM))
         tau_LD_CoM = tuple(map(sum, zip(*taus_CoM)))
-
-        print('F_LFT_CoM = ('+', '.join(f'{x:.2f}' for x in F_wl_CoM)+')')
-        print('F_RGT_CoM = ('+', '.join(f'{x:.2f}' for x in F_wr_CoM)+')')
-        print('F_HSB_CoM = ('+', '.join(f'{x:.2f}' for x in F_he_CoM)+')')
-        print('F_VSB_CoM = ('+', '.join(f'{x:.2f}' for x in F_v_CoM)+')')
-        print('F_BOD_CoM = ('+', '.join(f'{x:.2f}' for x in F_b_CoM)+')')
-        print('F_PRP_CoM = ('+', '.join(f'{x:.2f}' for x in F_p_CoM)+')')
-        print('F_NET_CoM = ('+', '.join(f'{x:.2f}' for x in F_net_CoM)+')', end='\n\n')
-
-        print('TAU_LFT_CoM = ('+', '.join(f'{x:.2f}' for x in taus_CoM[0])+')')
-        print('TAU_RGT_CoM = ('+', '.join(f'{x:.2f}' for x in taus_CoM[1])+')')
-        print('TAU_HSB_CoM = ('+', '.join(f'{x:.2f}' for x in taus_CoM[2])+')')
-        print('TAU_VSB_CoM = ('+', '.join(f'{x:.2f}' for x in taus_CoM[3])+')')
-        print('TAU_BOD_CoM = ('+', '.join(f'{x:.2f}' for x in taus_CoM[4])+')')
-        print('TAU_NET_CoM = ('+', '.join(f'{x:.2f}' for x in tau_LD_CoM)+')', end='\n\n')
-
-        print(f'COM_AOA = {np.rad2deg(sim.alpha):.2f}')
-        print(f'LFT_AOA = {np.rad2deg(sim.alpha_wl):.2f}')
-        print(f'RGT_AOA = {np.rad2deg(sim.alpha_wr):.2f}')
-        print(f'HSB_AOA = {np.rad2deg(sim.alpha_he):.2f}')
-        print(f'VSB_AOA = {np.rad2deg(sim.alpha_v):.2f}')
-        print(f'BOD_AOA = {np.rad2deg(sim.alpha_b):.2f}')
-        print(f'COM_BET = {np.rad2deg(sim.beta):.2f}')
-        print(f'LFT_BET = {np.rad2deg(sim.beta_wl):.2f}')
-        print(f'RGT_BET = {np.rad2deg(sim.beta_wr):.2f}')
-        print(f'HSB_BET = {np.rad2deg(sim.beta_he):.2f}')
-        print(f'VSB_BET = {np.rad2deg(sim.beta_v):.2f}')
-        print(f'BOM_BET = {np.rad2deg(sim.beta_b):.2f}', end='\n\n')
-
-        print('V_CoM = ('+', '.join(f'{x:.2f}' for x in sim.v_CoM)+')')
-        print('V_WLD = ('+', '.join(f'{x:.2f}' for x in sim.R_CoM_W@sim.v_CoM)+')', end='\n\n')
 
         return sim.R_CoM_W @ F_net_CoM, sim.R_CoM_W @ tau_LD_CoM
 
@@ -397,15 +419,58 @@ class _FlightModel:
 #FLIGHTSIM CLASS
 ###############################################################################
 class FlightSim:
+    """
+    A flight simulator that tracks current surface and engine state of an
+    airplane as well as the aerodynamic loads.
+
+    Parameters
+    ----------
+    **kwargs
+
+    Keyword Args
+    ------------
+    state0 : dictionary of initial state floats, optional
+        A dictionary defining the initial state with the keys:
+            omega_psi : yaw rate (rad / s). Default = 0
+            omega_theta : pitch rate (rad / s). Default = 0
+            omega_phi : roll rate (rad / s). Default = 0
+            psi : yaw (rad). Default = 0
+            theta : pitch (rad). Default = 0
+            phi : roll (rad). Default = 0
+            alpha : angle of attack (rad). Default = 0
+            beta : sideslip angle (rad). Default = 0
+            V_inf : Indicated airspeed (m/s). Default = 0
+            h : Altitude (m). Default = 0
+    input0 : dictionary of initial input floats, optional
+        A dictionary defining the initial inputs with the keys:
+            delta_e : elevator deflection (rad). Default = 0
+            delta_r : rudder deflection (rad). Default = 0
+            delta_a : aileron deflection (rad). Default = 0
+            P : engine power (Watts). Default = 0
+    params : Params, optional
+        The airplane parameters. Built by the plane_parameters module.
+        The default is Cessna172.
+    dt : float, optional
+        The simulation time step in seconds. The default is 0.01.
+    r_planet : float, optional
+        The radius of the planet. The default is 6371000.
+    turb_mag : float, optional
+        The mean magnitude of the applied turbulence in N. The default is 0.
+    seed : float, optional
+        The rng seed. The default is 0.
+
+    Attributes
+    ----------
+    There's a lot, and I don't want to document them right now. It's mostly
+    states, inputs, rotation matrices, and time.
+
+    """
     _state : dict
     _atmosphere : dict
     _R : dict
     _params : Params
     _model : _FlightModel
-    _dt : float
     _t : float
-    _r_planet : float
-    _turb_param : list
 
     def __init__(self, **kwargs):
         # Read the kwargs
@@ -433,12 +498,13 @@ class FlightSim:
         self._state = {}
         self._atmosphere = {}
         self._R = {}
-        self._dt = dt
+        self._params = {}
+        self._params['plane'] = params
+        self._params['r_planet'] = r_planet
+        self._params['turbulence'] = self._gen_turb_param(turb_mag, seed)
+        self._params['dt'] = dt
         self._t = 0.0
-        self._params = params
         self._model = _FlightModel(params)
-        self._r_planet = r_planet
-        self._turb_param = self._gen_turb_param(turb_mag, seed)
 
         # Apply the initial euler angles
         self._update_euler_angs(state0)
@@ -451,7 +517,7 @@ class FlightSim:
         # relevant rotations
         self._state['alpha'] = state0['alpha']
         self._state['beta'] = state0['beta']
-        self._R['F_CoM'] = RYZ(-self._state['alpha'], self._state['beta'])
+        self._R['F_CoM'] = _RYZ(-self._state['alpha'], self._state['beta'])
 
         # Set the initial world velocity and position
         v_plane_F = (state0['V_inf'], 0, 0)
@@ -512,9 +578,9 @@ class FlightSim:
             R_str = R_str[:-2] + f', \n{' '*16}'
         R_str = R_str[:-19] + ' }'
 
-        params_str = ' '*10 + self._params.__str__().split('(')[0] + ' = { '
+        params_str = ' '*10 + self._params['plane'].__str__().split('(')[0] + ' = { '
         ln = len(params_str)
-        for key, val in self._params.params.items():
+        for key, val in self._params['plane'].params.items():
             try:
                 params_str += f"'{key}': {float(val)}, \n{' '*ln}"
             except ValueError:
@@ -548,15 +614,19 @@ class FlightSim:
         return (scale, offset, period)
 
     def _noise(self, freq_mults, scales, offsets, periods, time):
+        # Trivial case
+        if all(scales==0.0):
+            return (0.0, 0.0, 0.0)
+
         vals = []
         for scale, offset, period in zip(scales, offsets, periods):
             val = 0.0
             scale_mult = 1.0
             scale_mult_sum = 0.0
             for freq_mult in freq_mults:
-                c1 = math.sin(freq_mult*2*math.pi*(time - offset)/period)
-                c2 = math.sin(freq_mult*math.pi*math.pi*(time - offset)/period)
-                val += scale_mult*(c1 + c2)
+                c = (math.sin(freq_mult*2*math.pi*(time - offset)/period) +
+                     math.sin(freq_mult*math.pi*math.pi*(time - offset)/period))
+                val += scale_mult*c
                 scale_mult_sum += scale_mult
                 scale_mult *= 0.5
             vals.append(scale * val / scale_mult_sum)
@@ -565,10 +635,10 @@ class FlightSim:
         return vals
 
     def _get_turbulence(self):
-        F_turbulence = self._noise((1, 2.0, 10.0),
-                                   self._turb_param[0],
-                                   self._turb_param[1],
-                                   self._turb_param[2],
+        F_turbulence = self._noise((1.0, 2.0, 10.0),
+                                   self._params['turbulence'][0],
+                                   self._params['turbulence'][1],
+                                   self._params['turbulence'][2],
                                    self._t)
         return F_turbulence
 
@@ -583,13 +653,13 @@ class FlightSim:
     def _update_plane_rot_mats(self):
         # Coordinates of center of mass of plane
         r, p, y = self.phi, self.theta, self.psi
-        self._R['CoM_W'] = ((1, 0 ,0), (0, -1, 0), (0, 0, -1)) @ RBW(r, p, y)
+        self._R['CoM_W'] = ((1, 0 ,0), (0, -1, 0), (0, 0, -1)) @ _RBW(r, p, y)
         self._R['W_CoM'] = self._R['CoM_W'].T
 
         # Orientation of wings and v stab
         # All other surfaces are aligned with CoM of plane
-        cos = math.cos(self._params.dihedral_w)
-        sin = math.sin(self._params.dihedral_w)
+        cos = math.cos(self._params['plane'].dihedral_w)
+        sin = math.sin(self._params['plane'].dihedral_w)
         self._R['WL_CoM'] = np.array([[ 1.0, 0.0,  0.0 ],
                                       [ 0.0, cos, -sin ],
                                       [ 0.0, sin,  cos ]])
@@ -608,13 +678,13 @@ class FlightSim:
 
     def _apply_force(self, F_aero_net, F_turbulence):
         # Get the net force by adding gravity
-        F_gravity = (0.0, 0.0, -self.g*self._params.mass)
+        F_gravity = (0.0, 0.0, -self.g*self._params['plane'].mass)
         F_net = F_aero_net + F_turbulence + F_gravity
 
         # Apply accelerations and velocities
-        acceleration = (F_net / self._params.mass)
-        self._state['v_W'] += (F_net / self._params.mass) * self._dt
-        self._state['p_W'] += self._state['v_W'] * self._dt
+        acceleration = F_net / self._params['plane'].mass
+        self._state['v_W'] += (F_net / self._params['plane'].mass) * self._params['dt']
+        self._state['p_W'] += self._state['v_W'] * self._params['dt']
 
         # Update the gforce sensor
         self._state['g_force_W'] = -acceleration/9.81 + (0.0, 0.0, 1.0)
@@ -627,65 +697,65 @@ class FlightSim:
         self._state['P_des'] = P_des
 
         # Update the elevator angle
-        clipped_delta_e = min(max(delta_e_des, self._params.delta_e_min),
-                              self._params.delta_e_max)
+        clipped_delta_e = min(max(delta_e_des, self._params['plane'].delta_e_min),
+                              self._params['plane'].delta_e_max)
         d_delta_e = clipped_delta_e - self._state['delta_e']
-        if abs(d_delta_e) <= self._params.delta_e_rate * self._dt:
+        if abs(d_delta_e) <= self._params['plane'].delta_e_rate * self._params['dt']:
             self._state['delta_e'] += d_delta_e
         else:
             sign = math.copysign(1, d_delta_e)
-            d_delta_e = self._params.delta_e_rate*sign*self._dt
+            d_delta_e = self._params['plane'].delta_e_rate*sign*self._params['dt']
             self._state['delta_e'] += d_delta_e
 
         # Update the rudder angle
-        clipped_delta_r = min(max(delta_r_des, -self._params.delta_r_max),
-                              self._params.delta_r_max)
+        clipped_delta_r = min(max(delta_r_des, -self._params['plane'].delta_r_max),
+                              self._params['plane'].delta_r_max)
         d_delta_r = clipped_delta_r - self._state['delta_r']
-        if abs(d_delta_r) <= self._params.delta_r_rate * self._dt:
+        if abs(d_delta_r) <= self._params['plane'].delta_r_rate * self._params['dt']:
             self._state['delta_r'] += d_delta_r
         else:
             sign = math.copysign(1, d_delta_r)
-            d_delta_r = self._params.delta_r_rate*sign*self._dt
+            d_delta_r = self._params['plane'].delta_r_rate*sign*self._params['dt']
             self._state['delta_r'] += d_delta_r
 
         # Update the aileron angle
-        clipped_delta_a = min(max(delta_a_des, -self._params.delta_a_max),
-                              self._params.delta_a_max)
+        clipped_delta_a = min(max(delta_a_des, -self._params['plane'].delta_a_max),
+                              self._params['plane'].delta_a_max)
         d_delta_a = clipped_delta_a - self._state['delta_a']
-        if abs(d_delta_a) <= self._params.delta_a_rate * self._dt:
+        if abs(d_delta_a) <= self._params['plane'].delta_a_rate * self._params['dt']:
             self._state['delta_a'] += d_delta_a
         else:
             sign = math.copysign(1, d_delta_a)
-            d_delta_a = self._params.delta_a_rate*sign*self._dt
+            d_delta_a = self._params['plane'].delta_a_rate*sign*self._params['dt']
             self._state['delta_a'] += d_delta_a
 
         # Update the power setting
-        d_P = min(max(P_des, 0.0), self._params.P_max) - self._state['P']
-        if abs(d_P) <= self._params.P_rate * self._dt:
+        d_P = min(max(P_des, 0.0), self._params['plane'].P_max) - self._state['P']
+        if abs(d_P) <= self._params['plane'].P_rate * self._params['dt']:
             self._state['P'] += d_P
         else:
             sign = math.copysign(1, d_P)
-            self._state['P'] += self._params.P_rate*sign*self._dt
+            self._state['P'] += self._params['plane'].P_rate*sign*self._params['dt']
 
     def _update_world_rot(self):
-        d_pitch = -self._state['v_W'][0]/(self._state['p_W'][2]+self._r_planet)
-        self._state['earth_pitch'] += d_pitch * self._dt
-        d_roll = self._state['v_W'][1]/(self._state['p_W'][2]+self._r_planet)
-        self._state['earth_roll'] += d_roll * self._dt
+        d_pitch = -self._state['v_W'][0]/(self._state['p_W'][2]+self._params['r_planet'])
+        self._state['earth_pitch'] += d_pitch * self._params['dt']
+        d_roll = self._state['v_W'][1]/(self._state['p_W'][2]+self._params['r_planet'])
+        self._state['earth_roll'] += d_roll * self._params['dt']
 
     def _update_atmo(self):
         h = self._state['p_W'][2]
-        self._atmosphere['g'] = g(h)
-        self._atmosphere['rho'] = rho(h)
-        self._atmosphere['T'] = temperature(h)
-        self._atmosphere['mu'] = mu(h)
+        self._atmosphere['g'] = _g(h)
+        self._atmosphere['rho'] = _rho(h)
+        self._atmosphere['T'] = _temperature(h)
+        self._atmosphere['mu'] = _mu(h)
 
     def _update_velocities(self):
         # Update the local flow velocity at the center of mass
         self._state['v_CoM'] = self._R['W_CoM'] @ self._state['v_W']
 
         # Update the flow velocity and dynamic pressure
-        self._state['V_inf'] = norm3(self._state['v_W'])
+        self._state['V_inf'] = _norm3(self._state['v_W'])
 
     def _update_alpha_beta(self):
         # Update the center of mass local flow angles
@@ -695,11 +765,21 @@ class FlightSim:
 
     def _update_local_flow_angs(self):
         # Get the origins of the center of lift for each surface
-        O_WL_CoM = (self._params.x_w, -self._params.y_w,  self._params.z_w)
-        O_WR_CoM = (self._params.x_w,  self._params.y_w,  self._params.z_w)
-        O_HE_CoM = (self._params.x_he, self._params.y_he, self._params.z_he)
-        O_V_CoM  = (self._params.x_v,  self._params.y_v,  self._params.z_v)
-        O_B_CoM  = (self._params.x_b,  self._params.y_b,  self._params.z_b)
+        O_WL_CoM = (self._params['plane'].x_w,
+                   -self._params['plane'].y_w,
+                    self._params['plane'].z_w)
+        O_WR_CoM = (self._params['plane'].x_w,
+                    self._params['plane'].y_w,
+                    self._params['plane'].z_w)
+        O_HE_CoM = (self._params['plane'].x_he,
+                    self._params['plane'].y_he,
+                    self._params['plane'].z_he)
+        O_V_CoM  = (self._params['plane'].x_v,
+                    self._params['plane'].y_v,
+                    self._params['plane'].z_v)
+        O_B_CoM  = (self._params['plane'].x_b,
+                    self._params['plane'].y_b,
+                    self._params['plane'].z_b)
 
         # Get the rotation rate of the plane's center of mass about the world
         # in the plane's coordinate's
@@ -710,18 +790,18 @@ class FlightSim:
         # Calculate the induced velocity at each of the surfaces from the
         # plane's rotation in surface coords then get the total flow velocity
         # at each surface in the surface coords.
-        v_wl_WL = self._R['CoM_WL'] @ (self._state['v_CoM'] + cross(omega_CoM_CoM, O_WL_CoM))
-        v_wr_WR = self._R['CoM_WR'] @ (self._state['v_CoM'] + cross(omega_CoM_CoM, O_WR_CoM))
-        v_v_V   = self._R['CoM_V']  @ (self._state['v_CoM'] + cross(omega_CoM_CoM, O_V_CoM))
-        v_he_HE = self._state['v_CoM'] + cross(omega_CoM_CoM, O_HE_CoM)
-        v_b_B   = self._state['v_CoM'] + cross(omega_CoM_CoM, O_B_CoM)
+        v_wl_WL = self._R['CoM_WL'] @ (self._state['v_CoM'] + _cross(omega_CoM_CoM, O_WL_CoM))
+        v_wr_WR = self._R['CoM_WR'] @ (self._state['v_CoM'] + _cross(omega_CoM_CoM, O_WR_CoM))
+        v_v_V   = self._R['CoM_V']  @ (self._state['v_CoM'] + _cross(omega_CoM_CoM, O_V_CoM))
+        v_he_HE = self._state['v_CoM'] + _cross(omega_CoM_CoM, O_HE_CoM)
+        v_b_B   = self._state['v_CoM'] + _cross(omega_CoM_CoM, O_B_CoM)
 
         # Save the magnitude of the local surface velocities
-        self._state['V_wl'] = norm3(v_wl_WL)
-        self._state['V_wr'] = norm3(v_wr_WR)
-        self._state['V_he'] = norm3(v_he_HE)
-        self._state['V_v'] = norm3(v_v_V)
-        self._state['V_b'] = norm3(v_b_B)
+        self._state['V_wl'] = _norm3(v_wl_WL)
+        self._state['V_wr'] = _norm3(v_wr_WR)
+        self._state['V_he'] = _norm3(v_he_HE)
+        self._state['V_v'] = _norm3(v_v_V)
+        self._state['V_b'] = _norm3(v_b_B)
 
         # Update the local flow angles at each of the surfaces
         self._state['alpha_wl'] = math.atan2(v_wl_WL[2], v_wl_WL[0])
@@ -736,20 +816,51 @@ class FlightSim:
         self._state['beta_b'] = math.asin(v_b_B[1] / self._state['V_b'])
 
     def _update_flow_rot_mats(self):
-        self._R['F_CoM']   = RYZ(-self._state['alpha'],
-                                  self._state['beta'])
-        self._R['FWL_CoM'] = self._R['WL_CoM'] @ RYZ(-self._state['alpha_wl'],
-                                                      self._state['beta_wl'])
-        self._R['FWR_CoM'] = self._R['WR_CoM'] @ RYZ(-self._state['alpha_wr'],
-                                                      self._state['beta_wr'])
-        self._R['FHE_CoM'] = RYZ(-self._state['alpha_he'],
-                                  self._state['beta_he'])
-        self._R['FB_CoM']  = RYZ(-self._state['alpha_b'],
-                                  self._state['beta_b'])
-        self._R['FV_CoM']  = self._R['V_CoM'] @ RYZ(-self._state['alpha_v'],
-                                                     self._state['beta_v'])
+        self._R['F_CoM']   = _RYZ(-self._state['alpha'],
+                                   self._state['beta'])
+        self._R['FWL_CoM'] = self._R['WL_CoM'] @ _RYZ(-self._state['alpha_wl'],
+                                                       self._state['beta_wl'])
+        self._R['FWR_CoM'] = self._R['WR_CoM'] @ _RYZ(-self._state['alpha_wr'],
+                                                       self._state['beta_wr'])
+        self._R['FHE_CoM'] = _RYZ(-self._state['alpha_he'],
+                                   self._state['beta_he'])
+        self._R['FB_CoM']  = _RYZ(-self._state['alpha_b'],
+                                   self._state['beta_b'])
+        self._R['FV_CoM']  = self._R['V_CoM'] @ _RYZ(-self._state['alpha_v'],
+                                                      self._state['beta_v'])
 
     def step(self, rotation_state, delta_e_des, delta_r_des, delta_a_des, P_des):
+        """
+        Takes a single time step. This simulation steps updates all linear
+        translations, velocities, and accelerations, but does not handle and
+        rotations. To handle rotations, the net torque acting on the plane is
+        returned.
+
+        Parameters
+        ----------
+        rotation_state : dictionary of the current rotation state of the plane
+            The keys are:
+                omega_psi : float, yaw rate (rad/s)
+                omega_theta : float, pitch rate (rad/s)
+                omega_phi : float, roll rate (rad/s)
+                psi : float, yaw (rad/s)
+                theta : float, pitch (rad/s)
+                phi : float, roll (rad/s)
+        delta_e_des : float
+            The desired elevator deflection in radians.
+        delta_r_des : TYPE
+            The desired rudder deflection in radians.
+        delta_a_des : TYPE
+            The desired aileron deflection in radians.
+        P_des : TYPE
+            The desired engine power setting in Watts.
+
+        Returns
+        -------
+        tau_aero_net : 3 tuple of floats
+            The net aerodynamic torque acting on the plane.
+
+        """
         # Step 0
         F_aero_net, tau_aero_net = self._model.net_aero_force_torque(self)
         F_turbulence = self._get_turbulence()
@@ -773,11 +884,47 @@ class FlightSim:
         self._update_flow_rot_mats()
 
         # Step 5
-        self._t += self._dt
+        self._t += self._params['dt']
 
         return tau_aero_net
 
     def telem(self):
+        """
+        Returns the current plane telemetry.
+
+        Returns
+        -------
+        telem : dictionary
+            time : float, the current time in seconds.
+            h : float, the current altitude in m
+            V_inf : float, the current indicated airspeed in m/s
+            p_W : 3 tuple of floats, the current world coords position in m
+            v_W : 3 tuple of floats, the current world coords velocity in m/s
+            g_force_W : 3 tuple of floats, the current world coords g force in m/s2
+            v_CoM : 3 tuple of floats, the current plane coords velocity in meters/s
+            R_CoM_W : 3x3 array-like of floats, Rotation from plane coords to world coords.
+            alpha : float, the current angle of attack in radians
+            beta : float, the current sideslip angle in radians
+            omega_psi : float, the current yaw rate in rad/s
+            omega_theta : float, the current pitch rate in rad/s
+            omega_phi : float, the current roll rate in rad/s
+            psi : float, the current yaw rate in rad
+            theta : float, the current pitch rate in rad
+            phi : float, the current roll rate in rad
+            delta_e : float, the current elevator deflection in radians
+            delta_r : float, the current rudder deflection in radians
+            delta_a : float, the current aileron deflection in radians
+            P : float, the current engine power in Watts
+            delta_e_des : float, the desired elevator deflection in radians
+            delta_r_des : float, the desired rudder deflection in radians
+            delta_a_des : float, the desired aileron deflection in radians
+            P_des : float, the desired engine power in Watts
+            prop_rpm : float, the current propeller speed in rev/min
+            earth_pitch : float, the current pitch of the planet required to
+                          simulation longitudinal movement
+            earth_roll : float, the current roll of the planet required to
+                          simulation lateral movement
+        """
         telem = {'time' : self._t,
                  'h' : self._state['p_W'][2],
                  'V_inf' : self._state['V_inf'],

@@ -117,10 +117,11 @@ class Body():
             info = self._client.getJointInfo(self._id, joint_id)
             joint_name = info[1].decode('UTF-8')
             child_name = info[12].decode('UTF-8')
-            for link in links.values():
-                if link.visual_data['id'] == info[16]:
-                    parent_link = link
-                    break
+            # I Don't think I need any of this?
+            # for link in links.values():
+            #     if link.visual_data['id'] == info[16]:
+            #         parent_link = link # Why do I need this????
+            #         break
 
             # Get the parent and children links and make the joint
             links[child_name] = Link(self, joint_id)

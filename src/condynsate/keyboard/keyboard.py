@@ -47,8 +47,19 @@ class Keyboard:
                      34: 39,
                      60: 44,
                      62: 46,
-                     63: 47,}
-
+                     63: 47,} # It's cool that I figured this out at some point, lol
+    _NUMPAD = {96 : '0',
+               97 : '1',
+               98 : '2',
+               99 : '3',
+               100 : '4',
+               101 : '5',
+               102 : '6',
+               103 : '7',
+               104 : '8',
+               105 : '9',
+               110 :  '.'} # I hate using Google AI, but if this works, I'll die
+                           # Jesus christ it does. You win this time *brand*
 
     def __init__(self):
         """
@@ -250,6 +261,9 @@ class Keyboard:
             The associated key string.
 
         """
+        # TODO numpad * is registered as 8
+        # TODO numpad + is registered as =
+
         # Handle non alphnumeric keys
         if isinstance(key, Key):
             # Collect the key's name
@@ -270,7 +284,7 @@ class Keyboard:
 
         # Return the lower case alphnumeric string if possible
         try:
-            # Get the detected char
+            # Get the detected char+
             char = key.char
             char_ord = ord(char)
 
@@ -285,8 +299,15 @@ class Keyboard:
             char = self._qwerty_lower(char)
             return char
 
-        # If key is not recognized, return empty string
-        except Exception:
+        # In the case of num locked num pad
+        except TypeError:
+            try:
+                return self._NUMPAD[key.vk]
+            except KeyError:
+                    return ""
+
+        # Unknown keys, return emptry string
+        except:
             return ""
 
 

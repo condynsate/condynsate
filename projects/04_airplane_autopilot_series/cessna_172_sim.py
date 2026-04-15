@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=wrong-import-position
+# pylint: disable=invalid-name
+# pylint: disable=pointless-string-statement
 """
 This module implements the backend for the airplane project.
 """
@@ -24,28 +27,28 @@ class _SimData():
 
     def __init__(self):
         self._data = {'time':[],
-                     'h':[],
-                     'V_inf':[],
-                     'position':[],
-                     'velocity':[],
-                     'alpha':[],
-                     'beta':[],
-                     'omega_psi':[],
-                     'omega_theta':[],
-                     'omega_phi':[],
-                     'psi':[],
-                     'theta':[],
-                     'phi':[],
-                     'delta_e_des':[],
-                     'delta_r_des':[],
-                     'delta_a_des':[],
-                     'P_des':[],
-                     'delta_e':[],
-                     'delta_r':[],
-                     'delta_a':[],
-                     'P':[],
-                     'prop_rpm':[],
-                     'h_des':[],}
+                      'h':[],
+                      'V_inf':[],
+                      'position':[],
+                      'velocity':[],
+                      'alpha':[],
+                      'beta':[],
+                      'omega_psi':[],
+                      'omega_theta':[],
+                      'omega_phi':[],
+                      'psi':[],
+                      'theta':[],
+                      'phi':[],
+                      'delta_e_des':[],
+                      'delta_r_des':[],
+                      'delta_a_des':[],
+                      'P_des':[],
+                      'delta_e':[],
+                      'delta_r':[],
+                      'delta_a':[],
+                      'P':[],
+                      'prop_rpm':[],
+                      'h_des':[],}
 
     def __dict__(self):
         return dict(self)
@@ -58,6 +61,22 @@ class _SimData():
         return self._data[key]
 
     def step(self, telem, h_des):
+        """
+        Steps the simulation data by storing the current telemetry.
+
+        Parameters
+        ----------
+        telem : dict
+            Return value of flight_sim.FlightSim().telem. Contains all
+            current telemetry data.
+        h_des : float
+            The currently desired altitude in meters.
+
+        Returns
+        -------
+        None.
+
+        """
         self._data['time'].append(float(telem['time']))
         self._data['h'].append(float(telem['h']))
         self._data['V_inf'].append(float(telem['V_inf']))
@@ -106,6 +125,7 @@ def _read_kwargs(**kwargs):
               'real_time' : kwargs.get('real_time', True),
               'turb_mag' : kwargs.get('turbulence', 0.0),
               'shake' : kwargs.get('shake', 1.0),
+              'chase' : kwargs.get('chase', False),
               'seed' : kwargs.get('seed', 2357136050),}
     return kwargs
 
@@ -272,7 +292,7 @@ def _rotation_state(plane):
                       'phi' : pybullet_state.ypr[2],}
     return rotation_state
 
-def _update_vis_env(proj, plane, telem, shake, cam_target_history):
+def _update_vis_env(proj, plane, telem, shake, chase, cam_target_history):
     # Set the elevator deflection
     plane.joints['fuselage_to_elevator'].set_state(angle = telem['delta_e'])
     plane.joints['fuselage_to_rudder'].set_state(angle = telem['delta_r'])
@@ -290,7 +310,8 @@ def _update_vis_env(proj, plane, telem, shake, cam_target_history):
             cam_target_history.popleft()
         p = np.mean(cam_target_history, axis=0)
         proj.visualizer.set_cam_target(p)
-    # proj.visualizer.set_cam_position(telem['R_CoM_W']@(-25, 0, -5))
+    if chase:
+        proj.visualizer.set_cam_position(telem['R_CoM_W']@(-25, 0, -5))
 
     # Rotate the earth according to the forward velocity,
     # and move the earth according to the altitude
@@ -340,7 +361,6 @@ def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
 
         # Step the simulation. Use the flight sim calculated aero torques
         # to rotate the airplane in the Pybullet engine
-        0.0313281
         tau_aero_net = flightsim.step(_rotation_state(plane),
                                       delta_e_des, delta_a_des, delta_r_des, 59859.3)
         plane.apply_torque(tau_aero_net)
@@ -352,7 +372,8 @@ def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
 
         # Update the visuals
         if kwargs['real_time']:
-            _update_vis_env(proj, plane, telem, kwargs['shake'], cam_tag)
+            _update_vis_env(proj, plane, telem,
+                            kwargs['shake'], kwargs['chase'], cam_tag)
 
         # Update the data
         data.step(telem, h_des)
@@ -405,14 +426,17 @@ def run(controller, program_num, **kwargs):
             value is 0.06592
         P : float, optional
             The initial power setting in KW. The default value is 62160.
-        seed : int, optional
-            The seed of the random number generator used for the simulation.
-            The default is 2357136050
         turbulence : float, optional
-            The mean magnitude of the turbulent wind in N. The default is 0
+                The mean magnitude of the turbulent wind in N. The default is 0
         shake : float, optional
             The magnitude by which plane accelerations are visualized. The
             default is 1.0.
+        chase : bool, optional
+            If True, a chase camera is used. If False, a free orbit camera is
+            used. The default is False.
+        seed : int, optional
+            The seed of the random number generator used for the simulation.
+            The default is 2357136050
 
     Returns
     -------
@@ -429,7 +453,7 @@ def run(controller, program_num, **kwargs):
     proj.terminate()
     return data
 
-def ctrlr(state, h_des):
+def _ctrlr(state, h_des):
     m_e = np.array([0.0, 47.82, 0.05923, 0.0, 0.05923])
     n_e = np.array([0.06592, 62160.])
     x_des = np.array([h_des, 0.0, 0.0, 0.0, 0.0])
@@ -444,4 +468,4 @@ def ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    data = run(ctrlr, 0, real_time=True, time=360, psi=np.deg2rad(45))
+    dat = run(_ctrlr, 1, real_time=True, chase=True, time=60.)

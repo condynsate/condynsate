@@ -10,6 +10,7 @@ SPDX-License-Identifier: GPL-3.0-only
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
+import math
 import numpy as np
 
 ###############################################################################
@@ -39,8 +40,8 @@ def wxyz_from_vecs(vec1, vec2):
     arr2 = np.array(vec2)
 
     # Calculate the norm of vec
-    mag1 = np.linalg.norm(arr1)
-    mag2 = np.linalg.norm(arr2)
+    mag1 = math.sqrt(arr1[0]*arr1[0] + arr1[1]*arr1[1] + arr1[2]*arr1[2])
+    mag2 = math.sqrt(arr2[0]*arr2[0] + arr2[1]*arr2[1] + arr2[2]*arr2[2])
 
     # If either magnitude is 0, no rotation can be found.
     if mag1==0. or mag2==0.:
@@ -52,13 +53,14 @@ def wxyz_from_vecs(vec1, vec2):
 
     # If the vec is exactly 180 degrees away, set the 180 deg quaternion
     if (dirn2==-1*dirn1).all():
-        return (0., 0.5*np.sqrt(2), -0.5*np.sqrt(2), 0.)
+        return (0., 0.7071067811865476, -0.7071067811865476, 0.)
 
     # If the vec is some other relative orientation, calculate it
     q_xyz = np.cross(dirn1, dirn2)
     q_w = 1.0 + np.dot(dirn1, dirn2)
     wxyz = np.append(q_w, q_xyz)
-    wxyz = tuple((wxyz/np.linalg.norm(wxyz)).tolist())
+    norm = math.sqrt(wxyz[0]*wxyz[0]+wxyz[1]*wxyz[1]+wxyz[2]*wxyz[2]+wxyz[3]*wxyz[3])
+    wxyz = tuple((wxyz/norm).tolist())
     return wxyz
 
 def wxyz_from_xyzw(xyzw):
@@ -161,12 +163,12 @@ def wxyz_from_euler(yaw, pitch, roll):
         The Hamilton quaternion representation of the input Euler angles.
 
     """
-    cr = np.cos(roll * 0.5)
-    sr = np.sin(roll * 0.5)
-    cp = np.cos(pitch * 0.5)
-    sp = np.sin(pitch * 0.5)
-    cy = np.cos(yaw * 0.5)
-    sy = np.sin(yaw * 0.5)
+    cr = math.cos(roll * 0.5)
+    sr = math.sin(roll * 0.5)
+    cp = math.cos(pitch * 0.5)
+    sp = math.sin(pitch * 0.5)
+    cy = math.cos(yaw * 0.5)
+    sy = math.sin(yaw * 0.5)
     w = cr * cp * cy + sr * sp * sy
     x = sr * cp * cy - cr * sp * sy
     y = cr * sp * cy + sr * cp * sy
@@ -199,15 +201,15 @@ def euler_from_wxyz(wxyz):
 
     sinr_cosp = 2 * (w * x + y * z)
     cosr_cosp = 1 - 2 * (x * x + y * y)
-    roll = np.arctan2(sinr_cosp, cosr_cosp)
+    roll = math.atan2(sinr_cosp, cosr_cosp)
 
-    sinp = np.sqrt(1 + 2 * (w * y - x * z))
-    cosp = np.sqrt(1 - 2 * (w * y - x * z))
-    pitch = 2 * np.arctan2(sinp, cosp) - np.pi / 2
+    sinp = math.sqrt(1 + 2 * (w * y - x * z))
+    cosp = math.sqrt(1 - 2 * (w * y - x * z))
+    pitch = 2 * math.atan2(sinp, cosp) - 1.5707963267948966
 
     siny_cosp = 2 * (w * z + x * y)
     cosy_cosp = 1 - 2 * (y * y + z * z)
-    yaw = np.arctan2(siny_cosp, cosy_cosp)
+    yaw = math.atan2(siny_cosp, cosy_cosp)
 
     return (float(yaw), float(pitch), float(roll))
 
@@ -227,7 +229,7 @@ def Rbw_from_wxyz(wxyz, as_np=True):
 
     """
     # Ensure the quat's norm is greater than 0
-    s = np.linalg.norm(wxyz)
+    s = math.sqrt(wxyz[0]*wxyz[0]+wxyz[1]*wxyz[1]+wxyz[2]*wxyz[2]+wxyz[3]*wxyz[3])
     if s == 0.0:
         return np.eye(3)
 
@@ -278,25 +280,8 @@ def Rbw_from_euler(yaw, pitch, roll):
         takes vectors in body coordinates to world coordinates .
 
     """
-    # cr = np.cos(roll)
-    # sr = np.sin(roll)
-    # cp = np.cos(pitch)
-    # sp = np.sin(pitch)
-    # cy = np.cos(yaw)
-    # sy = np.sin(yaw)
-    # Rr = np.array([[ 1.,  0.,  0.],
-    #                 [ 0.,  cr,  sr],
-    #                 [ 0., -sr,  cr]])
-    # Rp = np.array([[ cp,  0., -sp],
-    #                 [ 0.,  1.,  0.],
-    #                 [ sp,  0.,  cp]])
-    # Ry = np.array([[ cy,  sy,  0.],
-    #                 [-sy,  cy,  0.],
-    #                 [ 0.,  0.,  1.]])
-    # return (Rr@Rp@Ry).T
-
-    cr, cp, cy = np.cos(roll), np.cos(pitch), np.cos(yaw)
-    sr, sp, sy = np.sin(roll), np.sin(pitch), np.sin(yaw)
+    cr, cp, cy = math.cos(roll), math.cos(pitch), math.cos(yaw)
+    sr, sp, sy = math.sin(roll), math.sin(pitch), math.sin(yaw)
     return np.array(((cp*cy, cy*sp*sr-cr*sy, cr*cy*sp+sr*sy),
                      (cp*sy, cr*cy+sp*sr*sy, cr*sp*sy-cy*sr),
                      (-sp,   cp*sr,          cp*cr)))

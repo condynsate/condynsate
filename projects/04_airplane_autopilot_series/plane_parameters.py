@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=wrong-import-position
+# pylint: disable=invalid-name
+# pylint: disable=pointless-string-statement
 """
 This module implements the parameters for a Cessna 172 airplane.
 """
@@ -10,6 +13,19 @@ from dataclasses import dataclass
 
 @dataclass()
 class Params():
+    """
+    The empty design parameters class.
+
+    Parameters
+    ----------
+    None
+
+    Attributes
+    ----------
+    params : dictionary of parameters
+        An empty dictionary.
+
+    """
     params : dict
 
     def __init__(self):
@@ -20,6 +36,19 @@ class Params():
 
 @dataclass()
 class Cessna172(Params):
+    """
+    Design parameters of a Cessna 172 airplane.
+
+    Parameters
+    ----------
+    None
+
+    Attributes
+    ----------
+    params : dictionary of parameters
+        The design parameters of a Cessna 172
+
+    """
 
     def __init__(self):
         super().__init__()

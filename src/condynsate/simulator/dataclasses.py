@@ -10,6 +10,7 @@ SPDX-License-Identifier: GPL-3.0-only
 ###############################################################################
 #DEPENDENCIES
 ###############################################################################
+import math
 from dataclasses import dataclass
 import numpy as np
 import condynsate.misc.transforms as t
@@ -100,7 +101,7 @@ class BodyState():
 
     def _set_orientation(self, orientation):
         q0 = np.array([q for i,q in enumerate(orientation) if i < 4])
-        q0 = tuple((q0 / np.linalg.norm(q0)).tolist())
+        q0 = tuple((q0 / math.sqrt(q0[0]*q0[0]+q0[1]*q0[1]+q0[2]*q0[2]+q0[3]*q0[3])).tolist())
         super().__setattr__('orientation', q0)
 
     def _set_velocity(self, velocity):
