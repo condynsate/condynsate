@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-only
 """
 from time import sleep
 from time import time as now
+import math
 from collections import deque
 from condynsate import Project
 from condynsate import __assets__ as assets
@@ -26,36 +27,36 @@ class _SimData():
     _data : dict
 
     def __init__(self):
-        self._data = {'time':[],
-                      'h':[],
-                      'V_inf':[],
-                      'position':[],
-                      'velocity':[],
-                      'alpha':[],
-                      'beta':[],
-                      'omega_psi':[],
-                      'omega_theta':[],
-                      'omega_phi':[],
-                      'psi':[],
-                      'theta':[],
-                      'phi':[],
-                      'delta_e_des':[],
-                      'delta_r_des':[],
-                      'delta_a_des':[],
-                      'P_des':[],
-                      'delta_e':[],
-                      'delta_r':[],
-                      'delta_a':[],
-                      'P':[],
-                      'prop_rpm':[],
-                      'h_des':[],}
+        self._data = {'time':deque(),
+                      'h':deque(),
+                      'V_inf':deque(),
+                      'position':deque(),
+                      'velocity':deque(),
+                      'alpha':deque(),
+                      'beta':deque(),
+                      'omega_psi':deque(),
+                      'omega_theta':deque(),
+                      'omega_phi':deque(),
+                      'psi':deque(),
+                      'theta':deque(),
+                      'phi':deque(),
+                      'delta_e_des':deque(),
+                      'delta_r_des':deque(),
+                      'delta_a_des':deque(),
+                      'P_des':deque(),
+                      'delta_e':deque(),
+                      'delta_r':deque(),
+                      'delta_a':deque(),
+                      'P':deque(),
+                      'prop_rpm':deque(),
+                      'h_des':deque(),}
 
     def __dict__(self):
         return dict(self)
 
     def __iter__(self):
         for (key, value) in self._data.items():
-            yield (key, np.array(value))
+            yield (key, value)
 
     def __getitem__(self, key):
         return self._data[key]
@@ -77,28 +78,28 @@ class _SimData():
         None.
 
         """
-        self._data['time'].append(float(telem['time']))
-        self._data['h'].append(float(telem['h']))
-        self._data['V_inf'].append(float(telem['V_inf']))
-        self._data['position'].append(tuple(float(p) for p in telem['p_W']))
-        self._data['velocity'].append(tuple(float(v) for v in telem['v_CoM']))
-        self._data['alpha'].append(float(telem['alpha']))
-        self._data['beta'].append(float(telem['beta']))
-        self._data['omega_psi'].append(float(telem['omega_psi']))
-        self._data['omega_theta'].append(float(telem['omega_theta']))
-        self._data['omega_phi'].append(float(telem['omega_phi']))
-        self._data['psi'].append(float(telem['psi']))
-        self._data['theta'].append(float(telem['theta']))
-        self._data['phi'].append(float(telem['phi']))
-        self._data['delta_e'].append(float(telem['delta_e']))
-        self._data['delta_r'].append(float(telem['delta_r']))
-        self._data['delta_a'].append(float(telem['delta_a']))
-        self._data['P'].append(float(telem['P']))
-        self._data['delta_e_des'].append(float(telem['delta_e_des']))
-        self._data['delta_r_des'].append(float(telem['delta_r_des']))
-        self._data['delta_a_des'].append(float(telem['delta_a_des']))
-        self._data['P_des'].append(float(telem['P_des']))
-        self._data['prop_rpm'].append(float(telem['prop_rpm']))
+        self._data['time'].append(telem['time'])
+        self._data['h'].append(telem['h'])
+        self._data['V_inf'].append(telem['V_inf'])
+        self._data['position'].append(telem['p_W'])
+        self._data['velocity'].append(telem['v_CoM'])
+        self._data['alpha'].append(telem['alpha'])
+        self._data['beta'].append(telem['beta'])
+        self._data['omega_psi'].append(telem['omega_psi'])
+        self._data['omega_theta'].append(telem['omega_theta'])
+        self._data['omega_phi'].append(telem['omega_phi'])
+        self._data['psi'].append(telem['psi'])
+        self._data['theta'].append(telem['theta'])
+        self._data['phi'].append(telem['phi'])
+        self._data['delta_e'].append(telem['delta_e'])
+        self._data['delta_r'].append(telem['delta_r'])
+        self._data['delta_a'].append(telem['delta_a'])
+        self._data['P'].append(telem['P'])
+        self._data['delta_e_des'].append(telem['delta_e_des'])
+        self._data['delta_r_des'].append(telem['delta_r_des'])
+        self._data['delta_a_des'].append(telem['delta_a_des'])
+        self._data['P_des'].append(telem['P_des'])
+        self._data['prop_rpm'].append(telem['prop_rpm'])
         self._data['h_des'].append(float(h_des))
 
 def _read_kwargs(**kwargs):
@@ -130,7 +131,7 @@ def _read_kwargs(**kwargs):
     return kwargs
 
 def _load_planet(proj, telem):
-    n_repeat = int(np.sqrt((4*np.pi*R_PLANET**2)/5.827e8)//2)*2+1
+    n_repeat = int(math.sqrt((4*math.pi*R_PLANET**2)/5.827e8)//2)*2+1
     tex_paths = [v for k,v in assets.items()
                  if k.startswith('countryside_225sqmi_')]
     tex_paths = sorted(tex_paths)
@@ -150,6 +151,11 @@ def _load_sky(proj):
                                roll=1.5708,
                                position=(0.0, 0.0, -R_PLANET))
 
+def _CoV(R_A_B, v_A):
+    return (R_A_B[0][0]*v_A[0] + R_A_B[0][1]*v_A[1] + R_A_B[0][2]*v_A[2],
+            R_A_B[1][0]*v_A[0] + R_A_B[1][1]*v_A[1] + R_A_B[1][2]*v_A[2],
+            R_A_B[2][0]*v_A[0] + R_A_B[2][1]*v_A[1] + R_A_B[2][2]*v_A[2],)
+
 def _load_vis_env(proj, telem):
     # Increase render distance to the skybox
     proj.visualizer.set_cam_frustum(far=5.1*R_PLANET)
@@ -160,7 +166,7 @@ def _load_vis_env(proj, telem):
 
     # Set the scene lighting
     proj.visualizer.set_background(bottom=(1.0, 1.0, 1.0))
-    exp = int(np.ceil(np.log10(R_PLANET)))
+    exp = int(math.ceil(math.log10(R_PLANET)))
     proj.visualizer.set_ptlight_1(on=True, intensity=1, shadow=True,
                             position=(10**exp/1.5, -10**exp/1.5, 10**exp/3.0),
                             distance=10**(exp+1.1))
@@ -173,7 +179,7 @@ def _load_vis_env(proj, telem):
     proj.visualizer.set_dirnlight(on=False)
 
     # Look at the plane
-    proj.visualizer.set_cam_position(telem['R_CoM_W']@(-25, 0, -5))
+    proj.visualizer.set_cam_position(_CoV(telem['R_CoM_W'], (-25, 0, -5)))
     proj.visualizer.set_cam_target((0, 0, 0))
     proj.visualizer.set_cam_zoom(2.5)
 
@@ -210,7 +216,7 @@ def _set_init_conds(plane, telem):
 
 def _make(**kwargs):
     # Create the project
-    proj = Project(keyboard=True, visualizer=kwargs['real_time'],
+    proj = Project(keyboard=False, visualizer=kwargs['real_time'],
                    simulator_gravity = (0.,0.,0.),
                    simulator_dt = DT,)
 
@@ -274,11 +280,11 @@ def _h_des(program_number, curr_time, h0):
 
     # Sinusoidal programs
     elif program_number==10:
-        h_des = -7.62*np.sin(np.pi*curr_time/30.0) + h0
+        h_des = -7.62*math.sin(math.pi*curr_time/30.0) + h0
     elif program_number==11:
-        h_des = 38.10*np.sin(np.pi*curr_time/30.0) + h0
+        h_des = 38.10*math.sin(math.pi*curr_time/30.0) + h0
     elif program_number==12:
-        h_des = 76.20*np.sin(np.pi*curr_time/30.0) + h0
+        h_des = 76.20*math.sin(math.pi*curr_time/30.0) + h0
 
     return min(max(h_des, 50.0), 4000.0)
 
@@ -305,13 +311,14 @@ def _update_vis_env(proj, plane, telem, shake, chase, cam_target_history):
 
     # Position the camera
     if shake > 0.0:
-        cam_target_history.append(shake * np.arctan(telem['g_force_W']/shake))
+        cam_target_history.append(tuple(shake*math.atan(g/shake) for g in telem['g_force_W']))
         while len(cam_target_history) > int(10.0 / shake):
             cam_target_history.popleft()
-        p = np.mean(cam_target_history, axis=0)
+        p = tuple(map(sum, zip(*(c for c in cam_target_history))))
+        p = tuple(x/len(cam_target_history) for x in p)
         proj.visualizer.set_cam_target(p)
     if chase:
-        proj.visualizer.set_cam_position(telem['R_CoM_W']@(-25, 0, -5))
+        proj.visualizer.set_cam_position(_CoV(telem['R_CoM_W'], (-25, 0, -5)))
 
     # Rotate the earth according to the forward velocity,
     # and move the earth according to the altitude
@@ -320,20 +327,20 @@ def _update_vis_env(proj, plane, telem, shake, chase, cam_target_history):
                                   roll = telem['earth_roll'],
                                   position=(0,0,-R_PLANET-telem['h']))
 
-def _get_keypresses(proj):
-    delta_e = 0.0
-    delta_e -= 0.25 * float(proj.keyboard.is_pressed('i'))
-    delta_e += 0.25 * float(proj.keyboard.is_pressed('k'))
+# def _get_keypresses(proj):
+#     delta_e = 0.0
+#     delta_e -= 0.25 * float(proj.keyboard.is_pressed('i'))
+#     delta_e += 0.25 * float(proj.keyboard.is_pressed('k'))
 
-    delta_r = 0.0
-    delta_r -= 0.25 * float(proj.keyboard.is_pressed('a'))
-    delta_r += 0.25 * float(proj.keyboard.is_pressed('d'))
+#     delta_r = 0.0
+#     delta_r -= 0.25 * float(proj.keyboard.is_pressed('a'))
+#     delta_r += 0.25 * float(proj.keyboard.is_pressed('d'))
 
-    delta_a = 0.0
-    delta_a -= 0.25 * float(proj.keyboard.is_pressed('j'))
-    delta_a += 0.25 * float(proj.keyboard.is_pressed('l'))
+#     delta_a = 0.0
+#     delta_a -= 0.25 * float(proj.keyboard.is_pressed('j'))
+#     delta_a += 0.25 * float(proj.keyboard.is_pressed('l'))
 
-    return delta_e, delta_r, delta_a
+#     return delta_e, delta_r, delta_a
 
 def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
     # Make structure to hold simulation data
@@ -356,13 +363,17 @@ def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
             break
 
         # Get the controller inputs
-        _, _ = controller(telem, h_des)
-        delta_e_des, delta_a_des, delta_r_des = _get_keypresses(proj)
+        delta_e_des, delta_P_des = controller(telem, h_des)
+        delta_r_des, delta_a_des = 0.0, 0.0
+        # delta_e_des, delta_r_des, delta_a_des = _get_keypresses(proj)
 
         # Step the simulation. Use the flight sim calculated aero torques
         # to rotate the airplane in the Pybullet engine
         tau_aero_net = flightsim.step(_rotation_state(plane),
-                                      delta_e_des, delta_a_des, delta_r_des, 59859.3)
+                                      float(delta_e_des),
+                                      float(delta_r_des),
+                                      float(delta_a_des),
+                                      float(delta_P_des),)
         plane.apply_torque(tau_aero_net)
         proj.step(real_time=kwargs['real_time'], stable_step=False)
 
@@ -468,4 +479,4 @@ def _ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    dat = run(_ctrlr, 1, real_time=False, chase=True, time=60.)
+    dat = run(_ctrlr, 0)
