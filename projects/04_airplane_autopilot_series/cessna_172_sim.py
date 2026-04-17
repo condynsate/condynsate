@@ -329,16 +329,16 @@ def _update_vis_env(proj, plane, telem, shake, chase, cam_target_history):
 
 def _get_keypresses(proj):
     delta_e = 0.0
-    delta_e -= 0.332 * float(proj.keyboard.is_pressed('i'))
-    delta_e += 0.384 * float(proj.keyboard.is_pressed('k'))
+    delta_e -= 0.5*0.332 * float(proj.keyboard.is_pressed('i'))
+    delta_e += 0.5*0.384 * float(proj.keyboard.is_pressed('k'))
 
     delta_r = 0.0
-    delta_r -= 0.349 * float(proj.keyboard.is_pressed('a'))
-    delta_r += 0.349 * float(proj.keyboard.is_pressed('d'))
+    delta_r -= 0.5*0.349 * float(proj.keyboard.is_pressed('a'))
+    delta_r += 0.5*0.349 * float(proj.keyboard.is_pressed('d'))
 
     delta_a = 0.0
-    delta_a -= 0.349 * float(proj.keyboard.is_pressed('j'))
-    delta_a += 0.349 * float(proj.keyboard.is_pressed('l'))
+    delta_a -= 0.5*0.349 * float(proj.keyboard.is_pressed('j'))
+    delta_a += 0.5*0.349 * float(proj.keyboard.is_pressed('l'))
 
     return delta_e, delta_r, delta_a
 
@@ -479,4 +479,4 @@ def _ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    dat = run(_ctrlr, 0, time=3600, real_time=True)
+    dat = run(_ctrlr, 0, time=3600, real_time=True, chase=True)
