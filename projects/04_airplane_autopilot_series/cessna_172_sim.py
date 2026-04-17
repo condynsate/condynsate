@@ -216,7 +216,7 @@ def _set_init_conds(plane, telem):
 
 def _make(**kwargs):
     # Create the project
-    proj = Project(keyboard=False, visualizer=kwargs['real_time'],
+    proj = Project(keyboard=True, visualizer=kwargs['real_time'],
                    simulator_gravity = (0.,0.,0.),
                    simulator_dt = DT,)
 
@@ -327,20 +327,20 @@ def _update_vis_env(proj, plane, telem, shake, chase, cam_target_history):
                                   roll = telem['earth_roll'],
                                   position=(0,0,-R_PLANET-telem['h']))
 
-# def _get_keypresses(proj):
-#     delta_e = 0.0
-#     delta_e -= 0.25 * float(proj.keyboard.is_pressed('i'))
-#     delta_e += 0.25 * float(proj.keyboard.is_pressed('k'))
+def _get_keypresses(proj):
+    delta_e = 0.0
+    delta_e -= 0.332 * float(proj.keyboard.is_pressed('i'))
+    delta_e += 0.384 * float(proj.keyboard.is_pressed('k'))
 
-#     delta_r = 0.0
-#     delta_r -= 0.25 * float(proj.keyboard.is_pressed('a'))
-#     delta_r += 0.25 * float(proj.keyboard.is_pressed('d'))
+    delta_r = 0.0
+    delta_r -= 0.349 * float(proj.keyboard.is_pressed('a'))
+    delta_r += 0.349 * float(proj.keyboard.is_pressed('d'))
 
-#     delta_a = 0.0
-#     delta_a -= 0.25 * float(proj.keyboard.is_pressed('j'))
-#     delta_a += 0.25 * float(proj.keyboard.is_pressed('l'))
+    delta_a = 0.0
+    delta_a -= 0.349 * float(proj.keyboard.is_pressed('j'))
+    delta_a += 0.349 * float(proj.keyboard.is_pressed('l'))
 
-#     return delta_e, delta_r, delta_a
+    return delta_e, delta_r, delta_a
 
 def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
     # Make structure to hold simulation data
@@ -364,8 +364,8 @@ def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
 
         # Get the controller inputs
         delta_e_des, delta_P_des = controller(telem, h_des)
-        delta_r_des, delta_a_des = 0.0, 0.0
-        # delta_e_des, delta_r_des, delta_a_des = _get_keypresses(proj)
+        # delta_r_des, delta_a_des = 0.0, 0.0
+        delta_e_des, delta_r_des, delta_a_des = _get_keypresses(proj)
 
         # Step the simulation. Use the flight sim calculated aero torques
         # to rotate the airplane in the Pybullet engine
@@ -479,4 +479,4 @@ def _ctrlr(state, h_des):
     return (n[0], n[1])
 
 if __name__ ==  "__main__":
-    dat = run(_ctrlr, 0)
+    dat = run(_ctrlr, 0, time=3600, real_time=True)
