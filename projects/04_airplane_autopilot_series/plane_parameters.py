@@ -56,37 +56,38 @@ class Cessna172(Params):
 
         # Wing param (Gross : left + right + ailerons)
         self.params['S_w'] = 16.2           # Projected top-down area [m^2]
-        self.params['c_w'] = 1.49           # Mean aerodynamic chord [m]
+        self.params['c_w'] = 1.48           # Mean aerodynamic chord [m]
         self.params['typ_w'] = 'NACA2412'   # Airfoil type of wing
-        self.params['dihedral_w'] = 0.0303  # Diheadral angle [rad]
+        self.params['dihedral_w'] = math.radians(3.5) # Diheadral angle [rad]
         self.params['d_eta_d_alpha'] = 0.25 # Downwash angle slope wrt AoA [-]
 
         # Aileron param (Gross : left + right)
-        self.params['S_a'] = 1.362          # Projected top-down area [m^2]
-        self.params['c_a'] = 0.312          # Mean aerodynamic chord [m]
-        self.params['delta_a_max'] = 0.262  # Max mag deflection of ail [rad]
-        self.params['delta_a_rate'] = 0.26  # Max deflection rate of ail [rad/s]
+        self.params['S_a'] = 1.70           # Projected top-down area [m^2]
+        self.params['c_a'] = 0.487          # Mean aerodynamic chord [m]
+        self.params['delta_a_min'] = -0.262 # Max downward deflection of ail [rad]
+        self.params['delta_a_max'] = 0.349  # Max upward deflection of ail [rad]
+        self.params['delta_a_rate'] = 0.244 # Max deflection rate of ail [rad/s]
 
         # Horizontal stab param (Gross : wing + surface)
-        self.params['S_h'] = 3.50           # Projected top-down area [m^2]
-        self.params['c_h'] = 1.02          # Mean aerodynamic chord [m]
-        self.params['typ_h'] = 'NACA2412i'  # Airfoil type of h stab
+        self.params['S_h'] = 3.35          # Projected top-down area [m^2]
+        self.params['c_h'] = 0.971         # Mean aerodynamic chord [m]
+        self.params['typ_h'] = 'NACA2412i' # Airfoil type of h stab
 
         # Elevator param
-        self.params['S_e'] = 1.37           # Projected top-down area [m^2]
-        self.params['delta_e_min'] = -0.332 # Max downward deflection of ele [rad]
-        self.params['delta_e_max'] = 0.384  # Max upward deflection of ele [rad]
-        self.params['delta_e_rate'] = 0.26  # Max deflection rate of ele [rad/s]
+        self.params['S_e'] = 1.35           # Projected top-down area [m^2]
+        self.params['delta_e_min'] = -0.401 # Max downward deflection of ele [rad]
+        self.params['delta_e_max'] = 0.489  # Max upward deflection of ele [rad]
+        self.params['delta_e_rate'] = 0.356  # Max deflection rate of ele [rad/s]
 
         # Vertical stab parameters (Gross : wing + surface)
-        self.params['S_v'] = 2.16         # Projected side area [m^2]
+        self.params['S_v'] = 1.73         # Projected side area [m^2]
         self.params['c_v'] = 1.42         # Mean aerodynamic chord [m]
         self.params['typ_v'] = 'NACA2012' # Airfoil type of v stab
 
         # Rudder parameters
-        self.params['S_r'] = 0.846          # Projected side area [m^2]
+        self.params['S_r'] = 0.690          # Projected side area [m^2]
         self.params['delta_r_max'] = 0.279  # Max mag deflection of rud [rad]
-        self.params['delta_r_rate'] = 0.26  # Max deflection rate of rud [rad/s]
+        self.params['delta_r_rate'] = 0.223 # Max deflection rate of rud [rad/s]
 
         # Body parameters
         self.params['S_b'] = 5.59   # Project side area [m^2]
@@ -94,23 +95,23 @@ class Cessna172(Params):
 
         # Distance from CoM to center of lift (at 0 AoA)
         # positive in front of and below CoM
-        self.params['x_w'] = -0.156  # Axial distance (wing) [m]
+        self.params['x_w'] = -0.734  # Axial distance (wing) [m]
         self.params['z_w'] = -0.971  # Vertical distance (wing) [m]
-        self.params['x_he'] = -4.59  # Axial distance (hori stab + ele) [m]
+        self.params['x_he'] = -4.94  # Axial distance (hori stab + ele) [m]
         self.params['z_he'] = 0.0288 # Vertical distance (hori stab + ele) [m]
-        self.params['x_v'] = -4.81   # Axial distance (v stab + rud) [m]
+        self.params['x_v'] = -5.16   # Axial distance (v stab + rud) [m]
         self.params['z_v'] = -0.281  # Vertical distance (v stab + rud) [m]
-        self.params['x_b'] = -0.608  # Axial distance (fuselage) [m]
+        self.params['x_b'] = -0.958  # Axial distance (fuselage) [m]
         self.params['z_b'] = -0.127  # Vertical distance (fuselage) [m]
 
         # Powerplant sizing
-        self.params['P_max'] = 1.342e5  # Max engine power setting [kW]
-        self.params['P_rate'] = 3.4e4   # Max engine power setting rate [kW/s]
+        self.params['P_max'] = 1.193e5  # Max engine power setting [W]
+        self.params['P_rate'] = 2.386e4 # Max engine power setting rate [W/s]
         self.params['rpm_max'] = 2700.0 # RPM of prop at 100% power [rpm]
         self.params['prop_D'] = 1.905   # Diameter of prop [m]
-        self.params['T_max'] = 2447     # Max thrust (v=0.0, P=100%, STP) [N]
-        self.params['T_cruise'] = 1557  # Thrust @ cruise (v=V_cruise, P=75%, STP) [N]
-        self.params['V_cruise'] = 64.82 # Cruise velocity (P=75%, STP)[m/s]
+        self.params['T_max'] = 1557     # Max thrust (v=0.0, P=100%, STP) [N]
+        self.params['T_cruise'] = 1042  # Thrust @ cruise (v=V_cruise, P=75%, 8000ft) [N]
+        self.params['V_cruise'] = 62.6  # Cruise velocity (P=75%, 8000ft)[m/s]
 
         # Calculated params
         self._calculate_other_params()
@@ -125,7 +126,7 @@ class Cessna172(Params):
         alpha_0 = 2*math.pi*AR_w / (AR_w + 2.353)
 
         # Effectiveness of surface (Equal to 1 when 100% of gross wing is surf)
-        tau = math.sqrt(S_s / S_w)
+        tau = S_s / S_w
         return (b_w, AR_w, alpha_0), (b_s, tau)
 
     def _calculate_other_params(self):

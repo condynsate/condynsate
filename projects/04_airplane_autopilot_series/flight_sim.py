@@ -10,17 +10,19 @@ This module implements the backend for the airplane project.
 SPDX-License-Identifier: GPL-3.0-only
 """
 
-###############################################################################
+####################################################################################################
 #DEPENDENCIES
-###############################################################################
+####################################################################################################
 import math
 import random
+from collections import deque
 from plane_parameters import Params, Cessna172
-STALL_DEV = 5.0 * (math.pi/180.0) # Rad from stall angle where stall developments starts
+STALL_DEV = math.radians(4) # Rad after stall angle where stall developments ends, full stall starts
+EPSILON = 0.001
 
-###############################################################################
+####################################################################################################
 #MATH OPERATION FUNCTIONS
-###############################################################################
+####################################################################################################
 def _RYZ(y, z):
     cy, cz = math.cos(y), math.cos(z)
     sy, sz = math.sin(y), math.sin(z)
@@ -62,9 +64,9 @@ def _sum(*args):
 def _T(A):
     return tuple(tuple(row) for row in zip(*A))
 
-###############################################################################
+####################################################################################################
 #STANDARD ATMOSPHERIC MODEL FUNCTIONS
-###############################################################################
+####################################################################################################
 def _g(h):
     # Newtonian gravity
     return 3.986025446e14 / ((6.371e6+h)*(6.371e6+h))
@@ -83,156 +85,124 @@ def _mu(h):
     # Sutherland's law
     return 1.458e-6*_temperature(h)**(1.5) / (_temperature(h) + 110.4)
 
-###############################################################################
+####################################################################################################
 #FLIGHT MODEL CLASS
-###############################################################################
+####################################################################################################
 class _FlightModel:
     def __init__(self, params):
         self.p = params
 
     def _cL(self, angles, slopes, spans, alpha_L0, alpha_s):
-        # Read the args
-        alpha = angles[0]
-        beta = angles[1]
-        delta = angles[2]
-        alpha_0 = slopes[0]
-        tau = slopes[1]
-        b = spans[0]
-        b_s = spans[1]
-
         # Check if the surface spans the entire wing (within 1% precision)
-        if abs(b-b_s) >= 0.01*b:
+        if abs(spans[0]-spans[1]) >= 0.01*spans[0]:
             # If it does not, switch to outboard-inboard lift calculation with
             # the surface always as outboard as possible (like with ailerons)
-            slopes_o = (alpha_0, (b/b_s)*tau)
-            spans_o = (b_s, b_s)
-            cL_o, _ = self._cL(angles, slopes_o, spans_o, alpha_L0, alpha_s)
-            slopes_i = (alpha_0, 0.0)
-            spans_i = (b-b_s, b-b_s)
-            cL_i, _ = self._cL(angles, slopes_i, spans_i, alpha_L0, alpha_s)
+            cL_o, _, sc_o = self._cL(angles, (slopes[0], slopes[1]*spans[0]/spans[1]),
+                                     (spans[1],)*2, alpha_L0, alpha_s)
+            cL_i, _, sc_i = self._cL(angles, (slopes[0], 0.0),
+                                     (spans[0]-spans[1],)*2, alpha_L0, alpha_s)
 
             # Effective coefficient of lift
-            cL = (cL_o*b_s + cL_i*(b-b_s)) / b
+            cL = (cL_o*spans[1] + cL_i*(spans[0]-spans[1])) / spans[0]
 
             # Center of lift calculation
-            y_o = b - 0.5*b_s
-            y_i = 0.5*(b - b_s)
+            y_o = spans[0] - 0.5*spans[1]
+            y_i = 0.5*(spans[0] - spans[1])
             try:
-                CoL = (cL_o*b_s*y_o + cL_i*(b-b_s)*y_i) / (b*cL)
+                return (cL, (cL_o*spans[1]*y_o + cL_i*(spans[0]-spans[1])*y_i) / (spans[0]*cL),
+                        max(sc_o, sc_i))
             except ZeroDivisionError:
-                CoL = 0.5*b
-            return cL, CoL
-
-        # Get the effective angle of attack
-        alpha_eff = alpha + tau*delta
-        alpha_eff_abs = abs(alpha_eff)
+                return cL, 0.5*spans[0], max(sc_o, sc_i)
 
         # Get the no stall coefficient of lift and center of lift
-        cL = alpha_0*(alpha_eff-alpha_L0)
-        CoL = 0.5*b
+        # Outside of stall, CoL is always half the span
+        alpha_eff = angles[0] + slopes[1]*angles[2]
+        cL = slopes[0]*(alpha_eff-alpha_L0)
+
+        # No stall
+        if abs(alpha_eff) < alpha_s:
+            # Add a cos beta as a first order crab angle correction term
+            cL = math.cos(angles[1])*cL
+            return cL, 0.5*spans[0], 0
 
         # Add random buffeting while stall is developing
-        # At stall, this gives an average cL buffet of -0.4661
-        # Which is 1/20 of the lift produced by an infinite wing at alpha_s
-        buffet = 0.0
-        if alpha_eff_abs >= alpha_s - STALL_DEV:
-            buffet = (alpha_eff_abs-alpha_s+STALL_DEV) * (-144/20*alpha_s*random.random())
-
-        # No stall (angle of attack is more than 5 degrees below stall angle)
-        if alpha_eff_abs < alpha_s - STALL_DEV:
-            # Add a cos beta as a first order crab angle correction term
-            cL = math.cos(beta)*(cL + buffet)
-            return cL, CoL
+        # abs(alpha_eff) = alpha_s + STALL_DEV  -> Avg buff = -(1/10)*2*pi*(alpha_s + STALL_DEV)
+        const = -4*math.pi*(alpha_s+STALL_DEV) / (10 * STALL_DEV)
+        buffet = (abs(alpha_eff) - alpha_s) * random.random() * const
 
         # Positive stall developement region
-        if alpha_s - STALL_DEV <= alpha_eff <= alpha_s:
-            cL_stalling = -1/(2*STALL_DEV)*cL*(alpha_eff - alpha_s - STALL_DEV)
-            cL = math.cos(beta)*(cL_stalling + buffet)
-            return cL, CoL
+        if alpha_s <= alpha_eff <= alpha_s + STALL_DEV:
+            cL_stalling = cL * (1.0 + 4.0*(alpha_s-alpha_eff) / (10.0*STALL_DEV))
+            cL = math.cos(angles[1])*(cL_stalling + buffet)
+            return cL, 0.5*spans[0], 1
 
         # Negative stall developement region
-        if -alpha_s <= alpha_eff <= -alpha_s + STALL_DEV:
-            cL_stalling = 1/(2*STALL_DEV)*cL*(alpha_eff + alpha_s + STALL_DEV)
-            cL = math.cos(beta)*(cL_stalling + buffet)
-            return cL, CoL
+        if -alpha_s - STALL_DEV <= alpha_eff <= -alpha_s:
+            cL_stalling = cL * (1.0 + 4.0*(alpha_s+alpha_eff) / (10.0*STALL_DEV))
+            cL = math.cos(angles[1])*(cL_stalling + buffet)
+            return cL, 0.5*spans[0], 1
 
         # Complete stall
-        # Any angle of attack outside of [-a_s, a_s] produces no lift
-        return 0.0, CoL
+        return 0.0, 0.5*spans[0], 2
 
     def _alpha_s(self, re):
-        # Calculate stall angle (Assume all airfoils stall at around 17 deg)
-        # though very low reynolds number result in lower stall angles all the
-        # way to 10 deg
-        x = min(max(re, 50_000), 1_000_000)
-
-        # Fast return for high Reynold's num
-        if x == 1_000_000:
-            return 0.2966693209247442 # 16.9979 degreees
-
-        alpha_s = -2.333e-18*x*x*x + 3.674e-12*x*x - 3.499e-7*x + 0.0086
-        alpha_s = min(max(alpha_s,0),1)*math.radians(7) + math.radians(10)
-        return alpha_s
+        # Calculate stall angle (Assume all airfoils stall at around 16 deg)
+        # though very low reynolds number result in lower stall angles
+        if re >= 1_000_000:
+            return math.radians(16)
+        return 0.0350*(math.log(min(max(re, 50_000), 1_000_000)) - 5.827)
 
     def _alpha_L0(self, re, typ):
-        # Calculate the 0 lift angle of attack where, for all airfoils, at very
-        # low reynold's number, a_l0 is 0, and at normal flight reynold's numbers
-        # a_l0 is whatever is defined for a specific airfoil
-        x = min(max(re, 50_000), 1_000_000)
+        # Calculate the 0 lift angle of attack where, at low reynold's number, a_l0 is 0,
+        # and at normal flight reynold's numbers a_l0 is airfoil specific
+        if re >= 1_000_000:
+            multiplier = 1.0
+        elif re <= 50_000:
+            return 0.0
+        else:
+            x = min(max(re, 50_000), 1_000_000)
+            multiplier = min(max(0.3338*(math.log(x)-10.82), 0.0), 1.0)
 
-        # Fast calculation for high Reynold's num
-        if x == 1_000_000:
-            alpha_L0 = 1.0
-        else:
-            alpha_L0 = -1.11e-12*x*x + 2.22e-6*x - 0.108
-            alpha_L0 = min(max(alpha_L0, 0.0), 1.0)
         if typ == 'NACA2412':
-            alpha_L0 *= -0.0436
-        elif typ == 'NACA2412i':
-            alpha_L0 *= 0.0436
-        elif typ == 'NACA0012':
-            alpha_L0 = 0.0
-        else:
-            alpha_L0 = 0.0
-        return alpha_L0
+            return -math.radians(3.5) * multiplier
+        if typ == 'NACA2412i':
+            return math.radians(3.5) * multiplier
+        if typ == 'NACA0012':
+            return 0.0
+        return 0.0
 
     def _L_D(self, atmosphere, wing, state):
         # Get the reynold's number and dynamic pressure
         re = atmosphere['rho'] * wing['c'] * state['V'] / atmosphere['mu']
         q_S = 0.5 * atmosphere['rho'] * state['V'] * state['V'] * wing['S']
+        cD = 0.0
 
-        # Calculate stall and 0 lift angles
-        alpha_L0 = self._alpha_L0(re, wing['typ'])
-        alpha_s = self._alpha_s(re)
-
-        # Get the lift and induced drag coefficients
+        # Get the lift and induced drag
         angles = (state['alpha'], state['beta'], state['delta'])
         slopes = (wing['alpha_0'], wing['tau'])
         spans = (wing['b'], wing['b_s'])
-        cL, CoL = self._cL(angles, slopes, spans, alpha_L0, alpha_s)
-        cDi = cL*cL / (math.pi * wing['AR'])
+        cL, CoL, stall_cond = self._cL(angles, slopes, spans,
+                                       self._alpha_L0(re, wing['typ']), self._alpha_s(re))
+        cD += cL*cL / (math.pi * wing['AR'])
 
-        # Turbulent flow of thin plate skin friction
-        cDf_skin = 0.074 * re**(-0.2)
+        # Skin drag: Turbulent flow of thin plate skin friction
+        cD += 0.074 * re**(-0.2)
 
         # Form drag is that of streamlined body below stall, then
         # transitions to that of a rotated, thin plate after stall
-        if cL != 0.0:
-            cDf_form = 0.006
+        if stall_cond == 0:
+            cD += 0.006
         else:
-            cDf_form = (abs(1.8*math.sin(state['alpha'])) -
-                        0.284*math.cos(state['alpha']))
-            cDf_form = 0.05*max(cDf_form, 0.0)
+            cD += max((1.8*abs(math.sin(state['alpha'])) -
+                       0.5*math.cos(state['alpha'])), 0.006)
 
         # Get the total lift and drag
         L = cL * q_S
-        D = (cDi + cDf_skin + cDf_form) * q_S
+        D = cD * q_S
         return L, D, CoL
 
     def _wing_forces(self, sim):
-        # Build the arguments
-        atmosphere = {'rho' : sim.rho,
-                      'mu' : sim.mu}
+        # Build the arguments for the left wing
         half_wing = {'S' : 0.5 * self.p.S_w,
                      'AR' : self.p.AR_w,
                      'b' : 0.5*self.p.b_w,
@@ -241,26 +211,24 @@ class _FlightModel:
                      'alpha_0' : self.p.alpha_0_w,
                      'tau' : self.p.tau_a,
                      'typ' : self.p.typ_w, }
-        state_wl = {'V' : sim.V_wl,
-                    'alpha' : sim.alpha_wl,
-                    'delta' : sim.delta_a,
-                    'beta' : sim.beta_wl}
-        state_wr = {'V' : sim.V_wr,
-                    'alpha' : sim.alpha_wr,
-                    'delta' : -sim.delta_a,
-                    'beta' : sim.beta_wr}
+        state = {'V' : sim.V_wl,
+                 'alpha' : sim.alpha_wl,
+                 'delta' : sim.delta_a,
+                 'beta' : sim.beta_wl}
 
         # Get the lift and drag of the left wing system (in local left wing flow)
-        L_wl, D_wl, CoL_y_wl = self._L_D(atmosphere, half_wing, state_wl)
-        CoL_wl_CoM = (self.p.x_w, -CoL_y_wl, self.p.z_w)
+        L, D, CoL_y = self._L_D({'rho' : sim.rho, 'mu' : sim.mu}, half_wing, state)
+        CoL_wl_CoM = (self.p.x_w, -CoL_y, self.p.z_w)
+        F_wl_CoM = _CoV(sim.R_FWL_CoM, (-D, 0.0, -L))
 
         # Get the lift and drag of the right wing system (in local right wing flow)
-        L_wr, D_wr, CoL_y_wr = self._L_D(atmosphere, half_wing, state_wr)
-        CoL_wr_CoM = (self.p.x_w, CoL_y_wl, self.p.z_w)
-
-        # Convert from local flow coords to world coords
-        F_wl_CoM = _CoV(sim.R_FWL_CoM, (-D_wl, 0.0, -L_wl))
-        F_wr_CoM = _CoV(sim.R_FWR_CoM, (-D_wr, 0.0, -L_wr))
+        state = {'V' : sim.V_wr,
+                 'alpha' : sim.alpha_wr,
+                 'delta' : -sim.delta_a,
+                 'beta' : sim.beta_wr}
+        L, D, CoL_y = self._L_D({'rho' : sim.rho, 'mu' : sim.mu}, half_wing, state)
+        CoL_wr_CoM = (self.p.x_w, CoL_y, self.p.z_w)
+        F_wr_CoM = _CoV(sim.R_FWR_CoM, (-D, 0.0, -L))
 
         # Calculate torques
         tau_wl_CoM = _cross(CoL_wl_CoM, F_wl_CoM)
@@ -272,8 +240,6 @@ class _FlightModel:
         eta = self.p.d_eta_d_alpha * 0.5 * (sim.alpha_wl + sim.alpha_wr)
 
         # Build the arguments
-        atmosphere = {'rho' : sim.rho,
-                      'mu' : sim.mu}
         wing = {'S' : self.p.S_h,
                 'AR' : self.p.AR_h,
                 'b' : self.p.b_h,
@@ -288,22 +254,15 @@ class _FlightModel:
                  'beta' : sim.beta_he}
 
         # Get the lift and drag of the h stab system (in local h stab flow)
-        L, D, _ = self._L_D(atmosphere, wing, state)
+        L, D, _ = self._L_D({'rho' : sim.rho, 'mu' : sim.mu}, wing, state)
         CoL_CoM = (self.p.x_he, 0.0, self.p.z_he)
 
         # Convert from local flow coords to world coords
         F_CoM = _CoV(sim.R_FHE_CoM, (-D, 0.0, -L))
-
-        # Calculate torque
-        tau_CoM = _cross(CoL_CoM, F_CoM)
-
-        # Convert from local flow coords to world coords
-        return F_CoM, tau_CoM
+        return F_CoM, _cross(CoL_CoM, F_CoM)
 
     def _vert_stab_force(self, sim):
         # Build the arguments
-        atmosphere = {'rho' : sim.rho,
-                      'mu' : sim.mu}
         wing = {'S' : self.p.S_v,
                 'AR' : self.p.AR_v,
                 'b' : self.p.b_v,
@@ -318,17 +277,12 @@ class _FlightModel:
                  'beta' : sim.beta_v}
 
         # Get the lift and drag of the v stab system (in local v stab flow)
-        L, D, _ = self._L_D(atmosphere, wing, state)
+        L, D, _ = self._L_D({'rho' : sim.rho, 'mu' : sim.mu}, wing, state)
         CoL_CoM = (self.p.x_v, 0.0, self.p.z_v)
 
         # Convert from local flow coords to world coords
         F_CoM = _CoV(sim.R_FV_CoM, (-D, 0.0, -L))
-
-        # Calculate torque
-        tau_CoM = _cross(CoL_CoM, F_CoM)
-
-        # Convert from local flow coords to world coords
-        return F_CoM, tau_CoM
+        return F_CoM, _cross(CoL_CoM, F_CoM)
 
     def  _body_force(self, sim):
         # Body lift is treated as though body is low-lift symmetric airfoil
@@ -342,10 +296,7 @@ class _FlightModel:
 
         # Convert from local flow coords to world coords
         F_CoM = _CoV(sim.R_FB_CoM, (-D, -L_beta, -L_alpha))
-
-        # Calculate torque
-        tau_CoM = _cross((self.p.x_b, 0.0, self.p.z_b), F_CoM)
-        return F_CoM, tau_CoM
+        return F_CoM, _cross((self.p.x_b, 0.0, self.p.z_b), F_CoM)
 
     def prop_rps(self, sim):
         """
@@ -369,28 +320,22 @@ class _FlightModel:
         # (75% power = 0.925*rps_max)
         # (100% power = rps_max)
         const = (71.65)**(sim.P / self.p.P_max)
-        num = 0.0174 * const * self.p.rpm_max
-        den = const + 3.177
-        return num / den
+        return (0.0174 * const * self.p.rpm_max) / (const + 3.177)
 
     def _cT(self, sim, n):
-        # Based on monotonic decrease, linear cT(J) curve
+        # Based on monotonic decrease, linear cT(J) curve (J is advance ratio)
         n_max = self.p.rpm_max/60.0
         n_75 = 0.925*self.p.rpm_max/60.0
-        D = self.p.prop_D
-        V_c = self.p.V_cruise
-        b = self.p.T_max / (1.225*n_max**2*D**4)
-        m = self.p.T_cruise/(1.225*V_c*n_75*D**3) - b*n_75*D/V_c
-        J = sim.v_CoM[0] / (n*self.p.prop_D)
-        return min(max(m*J + b, 0.0), b)
+        cT_max = self.p.T_max / (1.225*n_max**2*self.p.prop_D**4)
+        slope = self.p.T_cruise / (0.9652*self.p.V_cruise*n_75*self.p.prop_D**3)
+        slope -= cT_max*n_75*self.p.prop_D/self.p.V_cruise
+        J = sim.v_CoM[0]/(n*self.p.prop_D)
+        return min(max(slope*J + cT_max, 0.0), cT_max)
 
     def _prop_force(self, sim):
         # Calculate the thrust
         n = self.prop_rps(sim)
-        T = sim.rho * n**2 * self.p.prop_D**4 * self._cT(sim, n)
-
-        # Convert from plane coords to world coords
-        return (T, 0.0, 0.0)
+        return (sim.rho * n*n * self.p.prop_D**4 * self._cT(sim, n), 0.0, 0.0)
 
     def net_aero_force_torque(self, sim):
         """
@@ -405,10 +350,13 @@ class _FlightModel:
 
         Returns
         -------
-        F_W
-            The net aerodynamic force (N).
-        tau_W
-            The net aerodynamic torque (Nm).
+        F_W : 3 tuple of floats
+            The net aerodynamic force (N) in world coords.
+        tau_W : 3 tuple of floats
+            The net aerodynamic torque (Nm) in world coords.
+        LD_net : 2 tuple of floats
+            The net lift and drag on the plane (referenced to the CoM flow). This
+            value is already included in F_W and tau_W.
 
         """
         # Get the forces and torques
@@ -418,12 +366,25 @@ class _FlightModel:
         F_b_CoM, tau_b_CoM = self._body_force(sim)
         F_p_CoM = self._prop_force(sim)
 
+        # Calculate the net lift and drag with respect to flow at CoM
+        F_surf_CoM = _sum(F_w_CoM, F_he_CoM, F_v_CoM, F_b_CoM)
+        DL_net = _CoV(_T(sim.R_F_CoM), F_surf_CoM)
+
         # Get the net forces and torques
-        F_net_CoM = _sum(F_w_CoM, F_he_CoM, F_v_CoM, F_b_CoM, F_p_CoM)
+        F_net_CoM = _sum(F_surf_CoM, F_p_CoM)
         tau_net_CoM = _sum(tau_w_CoM, tau_he_CoM, tau_v_CoM, tau_b_CoM)
 
+        # Get the net cL, cD, and cM
+        q_S = 0.5 * sim.rho * sim.V_inf * sim.V_inf * self.p.S_w
+        cL_net = -DL_net[2] / q_S
+        cD_tot = -DL_net[0] / q_S
+        cl_tot = tau_net_CoM[0] / (q_S * self.p.c_w)
+        cm_tot = tau_net_CoM[1] / (q_S * self.p.c_w)
+        cn_tot = tau_net_CoM[2] / (q_S * self.p.c_w)
+        coeffs = (cL_net, cD_tot, cl_tot, cm_tot, cn_tot)
+
         # Change to world coordinates
-        return _CoV(sim.R_CoM_W, F_net_CoM), _CoV(sim.R_CoM_W, tau_net_CoM)
+        return _CoV(sim.R_CoM_W, F_net_CoM), _CoV(sim.R_CoM_W, tau_net_CoM), coeffs
 
 ###############################################################################
 #FLIGHTSIM CLASS
@@ -570,6 +531,11 @@ class FlightSim:
                                      0.0,
                                      self._params['plane'].z_b)
 
+        # Set the list of previous velocities and accelerations to empty
+        # for linear multi-stepping
+        self._state['v_hist'] = deque()
+        self._state['a_hist'] = deque()
+
         # Calculate the gravity, density, temperature, and viscosity
         self._update_atmo()
 
@@ -581,6 +547,10 @@ class FlightSim:
 
         # Get the rotations between local surface flow and the plane
         self._update_flow_rot_mats()
+
+        # Get the current lift and drag
+        _, _, coeffs = self._model.net_aero_force_torque(self)
+        self._state['coeffs'] = coeffs
 
     def __repr__(self):
         state_str = "state = { "
@@ -604,7 +574,7 @@ class FlightSim:
                     R_str += f"'{key}': {row}\n"
                     continue
                 R_str += f"{' '*(len(key)+20)}{row}\n"
-            R_str = R_str[:-2] + f', \n{' '*16}'
+            R_str = R_str[:-2] + f", \n{' '*16}"
         R_str = R_str[:-19] + ' }'
 
         params_str = ' '*10 + self._params['plane'].__str__().split('(')[0] + ' = { '
@@ -678,6 +648,13 @@ class FlightSim:
         tau = _cross(r, F)
         return F, tau
 
+    def _ground_force(self, Fz):
+        m = self._params['plane'].mass
+        dt = self._params['dt']
+        h = self._state['p_W'][2] - 1.171
+        vz = self._state['v_W'][2]
+        return (0.0, 0.0, max(-m*(h/(dt*dt) + vz/dt) - Fz, 0.0))
+
     def _update_euler_angs(self, rotation_state):
         self._state['omega_psi'] = rotation_state['omega_psi']
         self._state['omega_theta'] = rotation_state['omega_theta']
@@ -688,8 +665,8 @@ class FlightSim:
 
     def _update_plane_rot_mats(self):
         # Coordinates of center of mass of plane
-        r, p, y = self.phi, self.theta, self.psi
-        self._R['CoM_W'] = _mmul(((1, 0 ,0), (0, -1, 0), (0, 0, -1)), _RBW(r, p, y))
+        self._R['CoM_W'] = _mmul(((1, 0 ,0), (0, -1, 0), (0, 0, -1)),
+                                 _RBW(self.phi, self.theta, self.psi))
         self._R['W_CoM'] = _T(self._R['CoM_W'])
 
         # Orientation of wings and v stab
@@ -713,11 +690,35 @@ class FlightSim:
         self._R['V_W'] =  _mmul(self._R['CoM_W'], self._R['V_CoM'])
 
     def _apply_force(self, F_net):
-        # Apply accelerations and velocities
+        # Calculate the net acceleration
         dt = self._params['dt']
         acceleration = tuple(F/self._params['plane'].mass for F in F_net)
-        self._state['v_W'] = tuple(v+a*dt for v,a in zip(self._state['v_W'], acceleration))
-        self._state['p_W'] = tuple(p+v*dt for p,v in zip(self._state['p_W'], self._state['v_W']))
+
+        # Linear multistep (AB2)
+        try:
+            self._state['p_W'] = tuple(p + 1.5*dt*v - 0.5*dt*vm1 for p, v, vm1 in
+                  zip(self._state['p_W'], self._state['v_W'], self._state['v_hist'][-1]))
+
+            self._state['v_W'] = tuple(v + 1.5*dt*a - 0.5*dt*am1 for v, a, am1 in
+                  zip(self._state['v_W'], acceleration, self._state['a_hist'][-1]))
+
+        # If not enough stored previous states, fall back to Euler stepping
+        except IndexError:
+            self._state['p_W'] = tuple(p+v*dt
+                                       for p,v in zip(self._state['p_W'], self._state['v_W']))
+            self._state['v_W'] = tuple(v+a*dt
+                                       for v,a in zip(self._state['v_W'], acceleration))
+
+
+        # Store the current acceleration for linear multi-step
+        self._state['v_hist'].append(self._state['v_W'])
+        self._state['a_hist'].append(acceleration)
+
+        # Only keep just enough previous states for the order of linear-multistep
+        # being used
+        if len(self._state['v_hist']) > 1:
+            self._state['v_hist'].popleft()
+            self._state['a_hist'].popleft()
 
         # Update the gforce sensor
         self._state['g_force_W'] = tuple(-a/9.81+1.0*(i==2)
@@ -753,7 +754,7 @@ class FlightSim:
             self._state['delta_r'] += d_delta_r
 
         # Update the aileron angle
-        clipped_delta_a = min(max(delta_a_des, -self._params['plane'].delta_a_max),
+        clipped_delta_a = min(max(delta_a_des, self._params['plane'].delta_a_min),
                               self._params['plane'].delta_a_max)
         d_delta_a = clipped_delta_a - self._state['delta_a']
         if abs(d_delta_a) <= self._params['plane'].delta_a_rate * self._params['dt']:
@@ -799,14 +800,11 @@ class FlightSim:
 
     def _update_local_flow_angs(self):
         # Get the rotation rate of the plane's center of mass about the world
-        # in the plane's coordinate's
         omega_CoM_CoM = (self._state['omega_phi'],
                          self._state['omega_theta'],
                          self._state['omega_psi'])
 
-        # Calculate the induced velocity at each of the surfaces from the
-        # plane's rotation in surface coords then get the total flow velocity
-        # at each surface in the surface coords.
+        # Calculate the induced velocity at each of the surfaces
         v_wl_WL = _CoV(self._R['CoM_WL'],
                        _sum(self._state['v_CoM'],
                             _cross(omega_CoM_CoM, self._state['wl_CoL_CoM'])))
@@ -822,11 +820,11 @@ class FlightSim:
                        _cross(omega_CoM_CoM, self._state['b_CoL_CoM']))
 
         # Save the magnitude of the local surface velocities
-        self._state['V_wl'] = _norm3(v_wl_WL)
-        self._state['V_wr'] = _norm3(v_wr_WR)
-        self._state['V_he'] = _norm3(v_he_HE)
-        self._state['V_v'] = _norm3(v_v_V)
-        self._state['V_b'] = _norm3(v_b_B)
+        self._state['V_wl'] = max(_norm3(v_wl_WL), EPSILON)
+        self._state['V_wr'] = max(_norm3(v_wr_WR), EPSILON)
+        self._state['V_he'] = max(_norm3(v_he_HE), EPSILON)
+        self._state['V_v'] = max(_norm3(v_v_V), EPSILON)
+        self._state['V_b'] = max(_norm3(v_b_B), EPSILON)
 
         # Update the local flow angles at each of the surfaces
         self._state['alpha_wl'] = math.atan2(v_wl_WL[2], v_wl_WL[0])
@@ -861,8 +859,7 @@ class FlightSim:
         """
         Takes a single time step. This simulation steps updates all linear
         translations, velocities, and accelerations, but does not handle and
-        rotations. To handle rotations, the net torque acting on the plane is
-        returned.
+        rotations.
 
         Parameters
         ----------
@@ -876,11 +873,11 @@ class FlightSim:
                 phi : float, roll (rad/s)
         delta_e_des : float
             The desired elevator deflection in radians.
-        delta_r_des : TYPE
+        delta_r_des : float
             The desired rudder deflection in radians.
-        delta_a_des : TYPE
+        delta_a_des : float
             The desired aileron deflection in radians.
-        P_des : TYPE
+        P_des : float
             The desired engine power setting in Watts.
 
         Returns
@@ -890,15 +887,17 @@ class FlightSim:
 
         """
         # Step 0
-        F_aero_net, tau_aero_net = self._model.net_aero_force_torque(self)
-        F_turbulence, tau_turbulence = self._get_turbulence()
-        F_gravity = (0, 0, -self._atmosphere['g']*self._params['plane'].mass)
-        F_net = _sum(F_aero_net, F_gravity, F_turbulence)
-        tau_net = _sum(tau_aero_net, tau_turbulence)
-
-        # Step 1
         self._update_euler_angs(rotation_state)
         self._update_plane_rot_mats()
+
+        # Step 1
+        F_aero_net, tau_aero_net, coeffs = self._model.net_aero_force_torque(self)
+        F_turbulence, tau_turbulence = self._get_turbulence()
+        F_gravity = (0, 0, -self._atmosphere['g']*self._params['plane'].mass)
+        F_ground = self._ground_force(F_aero_net[2]+F_turbulence[2]+F_gravity[2])
+        F_net = _sum(F_aero_net, F_turbulence, F_gravity, F_ground)
+        tau_net = _sum(tau_aero_net, tau_turbulence)
+        self._state['coeffs'] = coeffs
 
         # Step 2
         self._apply_force(F_net)
@@ -985,6 +984,12 @@ class FlightSim:
                  'delta_a_des' : self._state['delta_a_des'],
                  'P_des' : self._state['P_des'],
                  'prop_rpm' : 60.0*self._model.prop_rps(self),
+                 'cL_tot' : self._state['coeffs'][0],
+                 'cD_tot' : self._state['coeffs'][1],
+                 'cl_tot' : self._state['coeffs'][2],
+                 'cm_tot' : self._state['coeffs'][3],
+                 'cn_tot' : self._state['coeffs'][4],
                  'earth_pitch' : self._state['earth_pitch'],
-                 'earth_roll' : self._state['earth_roll'],}
+                 'earth_roll' : self._state['earth_roll'],
+                 'rho' : self._atmosphere['rho'],}
         return telem

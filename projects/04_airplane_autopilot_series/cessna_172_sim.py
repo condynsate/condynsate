@@ -27,29 +27,37 @@ class _SimData():
     _data : dict
 
     def __init__(self):
-        self._data = {'time':deque(),
-                      'h':deque(),
-                      'V_inf':deque(),
-                      'position':deque(),
-                      'velocity':deque(),
-                      'alpha':deque(),
-                      'beta':deque(),
-                      'omega_psi':deque(),
-                      'omega_theta':deque(),
-                      'omega_phi':deque(),
-                      'psi':deque(),
-                      'theta':deque(),
-                      'phi':deque(),
-                      'delta_e_des':deque(),
-                      'delta_r_des':deque(),
-                      'delta_a_des':deque(),
-                      'P_des':deque(),
-                      'delta_e':deque(),
-                      'delta_r':deque(),
-                      'delta_a':deque(),
-                      'P':deque(),
-                      'prop_rpm':deque(),
-                      'h_des':deque(),}
+        self._data = {
+            'time':deque(),
+            'h':deque(),
+            'h_des':deque(),
+            'V_inf':deque(),
+            'position':deque(),
+            'velocity':deque(),
+            'alpha':deque(),
+            'beta':deque(),
+            'omega_psi':deque(),
+            'omega_theta':deque(),
+            'omega_phi':deque(),
+            'psi':deque(),
+            'theta':deque(),
+            'phi':deque(),
+            'delta_e_des':deque(),
+            'delta_r_des':deque(),
+            'delta_a_des':deque(),
+            'P_des':deque(),
+            'delta_e':deque(),
+            'delta_r':deque(),
+            'delta_a':deque(),
+            'P':deque(),
+            'prop_rpm':deque(),
+            'cL_tot':deque(),
+            'cD_tot':deque(),
+            'cl_tot':deque(),
+            'cm_tot':deque(),
+            'cn_tot':deque(),
+            'rho':deque(),
+            }
 
     def __dict__(self):
         return dict(self)
@@ -78,29 +86,15 @@ class _SimData():
         None.
 
         """
-        self._data['time'].append(telem['time'])
-        self._data['h'].append(telem['h'])
-        self._data['V_inf'].append(telem['V_inf'])
+
+        self._data['h_des'].append(float(h_des))
         self._data['position'].append(telem['p_W'])
         self._data['velocity'].append(telem['v_CoM'])
-        self._data['alpha'].append(telem['alpha'])
-        self._data['beta'].append(telem['beta'])
-        self._data['omega_psi'].append(telem['omega_psi'])
-        self._data['omega_theta'].append(telem['omega_theta'])
-        self._data['omega_phi'].append(telem['omega_phi'])
-        self._data['psi'].append(telem['psi'])
-        self._data['theta'].append(telem['theta'])
-        self._data['phi'].append(telem['phi'])
-        self._data['delta_e'].append(telem['delta_e'])
-        self._data['delta_r'].append(telem['delta_r'])
-        self._data['delta_a'].append(telem['delta_a'])
-        self._data['P'].append(telem['P'])
-        self._data['delta_e_des'].append(telem['delta_e_des'])
-        self._data['delta_r_des'].append(telem['delta_r_des'])
-        self._data['delta_a_des'].append(telem['delta_a_des'])
-        self._data['P_des'].append(telem['P_des'])
-        self._data['prop_rpm'].append(telem['prop_rpm'])
-        self._data['h_des'].append(float(h_des))
+        for k in self._data.keys():
+            try:
+                self._data[k].append(telem[k])
+            except KeyError:
+                continue
 
 def _read_kwargs(**kwargs):
     state0 = {'h' : kwargs.get('h', 2003.63),
@@ -239,7 +233,7 @@ def _make(**kwargs):
     # Set all air resistance to 0
     for link in plane.links.values():
         link.set_dynamics(linear_air_resistance=0.0,
-                          angular_air_resistance=0.0)
+                          angular_air_resistance=0.2)
 
     return proj, plane, flightsim
 
@@ -329,12 +323,12 @@ def _update_vis_env(proj, plane, telem, shake, chase, cam_target_history):
 
 def _get_keypresses(proj):
     delta_e = 0.0
-    delta_e -= 0.5*0.332 * float(proj.keyboard.is_pressed('i'))
-    delta_e += 0.5*0.384 * float(proj.keyboard.is_pressed('k'))
+    delta_e -= 0.5*0.489 * float(proj.keyboard.is_pressed('i'))
+    delta_e += 0.5*0.489 * float(proj.keyboard.is_pressed('k'))
 
     delta_r = 0.0
-    delta_r -= 0.5*0.349 * float(proj.keyboard.is_pressed('a'))
-    delta_r += 0.5*0.349 * float(proj.keyboard.is_pressed('d'))
+    delta_r -= 0.5*0.279 * float(proj.keyboard.is_pressed('a'))
+    delta_r += 0.5*0.279 * float(proj.keyboard.is_pressed('d'))
 
     delta_a = 0.0
     delta_a -= 0.5*0.349 * float(proj.keyboard.is_pressed('j'))
@@ -358,14 +352,14 @@ def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
     start = now()
     cam_tag = deque()
     while proj.simtime <= kwargs['duration']:
-        # Crash condition (will strike ground in 0.5 seconds)
-        if telem['h'] + 0.5*telem['v_W'][2] <= 0.0:
+        # Crash condition (will strike ground in 0.1 seconds, and descent > 600 fpm)
+        if telem['h'] <= -0.1*telem['v_W'][2] and telem['v_W'][2] > 3.048:
             break
 
         # Get the controller inputs
         delta_e_des, delta_P_des = controller(telem, h_des)
-        # delta_r_des, delta_a_des = 0.0, 0.0
         delta_e_des, delta_r_des, delta_a_des = _get_keypresses(proj)
+        delta_P_des = 89475.0
 
         # Step the simulation. Use the flight sim calculated aero torques
         # to rotate the airplane in the Pybullet engine
@@ -476,7 +470,8 @@ def _ctrlr(state, h_des):
                   state['omega_theta'],
                   state['theta'],])
     n = -K@(m-m_e-x_des) + n_e
-    return (n[0], n[1])
+    return n
 
 if __name__ ==  "__main__":
-    dat = run(_ctrlr, 0, time=3600, real_time=True, chase=True)
+    dat = run(_ctrlr, 0, time=360, real_time=True, chase=True,
+              h=2438, V_inf=62.6, P=89475.0, theta=0.0, alpha=0.0, delta_e=0.0,)
