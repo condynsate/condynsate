@@ -38,10 +38,10 @@ class Body():
     ------------
     fixed : boolean, optional
         A flag that indicates if the body is fixed (has 0 DoF) or free
-        (has 6 DoF).
+        (has 6 DoF). The default is False.
     self_collision : boolean, optional
         A flag that indicates if the physics client will detect self collisions
-        within the Body.
+        within the Body. The default is False.
 
     Attributes
     ----------
@@ -173,7 +173,11 @@ class Body():
         scales = [None for p in poss]
         colors = [None for p in poss]
         opacities = [None for p in poss]
+        shininesses = [None for p in poss]
+        emissive_colors = [None for p in poss]
         tex_paths = [None for p in poss]
+        tex_wraps = [None for p in poss]
+        tex_repeats = [None for p in poss]
         for link_name, link in self.links.items():
             i = link_ids.index(link.visual_data['id'])
 
@@ -190,14 +194,22 @@ class Body():
             scales[i] = link.visual_data['scale']
             colors[i] = link.visual_data['color']
             opacities[i] = link.visual_data['opacity']
+            shininesses[i] = link.visual_data['shininess']
+            emissive_colors[i] = link.visual_data['emissive_color']
             tex_paths[i] = link.visual_data['tex_path']
+            tex_wraps[i] = link.visual_data['tex_wrap']
+            tex_repeats[i] = link.visual_data['tex_repeat']
 
         # Assemble visual data
-        keys = ('name','path','position','wxyz_quat','scale',
-                'color','opacity','tex_path')
+        keys = ('name', 'path',
+                'position', 'wxyz_quat', 'scale',
+                'color', 'opacity', 'shininess', 'emissive_color',
+                'tex_path', 'tex_wrap', 'tex_repeat')
         data = [dict(zip(keys, vals)) for vals in
-                     zip(names, paths, poss, oris, scales,
-                         colors, opacities, tex_paths)]
+                     zip(names, paths,
+                         poss, oris, scales,
+                         colors, opacities, shininesses, emissive_colors,
+                         tex_paths, tex_wraps, tex_repeats)]
 
         # Append the arrow data
         for arrow in self._get_arr_vis_dat():
@@ -920,7 +932,6 @@ class Link:
         self._body_id = sim_obj._id
         self._id = idx
         self._set_defaults()
-        self._visual_data = self._get_visual_data()
         self.arrows = {'force' : [],}
 
     def _set_defaults(self):
@@ -933,16 +944,23 @@ class Link:
                              'angular_air_resistance' : 0.005,}
         self.set_dynamics(**default_dyanamics)
 
-    def _get_visual_data(self):
+        # Set the default visual data
         data = self._client.getVisualShapeData(self._body_id)
         data = [d for d in data if d[1]==self._id][0]
         mesh = os.path.realpath(data[4].decode('UTF-8'))
         vis_ori = t.wxyz_from_xyzw(data[6])
-        keys = ('id', 'scale', 'mesh', 'vis_pos', 'vis_ori',
-                'color', 'opacity', 'tex_path')
-        dat = (self._id, data[3], mesh, data[5], vis_ori,
-               data[7][:-1], data[7][-1], None)
-        return dict(zip(keys, dat))
+        self._visual_data = {'id' : self._id,
+                             'scale' : data[3],
+                             'mesh' : mesh,
+                             'vis_pos' : data[5],
+                             'vis_ori' : vis_ori,
+                             'color' : data[7][:-1],
+                             'opacity' : data[7][-1],
+                             'shininess' : 0.01,
+                             'emissive_color' : (0.0, 0.0, 0.0),
+                             'tex_path' : None,
+                             'tex_wrap' : [1000, 1000],
+                             'tex_repeat' : [1, 1],}
 
     @property
     def state(self):
@@ -1069,16 +1087,30 @@ class Link:
         self._client.changeDynamics(self._body_id, self._id, **args)
         return 0
 
-    def set_color(self, color):
+    def set_color(self, **kwargs):
         """
         Changes the color of the link.
 
         Parameters
         ----------
-        color : 3 tuple of floats
-            The color to set the link. In the form (R, G, B) where R is the
-            red channel, G is the green channel, and B is the blue channel.
-            Each channel has value between 0.0 and 1.0.
+        **kwargs
+
+        Keyword Args
+        ------------
+        color : 3vec of floats
+            The color to apply to the link. In the form of
+            (R, G, B) where all elements range from 0.0 to 1.0. If not set, maintains
+            current value.
+        shininess : float
+            The shininess to apply to the link. Ranges from 0.0 to 1.0
+            If not set, maintains current value.
+        opacity : float
+            The opacity to set for the link. Ranges from 0.0 to 1.0.
+            If not set, maintains current value.
+        emissive_color : 3vec of floats
+            The color of the light the link is emiting. In the form of
+            (R, G, B) where all elements range from 0.0 to 1.0. A value of
+            (0.0, 0.0, 0.0) results in no emmision. If not set, maintains current value.
 
         Returns
         -------
@@ -1087,24 +1119,61 @@ class Link:
 
         """
         try:
+            color = kwargs.get('color', self._visual_data['color'])
             color = (float(min(max(color[0], 0.0), 1.0)),
                      float(min(max(color[1], 0.0), 1.0)),
                      float(min(max(color[2], 0.0), 1.0)))
         except (TypeError, ValueError, IndexError):
-            warn('Cannot set color, invalid color value.')
+            warn('Cannot set color, invalid color argument.')
             return -1
+        try:
+            opacity = kwargs.get('opacity', self._visual_data['opacity'])
+            opacity = float(min(max(opacity, 0.0), 1.0))
+        except (TypeError, ValueError):
+            warn('Cannot set opacity, invalid opacity argument.')
+            return -1
+        try:
+            shininess = kwargs.get('shininess', self._visual_data['shininess'])
+            shininess = float(min(max(shininess, 0.0), 1.0))
+        except (TypeError, ValueError):
+            warn('Cannot set shininess, invalid shininess argument.')
+            return -1
+        try:
+            emissive_color = kwargs.get('emissive_color', self._visual_data['emissive_color'])
+            emissive_color = (float(min(max(emissive_color[0], 0.0), 1.0)),
+                              float(min(max(emissive_color[1], 0.0), 1.0)),
+                              float(min(max(emissive_color[2], 0.0), 1.0)))
+        except (TypeError, ValueError):
+            warn('Cannot set emissive_color, invalid emissive_color argument.')
+            return -1
+
         self._visual_data['color'] = color
+        self._visual_data['opacity'] = opacity
+        self._visual_data['shininess'] = shininess
+        self._visual_data['emissive_color'] = emissive_color
         return 0
 
-    def set_texture(self, texture):
+    def set_texture(self, **kwargs):
         """
         Sets the texture of a link. Only works if the link is described by
         an obj or dae file. Does not work for stl defined links.
 
         Parameters
         ----------
-        texture : path to image file
-            The path to the texture image file.
+        **kwargs
+
+        Keyword Args
+        ------------
+        tex_path : string
+            The path pointing to a .png file that defines the texture of
+            the link. Is only applied correctly if the link is
+            of type .obj or .dae. .stl files do not support proper
+            texturing and attempting to apply texture to .stl may result in
+            unexpected viual results. If not set, keeps current value.
+        tex_wrap : 2 tuple of ints
+            The threejs repeat type for texture. If not set, keeps current value.
+        tex_repeat : 2 tuple of ints
+            Number of times to repeat texture in U, V directions. If not set, keeps current value.
 
         Returns
         -------
@@ -1112,7 +1181,32 @@ class Link:
             0 if successful, -1 if something went wrong.
 
         """
-        self._visual_data['tex_path'] = texture
+        try:
+            tex_path = kwargs.get('tex_path', self._visual_data['tex_path'])
+            if type(tex_path) in (list, tuple, np.ndarray):
+                tex_path = [str(t) for t in tex_path]
+            else:
+                tex_path = str(t)
+        except TypeError:
+            warn('Cannot set tex_path, invalid tex_path argument.')
+            return -1
+        try:
+            tex_wrap = kwargs.get('tex_wrap', self._visual_data['tex_wrap'])
+            tex_wrap = (int(tex_wrap[0]), int(tex_wrap[1]))
+        except (TypeError, ValueError, IndexError):
+            warn('Cannot set tex_wrap, invalid tex_wrap argument.')
+            return -1
+        try:
+            tex_repeat = kwargs.get('tex_repeat', self._visual_data['tex_repeat'])
+            tex_repeat = (int(tex_repeat[0]), int(tex_repeat[1]))
+        except (TypeError, ValueError, IndexError):
+            warn('Cannot set tex_repeat, invalid tex_repeat argument.')
+            return -1
+
+        self._visual_data['tex_path'] = tex_path
+        self._visual_data['tex_wrap'] = tex_wrap
+        self._visual_data['tex_repeat'] = tex_repeat
+        return 0
 
     def apply_force(self, force, **kwargs):
         """

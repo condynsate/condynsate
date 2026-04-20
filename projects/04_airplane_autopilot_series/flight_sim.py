@@ -50,19 +50,26 @@ def _CoV(R_A_B, v_A):
             R_A_B[1][0]*v_A[0] + R_A_B[1][1]*v_A[1] + R_A_B[1][2]*v_A[2],
             R_A_B[2][0]*v_A[0] + R_A_B[2][1]*v_A[1] + R_A_B[2][2]*v_A[2],)
 
-def __mmij(A, B, i, j):
-    return A[i][0]*B[0][j]+A[i][1]*B[1][j]+A[i][2]*B[2][j]
+def _mmul3x3(A, B):
+    return ((A[0][0]*B[0][0]+A[0][1]*B[1][0]+A[0][2]*B[2][0],
+             A[0][0]*B[0][1]+A[0][1]*B[1][1]+A[0][2]*B[2][1],
+             A[0][0]*B[0][2]+A[0][1]*B[1][2]+A[0][2]*B[2][2]),
 
-def _mmul(A, B):
-    return ((__mmij(A, B, 0, 0), __mmij(A, B, 0, 1), __mmij(A, B, 0, 2)),
-            (__mmij(A, B, 1, 0), __mmij(A, B, 1, 1), __mmij(A, B, 1, 2)),
-            (__mmij(A, B, 2, 0), __mmij(A, B, 2, 1), __mmij(A, B, 2, 2)),)
+            (A[1][0]*B[0][0]+A[1][1]*B[1][0]+A[1][2]*B[2][0],
+             A[1][0]*B[0][1]+A[1][1]*B[1][1]+A[1][2]*B[2][1],
+             A[1][0]*B[0][2]+A[1][1]*B[1][2]+A[1][2]*B[2][2]),
+
+            (A[2][0]*B[0][0]+A[2][1]*B[1][0]+A[2][2]*B[2][0],
+             A[2][0]*B[0][1]+A[2][1]*B[1][1]+A[2][2]*B[2][1],
+             A[2][0]*B[0][2]+A[2][1]*B[1][2]+A[2][2]*B[2][2]),)
 
 def _sum(*args):
     return tuple(map(sum, zip(*args)))
 
-def _T(A):
-    return tuple(tuple(row) for row in zip(*A))
+def _T3x3(A):
+    return ((A[0][0], A[1][0], A[2][0]),
+            (A[0][1], A[1][1], A[2][1]),
+            (A[0][2], A[1][2], A[2][2]))
 
 ####################################################################################################
 #STANDARD ATMOSPHERIC MODEL FUNCTIONS
@@ -368,7 +375,7 @@ class _FlightModel:
 
         # Calculate the net lift and drag with respect to flow at CoM
         F_surf_CoM = _sum(F_w_CoM, F_he_CoM, F_v_CoM, F_b_CoM)
-        DL_net = _CoV(_T(sim.R_F_CoM), F_surf_CoM)
+        DL_net = _CoV(_T3x3(sim.R_F_CoM), F_surf_CoM)
 
         # Get the net forces and torques
         F_net_CoM = _sum(F_surf_CoM, F_p_CoM)
@@ -552,44 +559,6 @@ class FlightSim:
         _, _, coeffs = self._model.net_aero_force_torque(self)
         self._state['coeffs'] = coeffs
 
-    def __repr__(self):
-        state_str = "state = { "
-        for key, val in self._state.items():
-            try:
-                state_str += f"'{key}': {float(val)}, \n{' '*20}"
-            except TypeError:
-                state_str += f"'{key}': {tuple(float(v) for v in val)}, \n{' '*20}"
-        state_str = state_str[:-23]+" }"
-
-        atmo_str = ' '*10 + "atmosphere = { "
-        for key, val in self._atmosphere.items():
-            atmo_str += f"'{key}': {float(val)}, \n{' '*25}"
-        atmo_str = atmo_str[:-28]+" }"
-
-        R_str = ' '*10 + "R = { "
-        for key, val in self._R.items():
-            rows = val.__str__().split('\n')
-            for i, row in enumerate(rows):
-                if i == 0:
-                    R_str += f"'{key}': {row}\n"
-                    continue
-                R_str += f"{' '*(len(key)+20)}{row}\n"
-            R_str = R_str[:-2] + f", \n{' '*16}"
-        R_str = R_str[:-19] + ' }'
-
-        params_str = ' '*10 + self._params['plane'].__str__().split('(')[0] + ' = { '
-        ln = len(params_str)
-        for key, val in self._params['plane'].params.items():
-            try:
-                params_str += f"'{key}': {float(val)}, \n{' '*ln}"
-            except ValueError:
-                params_str += f"'{key}': {val}, \n{' '*ln}"
-        params_str = params_str[:-(ln+3)]+" }"
-
-        tot_str = ',\n\n'.join((state_str, atmo_str, R_str, params_str))
-        tot_str = 'FlightSim('+tot_str+')'
-        return tot_str
-
     def __getattr__(self, key):
         try:
             return self._state[key]
@@ -665,9 +634,9 @@ class FlightSim:
 
     def _update_plane_rot_mats(self):
         # Coordinates of center of mass of plane
-        self._R['CoM_W'] = _mmul(((1, 0 ,0), (0, -1, 0), (0, 0, -1)),
+        self._R['CoM_W'] = _mmul3x3(((1, 0 ,0), (0, -1, 0), (0, 0, -1)),
                                  _RBW(self.phi, self.theta, self.psi))
-        self._R['W_CoM'] = _T(self._R['CoM_W'])
+        self._R['W_CoM'] = _T3x3(self._R['CoM_W'])
 
         # Orientation of wings and v stab
         # All other surfaces are aligned with CoM of plane
@@ -682,12 +651,12 @@ class FlightSim:
         self._R['V_CoM'] = (( 1.0,  0.0, 0.0 ),
                             ( 0.0,  0.0, 1.0 ),
                             ( 0.0, -1.0, 0.0 ))
-        self._R['CoM_WL'] = _T(self._R['WL_CoM'])
-        self._R['CoM_WR'] = _T(self._R['WR_CoM'])
-        self._R['CoM_V']  = _T(self._R['V_CoM'])
-        self._R['WL_W'] = _mmul(self._R['CoM_W'], self._R['WL_CoM'])
-        self._R['WR_W'] = _mmul(self._R['CoM_W'], self._R['WR_CoM'])
-        self._R['V_W'] =  _mmul(self._R['CoM_W'], self._R['V_CoM'])
+        self._R['CoM_WL'] = _T3x3(self._R['WL_CoM'])
+        self._R['CoM_WR'] = _T3x3(self._R['WR_CoM'])
+        self._R['CoM_V']  = _T3x3(self._R['V_CoM'])
+        self._R['WL_W'] = _mmul3x3(self._R['CoM_W'], self._R['WL_CoM'])
+        self._R['WR_W'] = _mmul3x3(self._R['CoM_W'], self._R['WR_CoM'])
+        self._R['V_W'] =  _mmul3x3(self._R['CoM_W'], self._R['V_CoM'])
 
     def _apply_force(self, F_net):
         # Calculate the net acceleration
@@ -841,19 +810,19 @@ class FlightSim:
     def _update_flow_rot_mats(self):
         self._R['F_CoM']   = _RYZ(-self._state['alpha'],
                                    self._state['beta'])
-        self._R['FWL_CoM'] = _mmul(self._R['WL_CoM'],
-                                   _RYZ(-self._state['alpha_wl'],
-                                         self._state['beta_wl']))
-        self._R['FWR_CoM'] = _mmul(self._R['WR_CoM'],
-                                   _RYZ(-self._state['alpha_wr'],
-                                         self._state['beta_wr']))
+        self._R['FWL_CoM'] = _mmul3x3(self._R['WL_CoM'],
+                                      _RYZ(-self._state['alpha_wl'],
+                                           self._state['beta_wl']))
+        self._R['FWR_CoM'] = _mmul3x3(self._R['WR_CoM'],
+                                      _RYZ(-self._state['alpha_wr'],
+                                           self._state['beta_wr']))
         self._R['FHE_CoM'] = _RYZ(-self._state['alpha_he'],
                                    self._state['beta_he'])
         self._R['FB_CoM']  = _RYZ(-self._state['alpha_b'],
                                    self._state['beta_b'])
-        self._R['FV_CoM']  = _mmul(self._R['V_CoM'],
-                                   _RYZ(-self._state['alpha_v'],
-                                         self._state['beta_v']))
+        self._R['FV_CoM']  = _mmul3x3(self._R['V_CoM'],
+                                      _RYZ(-self._state['alpha_v'],
+                                           self._state['beta_v']))
 
     def step(self, rotation_state, delta_e_des, delta_r_des, delta_a_des, P_des):
         """
@@ -961,12 +930,8 @@ class FlightSim:
         """
         telem = {'time' : self._t,
                  'h' : self._state['p_W'][2],
+                 'v/s' : self._state['v_W'][2],
                  'V_inf' : self._state['V_inf'],
-                 'p_W' : self._state['p_W'],
-                 'v_W' : self._state['v_W'],
-                 'g_force_W' : self._state['g_force_W'],
-                 'v_CoM' : self._state['v_CoM'],
-                 'R_CoM_W' : self._R['CoM_W'],
                  'alpha' : self._state['alpha'],
                  'beta' : self._state['beta'],
                  'omega_psi' : self._state['omega_psi'],
@@ -975,6 +940,7 @@ class FlightSim:
                  'psi' : self._state['psi'],
                  'theta' : self._state['theta'],
                  'phi' : self._state['phi'],
+                 'R_CoM_W' : self._R['CoM_W'],
                  'delta_e' : self._state['delta_e'],
                  'delta_r' : self._state['delta_r'],
                  'delta_a' : self._state['delta_a'],
@@ -991,5 +957,5 @@ class FlightSim:
                  'cn_tot' : self._state['coeffs'][4],
                  'earth_pitch' : self._state['earth_pitch'],
                  'earth_roll' : self._state['earth_roll'],
-                 'rho' : self._atmosphere['rho'],}
+                 'g_force_W' : self._state['g_force_W'],}
         return telem

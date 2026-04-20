@@ -31,9 +31,8 @@ class _SimData():
             'time':deque(),
             'h':deque(),
             'h_des':deque(),
+            'v/s':deque(),
             'V_inf':deque(),
-            'position':deque(),
-            'velocity':deque(),
             'alpha':deque(),
             'beta':deque(),
             'omega_psi':deque(),
@@ -56,7 +55,6 @@ class _SimData():
             'cl_tot':deque(),
             'cm_tot':deque(),
             'cn_tot':deque(),
-            'rho':deque(),
             }
 
     def __dict__(self):
@@ -88,35 +86,33 @@ class _SimData():
         """
 
         self._data['h_des'].append(float(h_des))
-        self._data['position'].append(telem['p_W'])
-        self._data['velocity'].append(telem['v_CoM'])
-        for k in self._data.keys():
+        for k,v in self._data.items():
             try:
-                self._data[k].append(telem[k])
+                v.append(telem[k])
             except KeyError:
                 continue
 
 def _read_kwargs(**kwargs):
-    state0 = {'h' : kwargs.get('h', 2003.63),
-              'V_inf' : kwargs.get('V_inf', 48.7124),
-              'alpha' : kwargs.get('alpha', 0.0566943),
+    state0 = {'h' : kwargs.get('h', 2438.0),
+              'V_inf' : kwargs.get('V_inf', 62.6),
+              'alpha' : kwargs.get('alpha', 0.012),
               'beta' : kwargs.get('beta', 0.0),
               'omega_psi' : kwargs.get('omega_psi', 0.0),
               'omega_theta' : kwargs.get('omega_theta', 0.0),
               'omega_phi' : kwargs.get('omega_phi', 0.0),
               'psi' : kwargs.get('psi', 0.0),
-              'theta' : kwargs.get('theta', 0.0566974),
+              'theta' : kwargs.get('theta', 0.012),
               'phi' : kwargs.get('phi', 0.0)}
-    input0 = {'delta_e' : kwargs.get('delta_e', 0.0313281),
+    input0 = {'delta_e' : kwargs.get('delta_e', 0.035),
               'delta_r' : kwargs.get('delta_r', 0.0),
               'delta_a' : kwargs.get('delta_a', 0.0),
-              'P' : kwargs.get('P', 59859.3),}
+              'P' : kwargs.get('P', 89475.0),}
     kwargs = {'state0' : state0,
               'input0' : input0,
               'dt' : DT,
               'params' : PARAM,
               'r_planet' : R_PLANET,
-              'duration' : kwargs.get('time', 20.0),
+              'duration' : kwargs.get('time', 30.0),
               'real_time' : kwargs.get('real_time', True),
               'turb_mag' : kwargs.get('turbulence', 0.0),
               'shake' : kwargs.get('shake', 1.0),
@@ -125,10 +121,18 @@ def _read_kwargs(**kwargs):
     return kwargs
 
 def _load_planet(proj, telem):
+    tex_paths = sorted([v for k,v in assets.items()
+                        if k.startswith('countryside_225sqmi_')])
     n_repeat = int(math.sqrt((4*math.pi*R_PLANET**2)/5.827e8)//2)*2+1
-    tex_paths = [v for k,v in assets.items()
-                 if k.startswith('countryside_225sqmi_')]
-    tex_paths = sorted(tex_paths)
+
+
+    planet = proj.load_urdf(assets['sphere.urdf'])
+    planet.links['sphere'].set_color(color=(1.0, 1.0, 1.0),
+                                     emissive_color=(0.15,0.15,0.15),)
+    planet.links['sphere'].set_texture(tex_path=tex_paths,
+                                       tex_repeat=[n_repeat, n_repeat],)
+    proj.refresh_visualizer()
+
     proj.visualizer.add_object('ground',
                                assets['sphere_1_center_origin.stl'],
                                scale=(2*R_PLANET,)*3,
@@ -136,6 +140,9 @@ def _load_planet(proj, telem):
                                tex_repeat=[n_repeat, n_repeat],
                                emissive_color=(0.15, 0.15, 0.15),
                                position=(0.0, 0.0, -R_PLANET-telem['h']),)
+
+
+    proj.load_urdf(assets['sphere_1_center_origin.stl'], fixed=False)
 
 def _load_sky(proj):
     proj.visualizer.add_object('skybox',
@@ -233,7 +240,7 @@ def _make(**kwargs):
     # Set all air resistance to 0
     for link in plane.links.values():
         link.set_dynamics(linear_air_resistance=0.0,
-                          angular_air_resistance=0.2)
+                          angular_air_resistance=0.0)
 
     return proj, plane, flightsim
 
@@ -300,8 +307,7 @@ def _update_vis_env(proj, plane, telem, shake, chase, cam_target_history):
     plane.joints['fuselage_to_l_aileron'].set_state(angle = telem['delta_a'])
 
     # Update the prop speed
-    omega = telem['prop_rpm'] * 0.1047
-    plane.joints['fuselage_to_nosecone'].set_state(omega=omega)
+    plane.joints['fuselage_to_nosecone'].set_state(omega=0.1047*telem['prop_rpm'])
 
     # Position the camera
     if shake > 0.0:
@@ -353,13 +359,14 @@ def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
     cam_tag = deque()
     while proj.simtime <= kwargs['duration']:
         # Crash condition (will strike ground in 0.1 seconds, and descent > 600 fpm)
-        if telem['h'] <= -0.1*telem['v_W'][2] and telem['v_W'][2] > 3.048:
+        if telem['h'] <= -0.1*telem['v/s'] and telem['v/s'] > 3.048:
             break
 
         # Get the controller inputs
         delta_e_des, delta_P_des = controller(telem, h_des)
-        delta_e_des, delta_r_des, delta_a_des = _get_keypresses(proj)
-        delta_P_des = 89475.0
+        delta_r_des, delta_a_des = 0.0, 0.0
+        # delta_e_des, delta_r_des, delta_a_des = _get_keypresses(proj)
+        # delta_P_des = 89475.0
 
         # Step the simulation. Use the flight sim calculated aero torques
         # to rotate the airplane in the Pybullet engine
@@ -408,29 +415,29 @@ def run(controller, program_num, **kwargs):
     ------------
         time : float, optional
             The amount of time to run the simulation in seconds. The default is
-            20.
+            30.
         real_time : boolean, optional
             A boolean flag that indicates if the simulation is run in real time
             with visualization (True) or as fast as possible with no
             visualization (False). Regardless of choice, simulation data is
             still gathered. The default is True
         h : float, optional
-            The initial altitude in meters. The default value is 2000
+            The initial altitude in meters. The default value is 2438.0
         V_inf : float, optional
             The initial indicated airspeed in meters/second. The default
-            value is 47.82
+            value is 62.6
         alpha : float, optional
             The initial angle of attack in radians. The default value
-            is 0.05923
+            is 0.012
         omega_theta : float, optional
             The initial pitching rate in radians/second. The default value is 0
         theta : float, optional
-            The initial pitch angle in radians. The default value is 0.05923
+            The initial pitch angle in radians. The default value is 0.012
         delta_e : float, optional
             The initial elevator deflection angle in radians. The default
-            value is 0.06592
+            value is 0.035
         P : float, optional
-            The initial power setting in KW. The default value is 62160.
+            The initial power setting in KW. The default value is 89475.0
         turbulence : float, optional
                 The mean magnitude of the turbulent wind in N. The default is 0
         shake : float, optional
@@ -459,8 +466,8 @@ def run(controller, program_num, **kwargs):
     return data
 
 def _ctrlr(state, h_des):
-    m_e = np.array([0.0, 47.82, 0.05923, 0.0, 0.05923])
-    n_e = np.array([0.06592, 62160.])
+    m_e = np.array([0.0, 62.6, 0.012, 0.0, 0.012])
+    n_e = np.array([0.035, 89475.0])
     x_des = np.array([h_des, 0.0, 0.0, 0.0, 0.0])
     K = np.array([[ 8.801e-03,  2.748e-03, -1.720e+00, 1.287e+00,  1.639e+00],
                   [ 2.730e+02,  1.469e+03, -5.856e+03, 1.563e+02,  6.134e+03]])
@@ -473,5 +480,4 @@ def _ctrlr(state, h_des):
     return n
 
 if __name__ ==  "__main__":
-    dat = run(_ctrlr, 0, time=360, real_time=True, chase=True,
-              h=2438, V_inf=62.6, P=89475.0, theta=0.0, alpha=0.0, delta_e=0.0,)
+    dat = run(_ctrlr, 0, time=0.01, real_time=True, chase=True)

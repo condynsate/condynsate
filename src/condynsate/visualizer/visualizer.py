@@ -983,22 +983,28 @@ class Visualizer():
             The object's mesh.
 
         """
-        geometry = None
         if path.endswith('.obj'):
-            geometry = geo.ObjMeshGeometry.from_file(path)
-        elif path.endswith('.stl'):
-            # For the basic shape to reduce visual mesh
-            if path.endswith('Sphere_1_center_origin.stl'):
-                geometry = geo.Sphere(radius=0.5)
-            elif path.endswith('Cube_1x1x1_center_origin.stl'):
-                geometry = geo.Box(lengths=(1.0, 1.0, 1.0))
-            elif path.endswith('Cylinder_1x1_center_origin.stl'):
-                geometry = geo.Cylinder(height=1.0, radius=0.5)
-            else:
-                geometry = geo.StlMeshGeometry.from_file(path)
-        elif path.endswith('.dae'):
-            geometry = geo.DaeMeshGeometry.from_file(path)
-        return geometry
+            if path.lower().endswith('plane.obj'):
+                return geo.Plane(width=1.0, height=1.0)
+
+            return geo.ObjMeshGeometry.from_file(path)
+
+        if path.endswith('.stl'):
+            if path.lower().endswith('sphere_1_center_origin.stl'):
+                return geo.Sphere(radius=0.5)
+
+            if path.lower().endswith('cube_1x1x1_center_origin.stl'):
+                return geo.Box(lengths=(1.0, 1.0, 1.0))
+
+            if path.lower().endswith('cylinder_1x1_center_origin.stl'):
+                return geo.Cylinder(height=1.0, radius=0.5)
+
+            return geo.StlMeshGeometry.from_file(path)
+
+        if path.endswith('.dae'):
+            return geo.DaeMeshGeometry.from_file(path)
+
+        return None
 
     def _get_material(self, tex_path, tex_wrap, tex_repeat, color,
                       shininess, opacity, emissive_color):
