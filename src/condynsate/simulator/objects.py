@@ -1025,31 +1025,35 @@ class Link:
 
         Keyword Args
         ------------
-        mass : float, optional
+        mass : float
             The mass of the link. The default is defined by the .URDF file
-        lateral_contact_friction : float, optional
+        inertia_diagonal : tuple of 3 floats
+            The local inertia diagonal. Note that links and base are centered
+            around the center of mass and aligned with the principal
+            axes of inertia.
+        lateral_contact_friction : float
             The lateral (linear) contact friction of the link. 0.0 for
             no friction, increasing friction with increasing value.
             The default is 100.0.
-        spinning_contact_friction : float, optional
+        spinning_contact_friction : float
             The torsional contact friction of the link about
             contact normals. 0.0 for no friction, increasing friction
             with increasing value. The default is 0.0.
-        rolling_contact_friction : float, optional
+        rolling_contact_friction : float
             The torsional contact friction of the link orthogonal to
             contact normals. 0.0 for no friction, increasing friction
             with increasing value. Keep this value either 0.0 or very close
             to 0.0, otherwise the simulations can become unstable.
             The default is 0.0.
-        bounciness : float, optional
+        bounciness : float
             How bouncy this link is. 0.0 for inelastic collisions, 0.95 for
             mostly elastic collisions. Setting above 0.95 can result in
             unstable simulations. The default is 0.0.
-        linear_air_resistance : float, optional
+        linear_air_resistance : float
             The air resistance opposing linear movement applied to the
             center of mass of the link. Usually set to either 0.0 or a
             low value less than 0.1. The default is 0.005.
-        angular_air_resistance : float, optional
+        angular_air_resistance : float
             The air resistance opposing rotational movement applied about
             the center of rotation of the link. Usually set to either 0.0
             or a low value less than 0.1. The default is 0.005.
@@ -1060,30 +1064,31 @@ class Link:
             0 if successful, -1 if something went wrong.
 
         """
-        args = {}
-        if 'mass' in kwargs:
-            args['mass'] = kwargs['mass']
-        if 'lateral_contact_friction' in kwargs:
-            args['lateralFriction'] = kwargs['lateral_contact_friction']
-        if 'spinning_contact_friction' in kwargs:
-            args['spinningFriction'] = kwargs['spinning_contact_friction']
-        if 'rolling_contact_friction' in kwargs:
-            args['rollingFriction'] = kwargs['rolling_contact_friction']
-        if 'bounciness' in kwargs:
-            args['restitution'] = kwargs['bounciness']
-        if 'linear_air_resistance' in kwargs:
-            args['linearDamping'] = kwargs['linear_air_resistance']
-        if 'angular_air_resistance' in kwargs:
-            args['angularDamping'] = kwargs['angular_air_resistance']
 
-        # Ensure all args are floats
+        # Read the kwargs
+        args = {}
+        args['mass'] = kwargs.get('mass', None)
+        args['localInertiaDiagonal'] = kwargs.get('inertia_diagonal', None)
+        args['lateralFriction'] = kwargs.get('lateral_contact_friction', None)
+        args['spinningFriction'] = kwargs.get('spinning_contact_friction', None)
+        args['rollingFriction'] = kwargs.get('rolling_contact_friction', None)
+        args['restitution'] = kwargs.get('bounciness', None)
+        args['linearDamping'] = kwargs.get('linear_air_resistance', None)
+        args['angularDamping'] = kwargs.get('angular_air_resistance', None)
+        args = {k: v for k, v in args.items() if not v is None}
+
+        # Ensure proper format for args
         try:
-            for i in args.items():
-                args[i[0]] = float(i[1])
-        except (TypeError, ValueError):
-            warn('Unable to set dynamics, erroneous kwargs.')
+            for k, v in args.items():
+                if k == 'localInertiaDiagonal':
+                    args[k] = (float(v[0]), float(v[1]), float(v[2]))
+                    continue
+                args[k] = float(v)
+        except (TypeError, ValueError, IndexError):
+            warn('Unable to set dynamics, erroneous kwarg value.')
             return -1
 
+        # Set the dynamics
         self._client.changeDynamics(self._body_id, self._id, **args)
         return 0
 
