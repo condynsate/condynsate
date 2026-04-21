@@ -34,6 +34,12 @@
             </geometry>
             <material name = "white"/>
         </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_fuselage.obj" scale="1 1 1"/>
+            </geometry>
+        </collision>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <mass value="964.0"/>
@@ -64,6 +70,12 @@
             </geometry>
             <material name = "black"/>
         </visual>
+		<collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_wheels.obj" scale="1 1 1"/>
+            </geometry>
+        </collision>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <mass value="0"/>
@@ -154,6 +166,12 @@
             </geometry>
             <material name = "blue"/>
         </visual>
+		<collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_elevator.obj" scale="1 1 1"/>
+            </geometry>
+        </collision>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <mass value="0"/>
@@ -169,6 +187,12 @@
             </geometry>
             <material name = "blue"/>
         </visual>
+		<collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="airplane_rudder.obj" scale="1 1 1"/>
+            </geometry>
+        </collision>
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
             <mass value="0"/>
