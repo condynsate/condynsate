@@ -306,11 +306,6 @@ class Project:
 
         """
         if self._visualizer is None:
-            # Even if there is no visualizer, we need to make sure
-            # to clear the visual_data buffer, otherwise it will
-            # grow indefinitely
-            for body in self.bodies:
-                body.clear_visual_buffer()
             return -1
         for body in self.bodies:
             for d in body.visual_data:

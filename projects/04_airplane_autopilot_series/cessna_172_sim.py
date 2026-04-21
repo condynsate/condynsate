@@ -126,23 +126,22 @@ def _load_planet(proj, telem):
     n_repeat = int(math.sqrt((4*math.pi*R_PLANET**2)/5.827e8)//2)*2+1
 
 
-    planet = proj.load_urdf(assets['sphere.urdf'])
+    planet = proj.load_urdf(assets['sphere.urdf'],
+                            fixed=True)
     planet.links['sphere'].set_color(color=(1.0, 1.0, 1.0),
                                      emissive_color=(0.15,0.15,0.15),)
     planet.links['sphere'].set_texture(tex_path=tex_paths,
                                        tex_repeat=[n_repeat, n_repeat],)
+    planet.set_initial_state(position=(0.0, 0.0, -R_PLANET-telem['h']),)
     proj.refresh_visualizer()
 
-    proj.visualizer.add_object('ground',
-                               assets['sphere_1_center_origin.stl'],
-                               scale=(2*R_PLANET,)*3,
-                               tex_path=tex_paths,
-                               tex_repeat=[n_repeat, n_repeat],
-                               emissive_color=(0.15, 0.15, 0.15),
-                               position=(0.0, 0.0, -R_PLANET-telem['h']),)
-
-
-    proj.load_urdf(assets['sphere_1_center_origin.stl'], fixed=False)
+    # proj.visualizer.add_object('ground',
+    #                            assets['sphere_1_center_origin.stl'],
+    #                            scale=(2*R_PLANET,)*3,
+    #                            tex_path=tex_paths,
+    #                            tex_repeat=[n_repeat, n_repeat],
+    #                            emissive_color=(0.15, 0.15, 0.15),
+    #                            position=(0.0, 0.0, -R_PLANET-telem['h']),)
 
 def _load_sky(proj):
     proj.visualizer.add_object('skybox',

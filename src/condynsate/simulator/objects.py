@@ -16,6 +16,7 @@ from warnings import warn
 import numpy as np
 import condynsate.misc.transforms as t
 from condynsate.simulator.dataclasses import (BodyState, JointState, LinkState)
+N_ARROWS_MAX = 10
 
 ###############################################################################
 #BODY CLASS
@@ -117,11 +118,6 @@ class Body():
             info = self._client.getJointInfo(self._id, joint_id)
             joint_name = info[1].decode('UTF-8')
             child_name = info[12].decode('UTF-8')
-            # I Don't think I need any of this?
-            # for link in links.values():
-            #     if link.visual_data['id'] == info[16]:
-            #         parent_link = link # Why do I need this????
-            #         break
 
             # Get the parent and children links and make the joint
             links[child_name] = Link(self, joint_id)
@@ -215,30 +211,6 @@ class Body():
         for arrow in self._get_arr_vis_dat():
             data.append(dict(zip(keys, arrow)))
         return data
-
-    def clear_visual_buffer(self):
-        """
-        Clears the body's visual buffer. If visual_data is not collected each
-        time step, then clear_visual_buffer must be called to prevent the
-        visual_data buffer from growing indeterminately.
-
-        Returns
-        -------
-        ret_code : int
-            0 if successful, -1 if something went wrong.
-
-        """
-        for i in range(len(self._arrows['com_force'])):
-            self._arrows['com_force'][i] = None
-        for i in range(len(self._arrows['base_torque'])):
-            self._arrows['base_torque'][i] = None
-        for joint_name, joint in self.joints.items():
-            for i in range(len(joint.arrows['torque'])):
-                joint.arrows['torque'][i] = None
-        for link_name, link in self.links.items():
-            for i in range(len(link.arrows['force'])):
-                link.arrows['force'][i] = None
-        return 0
 
     def _get_all_link_pos_ori(self):
         # Get the base state
@@ -477,6 +449,9 @@ class Body():
                         self._arrows[name][i] = arrow_dat
                         break
                     if i == len(self._arrows[name]) - 1:
+                        if i >= N_ARROWS_MAX - 1:
+                            warn('Cannot add another arrow, visual buffer full.')
+                            return -1
                         self._arrows[name].append(arrow_dat)
                         break
         return 0
@@ -876,6 +851,9 @@ class Joint:
                         self.arrows['torque'][i] = arrow_dat
                         break
                     if i == len(self.arrows['torque']) - 1:
+                        if i >= N_ARROWS_MAX - 1:
+                            warn('Cannot add another joint arrow, visual buffer full.')
+                            return -1
                         self.arrows['torque'].append(arrow_dat)
                         break
         return 0
@@ -1276,6 +1254,9 @@ class Link:
                         self.arrows['force'][i] = arrow_dat
                         break
                     if i == len(self.arrows['force']) - 1:
+                        if i >= N_ARROWS_MAX - 1:
+                            warn('Cannot add another link arrow, visual buffer full.')
+                            return -1
                         self.arrows['force'].append(arrow_dat)
                         break
         return 0
