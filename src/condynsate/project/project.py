@@ -205,12 +205,22 @@ class Project:
 
         Keyword Args
         ------------
+        position : 3 tuple of floats
+            The XYZ position in world coordinates. The default is (0., 0., 0.)
+        yaw : float
+            The (z-y'-x' Tait–Bryan) yaw angle of the object in radians. The default is 0.0.
+        pitch : float
+            The (z-y'-x' Tait–Bryan) pitch angle of the object in radians. The default is 0.0.
+        roll : float
+            The (z-y'-x' Tait–Bryan) roll angle of the object in radians. The default is 0.0.
+        scale : float
+            The global scaling of the body. The default is 1.0.
         fixed : boolean, optional
             A flag that indicates if the body is fixed (has 0 DoF) or free
             (has 6 DoF). The default is False.
         self_collision : boolean, optional
-            A flag that indicates if the physics client will detect self
-            collisions within the URDF.  The default is False.
+            A flag that indicates if the physics client will detect self collisions
+            within the Body. The default is False.
 
         Returns
         -------

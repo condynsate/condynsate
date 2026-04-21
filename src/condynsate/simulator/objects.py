@@ -37,6 +37,16 @@ class Body():
 
     Keyword Args
     ------------
+    position : 3 tuple of floats
+        The XYZ position in world coordinates. The default is (0., 0., 0.)
+    yaw : float
+        The (z-y'-x' Tait–Bryan) yaw angle of the object in radians. The default is 0.0.
+    pitch : float
+        The (z-y'-x' Tait–Bryan) pitch angle of the object in radians. The default is 0.0.
+    roll : float
+        The (z-y'-x' Tait–Bryan) roll angle of the object in radians. The default is 0.0.
+    scale : float
+        The global scaling of the body. The default is 1.0.
     fixed : boolean, optional
         A flag that indicates if the body is fixed (has 0 DoF) or free
         (has 6 DoF). The default is False.
@@ -84,12 +94,16 @@ class Body():
             flags = f1 | f2
 
         # Get the default initial state
-        self._init_state = BodyState()
+        self._init_state = BodyState(position = kwargs.get('position', (0.0, 0.0, 0.0)),
+                                     orientation = t.wxyz_from_euler(kwargs.get('yaw', 0.0),
+                                                                     kwargs.get('pitch', 0.0),
+                                                                     kwargs.get('roll', 0.0),))
         basePosition = self._init_state.position
         baseOrientation = self._init_state.orientation
         baseOrientation = t.xyzw_from_wxyz(baseOrientation)
         linearVelocity = self._init_state.velocity
         angularVelocity = self._init_state.omega
+        globalScaling = kwargs.get('scale', 1.0)
 
         # Load the URDF with default initial conditions
         useFixedBase = kwargs.get('fixed', False)
@@ -97,7 +111,8 @@ class Body():
                                         flags=flags,
                                         basePosition=basePosition,
                                         baseOrientation=baseOrientation,
-                                        useFixedBase=useFixedBase)
+                                        useFixedBase=useFixedBase,
+                                        globalScaling=globalScaling)
         self._client.resetBaseVelocity(objectUniqueId=urdf_id,
                                        linearVelocity=linearVelocity,
                                        angularVelocity=angularVelocity)

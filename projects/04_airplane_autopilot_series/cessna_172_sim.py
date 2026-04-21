@@ -127,14 +127,15 @@ def _load_planet(proj, telem):
 
 
     planet = proj.load_urdf(assets['sphere.urdf'],
-                            fixed=True)
+                            fixed=True,
+                            position=(0.0, 0.0, -R_PLANET-telem['h']),
+                            scale=2*R_PLANET)
     planet.links['sphere'].set_color(color=(1.0, 1.0, 1.0),
                                      emissive_color=(0.15,0.15,0.15),)
     planet.links['sphere'].set_texture(tex_path=tex_paths,
                                        tex_repeat=[n_repeat, n_repeat],)
-    planet.set_initial_state(position=(0.0, 0.0, -R_PLANET-telem['h']),)
     proj.refresh_visualizer()
-
+    return planet
     # proj.visualizer.add_object('ground',
     #                            assets['sphere_1_center_origin.stl'],
     #                            scale=(2*R_PLANET,)*3,
