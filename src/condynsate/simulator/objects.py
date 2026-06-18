@@ -1183,8 +1183,8 @@ class Link:
             tex_path = kwargs.get('tex_path', self._visual_data['tex_path'])
             if type(tex_path) in (list, tuple, np.ndarray):
                 tex_path = [str(t) for t in tex_path]
-            else:
-                tex_path = str(t)
+            elif not tex_path is None:
+                tex_path = str(tex_path)
         except TypeError:
             warn('Cannot set tex_path, invalid tex_path argument.')
             return -1

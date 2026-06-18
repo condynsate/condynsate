@@ -25,15 +25,15 @@ def _make(initial_angle, visualization):
 
     # Load and orient the ground and walls
     ground = proj.load_urdf(assets['plane_medium.urdf'], fixed=True)
-    ground.links['plane'].set_texture(assets['tile_floor.png'])
+    ground.links['plane'].set_texture(tex_path=assets['tile_floor.png'])
     left = proj.load_urdf(assets['half_plane_medium.urdf'], fixed=True)
-    left.links['plane'].set_texture(assets['white_wall.png'])
+    left.links['plane'].set_texture(tex_path=assets['white_wall.png'])
     left.set_initial_state(roll=1.5708, yaw=1.5708, position=(-5,0,2.5))
     right = proj.load_urdf(assets['half_plane_medium.urdf'], fixed=True)
-    right.links['plane'].set_texture(assets['white_wall.png'])
+    right.links['plane'].set_texture(tex_path=assets['white_wall.png'])
     right.set_initial_state(roll=1.5708, yaw=-1.5708, position=(5,0,2.5))
     back = proj.load_urdf(assets['half_plane_medium.urdf'], fixed=True)
-    back.links['plane'].set_texture(assets['white_wall.png'])
+    back.links['plane'].set_texture(tex_path=assets['white_wall.png'])
     back.set_initial_state(roll=1.5708, position=(0,5,2.5))
 
     # Load and orient a cart carrying an inverted pendulum. Set initial state

@@ -25,21 +25,21 @@ if __name__ == "__main__":
 
     # Load a plane with a carpet texture for the ground
     ground = proj.load_urdf(assets['plane_medium.urdf'], fixed=True)
-    ground.links['plane'].set_texture(assets['carpet.png'])
+    ground.links['plane'].set_texture(tex_path=assets['carpet.png'])
 
     # Load and orient a plane with a windowed wall texture for the left wall
     left_wall = proj.load_urdf(assets['half_plane_medium.urdf'], fixed=True)
-    left_wall.links['plane'].set_texture(assets['window_wall.png'])
+    left_wall.links['plane'].set_texture(tex_path=assets['window_wall.png'])
     left_wall.set_initial_state(roll=1.5708, yaw=1.5708, position=(-5,0,2.5))
 
     # Load and orient a plane with a doored wall texture for the right wall
     right_wall = proj.load_urdf(assets['half_plane_medium.urdf'], fixed=True)
-    right_wall.links['plane'].set_texture(assets['door_wall.png'])
+    right_wall.links['plane'].set_texture(tex_path=assets['door_wall.png'])
     right_wall.set_initial_state(roll=1.5708, yaw=-1.5708, position=(5,0,2.5))
 
     # Load and orient a plane with a classroom wall texture for the back wall
     back_wall = proj.load_urdf(assets['half_plane_medium.urdf'], fixed=True)
-    back_wall.links['plane'].set_texture(assets['classroom_wall.png'])
+    back_wall.links['plane'].set_texture(tex_path=assets['classroom_wall.png'])
     back_wall.set_initial_state(roll=1.5708, position=(0,5,2.5))
 
     # Load and orient a cart carrying an inverted pendulum. Set the initial

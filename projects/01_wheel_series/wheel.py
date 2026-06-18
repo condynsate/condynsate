@@ -27,7 +27,7 @@ def _make(target):
 
     # Load a plane with a tile texture for the ground
     ground = proj.load_urdf(assets['plane_medium.urdf'], fixed=True)
-    ground.links['plane'].set_texture(assets['tile_floor.png'])
+    ground.links['plane'].set_texture(tex_path=assets['tile_floor.png'])
 
     # Load a wheel on an axle
     wheel = proj.load_urdf(assets['wheel.urdf'], fixed=True)

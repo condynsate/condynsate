@@ -62,10 +62,10 @@ class _SimData():
 
     def __iter__(self):
         for (key, value) in self._data.items():
-            yield (key, value)
+            yield (key, np.array(value))
 
     def __getitem__(self, key):
-        return self._data[key]
+        return np.array(self._data[key])
 
     def step(self, telem, h_des):
         """
@@ -394,7 +394,7 @@ def run(controller, program_num, **kwargs):
     ----------
     controller : function
         The controller function.
-    psi_program : int
+    program_num : int
         An integer that selects which of the desired altitude programs is run.
         Each program gives a sequence of desired altitudes as a function
         of time that will be passed to the controller. Valid numbers are 0-12.
@@ -453,20 +453,3 @@ def run(controller, program_num, **kwargs):
     data = _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs)
     proj.terminate()
     return data
-
-def _ctrlr(state, h_des):
-    m_e = np.array([0.0, 62.6, 0.012, 0.0, 0.012])
-    n_e = np.array([0.035, 89475.0])
-    x_des = np.array([h_des, 0.0, 0.0, 0.0, 0.0])
-    K = np.array([[ 8.801e-03,  2.748e-03, -1.720e+00, 1.287e+00,  1.639e+00],
-                  [ 2.730e+02,  1.469e+03, -5.856e+03, 1.563e+02,  6.134e+03]])
-    m = np.array([state['h'],
-                  state['V_inf'],
-                  state['alpha'],
-                  state['omega_theta'],
-                  state['theta'],])
-    n = -K@(m-m_e-x_des) + n_e
-    return n
-
-if __name__ ==  "__main__":
-    dat = run(_ctrlr, 1, time=10, real_time=True, chase=True)

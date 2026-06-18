@@ -59,7 +59,7 @@ def _make(initial_gamma, visualization):
                                    tex_wrap=[1000, 1000],
                                    position=(0.0, 0.0, -(1.02*R_EARTH),))
         tex_paths = [v for k,v in assets.items()
-                     if k.startswith('night_skybox')]
+                     if k.startswith('skybox_night')]
         tex_paths = sorted(tex_paths)
         proj.visualizer.add_object('skybox',
                                    assets['sphere_1_center_origin.stl'],
@@ -291,9 +291,3 @@ def run(initial_gamma, program, controller, time=30., real_time=True):
     data = _sim_loop(proj, cmg, program, controller, time, real_time)
     proj.terminate()
     return data
-
-def c(x,y):
-    return 0.0
-
-if __name__ == "__main__":
-    run(0.7854, 1, c, time=10.0, real_time=True)

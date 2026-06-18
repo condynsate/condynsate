@@ -88,7 +88,7 @@ def set_color(gryoscope, max_omega=47.1):
     b = min(max(1. - omega / max_omega, 0.), 1.)
 
     # Set the color of the core link
-    gryoscope.links['flywheel'].set_color((r, g, b)) # Returns 0 on success
+    gryoscope.links['flywheel'].set_color(color=(r, g, b)) # Returns 0 on success
 
 
 def set_omega(project, gryoscope):
@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
     # Load a plane with a carpet texture for the ground
     ground = proj.load_urdf(assets['plane_medium.urdf'], fixed=True)
-    ground.links['plane'].set_texture(assets['tile_floor.png'])
+    ground.links['plane'].set_texture(tex_path=assets['tile_floor.png'])
 
     # Load and orient a 2 gimbal gyroscope.
     gyro = proj.load_urdf(assets['gyroscope.urdf'], fixed=True)

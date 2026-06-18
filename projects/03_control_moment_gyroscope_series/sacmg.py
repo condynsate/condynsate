@@ -19,7 +19,7 @@ def _make(initial_angle, initial_gimbal_angle, visualization):
 
     # Load a ground plane
     ground = proj.load_urdf(assets['plane_medium.urdf'], fixed=True)
-    ground.links['plane'].set_texture(assets['tile_floor.png'])
+    ground.links['plane'].set_texture(tex_path=assets['tile_floor.png'])
 
     # Load the cmg
     cmg = proj.load_urdf(assets['sacmg.urdf'], fixed=True)
