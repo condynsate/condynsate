@@ -347,15 +347,15 @@ def _sim_loop(controller, program_num, proj, plane, flightsim, **kwargs):
     start = now()
     cam_tag = deque()
     while proj.simtime <= kwargs['duration']:
-        # # Crash condition (will strike ground in 0.05 seconds, and descent > 600 fpm)
-        # if telem['h'] <= -0.05*telem['v/s'] and abs(telem['v/s']) > 3.048:
-        #     break
+        # Crash condition (will strike ground in 0.05 seconds, and descent > 600 fpm)
+        if telem['h'] <= -0.05*telem['v/s'] and abs(telem['v/s']) > 3.048:
+            break
 
         # Get the controller inputs
-        # delta_e_des, delta_P_des = controller(telem, h_des)
-        # delta_r_des, delta_a_des = 0.0, 0.0
-        delta_e_des, delta_r_des, delta_a_des = _get_keypresses(proj)
-        delta_P_des = 89475.0
+        delta_e_des, delta_P_des = controller(telem, h_des)
+        delta_r_des, delta_a_des = 0.0, 0.0
+        # delta_e_des, delta_r_des, delta_a_des = _get_keypresses(proj)
+        # delta_P_des = 89475.0
 
         # Step the simulation. Use the flight sim calculated aero torques
         # to rotate the airplane in the Pybullet engine
@@ -469,4 +469,4 @@ def _ctrlr(state, h_des):
     return n
 
 if __name__ ==  "__main__":
-    dat = run(_ctrlr, 0, time=30, real_time=True, chase=True)
+    dat = run(_ctrlr, 1, time=10, real_time=True, chase=True)

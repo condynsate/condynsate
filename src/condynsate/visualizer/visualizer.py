@@ -27,7 +27,6 @@ import numpy as np
 import meshcat
 import meshcat.geometry as geo
 import umsgpack
-import cv2
 from condynsate.misc import save_recording
 from condynsate.visualizer.utilities import (is_instance, is_num, is_nvector,
                                              path_valid, name_valid)
@@ -83,12 +82,12 @@ class Visualizer():
         # Recording support
         self.record = record
         self._frames = []
-        self._frame_ticks = []
+        self._frame_times = []
 
         # Start the main thread
         self._actions_buf = {}
         self._done = False
-        self._last_refresh = cv2.getTickCount()
+        self._last_refresh = time.monotonic()
         self._LOCK = Lock()
         self._start()
 
@@ -133,9 +132,9 @@ class Visualizer():
         # Continuously redraw
         while True:
             # Time since last frame was rendered
-            dt = (cv2.getTickCount()-self._last_refresh)/cv2.getTickFrequency()
+            dt = time.monotonic() - self._last_refresh
             if dt < self.frame_delta:
-                # time.sleep(0.008333) # Remove CPU stress (120 FPS)
+                time.sleep(0.008) # Sleep for 1 frame time @ 125 fps
                 continue
 
             # Aquire mutex lock to read flags and shared buffer
@@ -146,8 +145,7 @@ class Visualizer():
                 # If visualizer is closed unexpectedly, end main loop then
                 # return failure
                 if self._socket.closed:
-                    msg = ("Cannot flush actions because visualizer closed"
-                           " unexpectedly")
+                    msg = "Cannot flush actions because visualizer closed unexpectedly."
                     warn(msg, UserWarning)
                     self._done = True
                     return -1
@@ -172,7 +170,7 @@ class Visualizer():
             # Do all the actions
             for (fnc, args, kwargs) in actions:
                 fnc(*args, **kwargs)
-            self._last_refresh = cv2.getTickCount()
+            self._last_refresh = time.monotonic()
 
             # If recording, save the current image
             if self.record:
@@ -180,7 +178,7 @@ class Visualizer():
                 image = np.array(image, dtype=np.uint8)[:, :, :-1].copy()
                 self._frames.append((zstd.compress(image, level=1),
                                      image.shape))
-                self._frame_ticks.append(self._last_refresh)
+                self._frame_times.append(self._last_refresh)
 
     def _fnc_priority(self, fnc):
         """
@@ -1614,7 +1612,8 @@ class Visualizer():
 
         """
         self._frames = []
-        self._frame_ticks = []
+        self._frame_times = []
+        self._last_refresh = time.monotonic()
         return 0
 
     def terminate(self):
@@ -1637,12 +1636,12 @@ class Visualizer():
         if self.record and len(self._frames) > 1:
             # Convert frame ticks to frame times
             print('Saving visualizer recording...')
-            frame_times = np.array(self._frame_ticks, dtype=float)
-            frame_times /= cv2.getTickFrequency()
+            frame_times = np.array(self._frame_times, dtype=float)
             frame_times -= frame_times[0]
             save_recording(self._frames, frame_times, 'visualizer')
         self._frames = []
         self._frame_ticks = []
+        self._last_refresh = time.monotonic()
 
         if not self._socket.closed:
             self._scene.delete()

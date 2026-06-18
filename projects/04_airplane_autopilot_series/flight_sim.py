@@ -18,7 +18,7 @@ import random
 from collections import deque
 from plane_parameters import Params, Cessna172
 STALL_DEV = math.radians(4) # Rad after stall angle where stall developments ends, full stall starts
-EPSILON = 0.001
+EPSILON = 0.001 # As close to 0 as the speed can get (speed of 0 results in /0 err)
 
 ####################################################################################################
 #MATH OPERATION FUNCTIONS
