@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project Example 1: The Cart &mdash; condynsate 1.0.5 documentation</title>
+  <title>Project Example 1: The Cart &mdash; condynsate 1.0.6 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/autoclasstoc.css?v=08871587" />
@@ -15,7 +15,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=d55fa986"></script>
+      <script src="../../_static/documentation_options.js?v=e2a723ec"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -124,30 +124,59 @@ You can open the visualizer by visiting the following URL:
 http://127.0.0.1:7000/static/
 </pre></div></div>
 </div>
-<p>Load four medium planes into the simulator to represent the ground and walls. Set <code class="docutils literal notranslate"><span class="pre">fixed</span> <span class="pre">=</span> <span class="pre">True</span></code> so that they are fixed in space and adjust their initial states so they are oriented properly.</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load a plane with a carpet texture for the ground</span>
-<span class="n">ground</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;plane_medium.urdf&#39;</span><span class="p">],</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">ground</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;plane&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_texture</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;carpet.png&#39;</span><span class="p">])</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Turn off the axes and grid visualization. Turn on the spotlight</span>
+<span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_axes</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+<span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+<span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_spotlight</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
 </pre></div>
 </div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<p>Load four medium planes into the simulator to represent the ground and walls. Set <code class="docutils literal notranslate"><span class="pre">fixed</span> <span class="pre">=</span> <span class="pre">True</span></code> so that they are fixed in space and adjust their initial states so they are oriented properly.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load a plane with a carpet texture for the ground</span>
+<span class="n">ground</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;plane_medium.urdf&#39;</span><span class="p">],</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ground</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;plane&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_texture</span><span class="p">(</span><span class="n">tex_path</span><span class="o">=</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;carpet.png&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load and orient a plane with a windowed wall texture for the left wall</span>
 <span class="n">left_wall</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;half_plane_medium.urdf&#39;</span><span class="p">],</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">left_wall</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;plane&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_texture</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;window_wall.png&#39;</span><span class="p">])</span>
+<span class="n">left_wall</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;plane&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_texture</span><span class="p">(</span><span class="n">tex_path</span><span class="o">=</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;window_wall.png&#39;</span><span class="p">])</span>
 <span class="n">left_wall</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">roll</span><span class="o">=</span><span class="mf">1.5708</span><span class="p">,</span> <span class="n">yaw</span><span class="o">=</span><span class="mf">1.5708</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">2.5</span><span class="p">))</span> <span class="c1"># This returns 0 on success</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -156,18 +185,18 @@ http://127.0.0.1:7000/static/
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load and orient a plane with a doored wall texture for the right wall</span>
 <span class="n">right_wall</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;half_plane_medium.urdf&#39;</span><span class="p">],</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">right_wall</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;plane&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_texture</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;door_wall.png&#39;</span><span class="p">])</span>
+<span class="n">right_wall</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;plane&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_texture</span><span class="p">(</span><span class="n">tex_path</span><span class="o">=</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;door_wall.png&#39;</span><span class="p">])</span>
 <span class="n">right_wall</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">roll</span><span class="o">=</span><span class="mf">1.5708</span><span class="p">,</span> <span class="n">yaw</span><span class="o">=-</span><span class="mf">1.5708</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mf">2.5</span><span class="p">))</span> <span class="c1"># This returns 0 on success</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -176,18 +205,18 @@ http://127.0.0.1:7000/static/
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load and orient a plane with a classroom wall texture for the back wall</span>
 <span class="n">back_wall</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;half_plane_medium.urdf&#39;</span><span class="p">],</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">back_wall</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;plane&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_texture</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;classroom_wall.png&#39;</span><span class="p">])</span>
+<span class="n">back_wall</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;plane&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_texture</span><span class="p">(</span><span class="n">tex_path</span><span class="o">=</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;classroom_wall.png&#39;</span><span class="p">])</span>
 <span class="n">back_wall</span><span class="o">.</span><span class="n">set_initial_state</span><span class="p">(</span><span class="n">roll</span><span class="o">=</span><span class="mf">1.5708</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mf">2.5</span><span class="p">))</span> <span class="c1"># This returns 0 on success</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -197,7 +226,7 @@ http://127.0.0.1:7000/static/
 </div>
 <p>Load the cart into the simulator. Additionally, set the initial position to <code class="docutils literal notranslate"><span class="pre">[0.0,</span> <span class="pre">0.0,</span> <span class="pre">0.126]</span></code> so that its wheels are just above the ground plane. Finally, set the initial angle of the pendulum to a non zero value</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load and orient a cart carrying an inverted pendulum. Set the initial</span>
@@ -209,7 +238,7 @@ http://127.0.0.1:7000/static/
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -219,7 +248,7 @@ http://127.0.0.1:7000/static/
 </div>
 <p>Note that the cart’s position and pendulum angle updates are not yet reflected in the visualizer. To update this manually, we can call the <code class="docutils literal notranslate"><span class="pre">proj.refresh_visualizer</span></code> function. Note, however, this is also done automatically every time <code class="docutils literal notranslate"><span class="pre">proj.load_urdf</span></code>, <code class="docutils literal notranslate"><span class="pre">proj.reset</span></code>, or <code class="docutils literal notranslate"><span class="pre">proj.step</span></code> is called.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">refresh_visualizer</span><span class="p">()</span> <span class="c1"># This returns 0 on success</span>
@@ -227,7 +256,7 @@ http://127.0.0.1:7000/static/
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -235,32 +264,12 @@ http://127.0.0.1:7000/static/
 0
 </pre></div></div>
 </div>
-<p>Now we create some extra local vars for the logistics of this specific project.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Store the name of each wheel joint for easy iteration</span>
-<span class="n">wheel_joint_names</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;chassis_to_wheel_1&#39;</span><span class="p">,</span> <span class="s1">&#39;chassis_to_wheel_2&#39;</span><span class="p">,</span>
-                     <span class="s1">&#39;chassis_to_wheel_3&#39;</span><span class="p">,</span> <span class="s1">&#39;chassis_to_wheel_4&#39;</span><span class="p">,)</span>
-
-<span class="c1"># Set control constants to keep the pendulum upright</span>
-<span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span> <span class="mf">0.664</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.024</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.0064</span><span class="p">]])</span>
-<span class="n">m_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
-<span class="n">n_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
+<p>Finally, let’s point the camera at the cart.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Turn off the axes and grid visualization. Turn on the spotlight</span>
-<span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_axes</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
-<span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
-<span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_spotlight</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
-
-<span class="c1"># Focus the camera on the cart</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Focus the camera on the cart</span>
 <span class="n">proj</span><span class="o">.</span><span class="n">visualizer</span><span class="o">.</span><span class="n">set_cam_target</span><span class="p">(</span><span class="n">cart</span><span class="o">.</span><span class="n">center_of_mass</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
 </pre></div>
 </div>
@@ -274,6 +283,22 @@ http://127.0.0.1:7000/static/
 0
 </pre></div></div>
 </div>
+<p>Now we create some extra local vars for the logistics of this specific project.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Store the name of each wheel joint for easy iteration</span>
+<span class="n">wheel_joint_names</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;chassis_to_wheel_1&#39;</span><span class="p">,</span> <span class="s1">&#39;chassis_to_wheel_2&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;chassis_to_wheel_3&#39;</span><span class="p">,</span> <span class="s1">&#39;chassis_to_wheel_4&#39;</span><span class="p">,)</span>
+
+<span class="c1"># Set control constants to keep the pendulum upright</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">12.99198626</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.47038328</span><span class="p">,</span> <span class="mf">42.11150628</span><span class="p">,</span>  <span class="o">-</span><span class="mf">0.23519164</span><span class="p">]])</span>
+<span class="n">m_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">n_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 <p>We will add two lines plots to the animator. Each line plot will have exactly one line one it. These will not appear yet, only after starting the animator GUI will they appear. There are two ways to start the GUI:</p>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">proj.reset</span></code></p></li>
@@ -281,7 +306,7 @@ http://127.0.0.1:7000/static/
 </ol>
 <p>Either is valid. In this case, we will just use the <code class="docutils literal notranslate"><span class="pre">reset</span></code> function.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add a line plot to the animator to track the pendulum angle</span>
@@ -300,7 +325,7 @@ http://127.0.0.1:7000/static/
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Add another line plot to the animator to track the cart x position</span>
@@ -317,7 +342,7 @@ http://127.0.0.1:7000/static/
 </div>
 <p>Before running the simulation, we reset the project. This ensure that everything is started, updated, and in the desired initial state. <code class="docutils literal notranslate"><span class="pre">proj.reset</span></code> should be called before a simulation every time you run one.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reset the project to its initial state. This is required to</span>
@@ -328,7 +353,7 @@ http://127.0.0.1:7000/static/
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -347,7 +372,7 @@ http://127.0.0.1:7000/static/
 <li><p>Take a simulation step in real time</p></li>
 </ol>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run a 10 second simulation loop</span>
@@ -369,7 +394,7 @@ http://127.0.0.1:7000/static/
                   <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">omega</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">wheel_states</span><span class="p">]),</span>
                   <span class="n">pen_state</span><span class="o">.</span><span class="n">angle</span><span class="p">,</span>
                   <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">angle</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">wheel_states</span><span class="p">])])</span>
-    <span class="n">torque</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">((</span><span class="o">-</span><span class="n">k</span><span class="o">@</span><span class="p">(</span><span class="n">m</span> <span class="o">-</span> <span class="n">m_e</span><span class="p">)</span> <span class="o">+</span> <span class="n">n_e</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">))</span>
+    <span class="n">torque</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">float</span><span class="p">((</span><span class="o">-</span><span class="n">k</span><span class="o">@</span><span class="p">(</span><span class="n">m</span> <span class="o">-</span> <span class="n">m_e</span><span class="p">)</span> <span class="o">+</span> <span class="n">n_e</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span> <span class="o">-</span><span class="mf">7.5</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">)</span>
 
     <span class="c1"># Apply the torque we calculated to each wheel</span>
     <span class="k">for</span> <span class="n">joint_name</span> <span class="ow">in</span> <span class="n">wheel_joint_names</span><span class="p">:</span>
@@ -380,16 +405,16 @@ http://127.0.0.1:7000/static/
         <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;3&#39;</span> <span class="ow">in</span> <span class="n">joint_name</span> <span class="ow">or</span> <span class="s1">&#39;4&#39;</span> <span class="ow">in</span> <span class="n">joint_name</span><span class="p">)</span><span class="o">*</span><span class="mf">0.1</span><span class="o">-</span><span class="mf">0.05</span>
         <span class="n">cart</span><span class="o">.</span><span class="n">joints</span><span class="p">[</span><span class="n">joint_name</span><span class="p">]</span><span class="o">.</span><span class="n">apply_torque</span><span class="p">(</span><span class="n">torque</span><span class="p">,</span>
                                              <span class="n">draw_arrow</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                             <span class="n">arrow_scale</span><span class="o">=</span><span class="mf">0.33</span><span class="p">,</span>
+                                             <span class="n">arrow_scale</span><span class="o">=</span><span class="mf">0.067</span><span class="p">,</span>
                                              <span class="n">arrow_offset</span><span class="o">=</span><span class="n">offset</span><span class="p">)</span>
 
     <span class="c1"># Plot the pendulum angle against the current simulation time</span>
     <span class="n">angle_deg</span> <span class="o">=</span> <span class="n">pen_state</span><span class="o">.</span><span class="n">angle</span><span class="o">*</span><span class="mf">180.</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
-    <span class="n">proj</span><span class="o">.</span><span class="n">animator</span><span class="o">.</span><span class="n">lineplot_append_point</span><span class="p">(</span><span class="n">plot1</span><span class="p">,</span> <span class="n">proj</span><span class="o">.</span><span class="n">simtime</span><span class="p">,</span> <span class="n">angle_deg</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+    <span class="n">proj</span><span class="o">.</span><span class="n">animator</span><span class="o">.</span><span class="n">lineplot_append_point</span><span class="p">(</span><span class="n">plot1</span><span class="p">,</span> <span class="n">proj</span><span class="o">.</span><span class="n">simtime</span><span class="p">,</span> <span class="n">angle_deg</span><span class="p">)</span>
 
     <span class="c1"># Plot the cart&#39;s x position against the current simulation time</span>
     <span class="n">cart_xpos</span> <span class="o">=</span> <span class="n">cart</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">proj</span><span class="o">.</span><span class="n">animator</span><span class="o">.</span><span class="n">lineplot_append_point</span><span class="p">(</span><span class="n">plot2</span><span class="p">,</span> <span class="n">proj</span><span class="o">.</span><span class="n">simtime</span><span class="p">,</span> <span class="n">cart_xpos</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
+    <span class="n">proj</span><span class="o">.</span><span class="n">animator</span><span class="o">.</span><span class="n">lineplot_append_point</span><span class="p">(</span><span class="n">plot2</span><span class="p">,</span> <span class="n">proj</span><span class="o">.</span><span class="n">simtime</span><span class="p">,</span> <span class="n">cart_xpos</span><span class="p">)</span>
 
     <span class="c1"># Take a simulation step that attempts real time simulation</span>
     <span class="n">proj</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">real_time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stable_step</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># This returns 0 on success</span>
@@ -404,12 +429,12 @@ http://127.0.0.1:7000/static/
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Simuation took 10.04 seconds.
+Simuation took 10.02 seconds.
 </pre></div></div>
 </div>
 <p>Finally, we terminate the project. This is required to save any videos that are recorded and gracefully exit all the children threads (including the animator window). <code class="docutils literal notranslate"><span class="pre">proj.terminate()</span></code> should be called when done with any member of the <code class="docutils literal notranslate"><span class="pre">condynsate.Project</span></code> class.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">proj</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span> <span class="c1"># This returns 0 on success</span>
@@ -417,13 +442,21 @@ Simuation took 10.04 seconds.
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 0
 </pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
 </div>
 </section>
 

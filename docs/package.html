@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>The condynsate Package &mdash; condynsate 1.0.5 documentation</title>
+  <title>The condynsate Package &mdash; condynsate 1.0.6 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/autoclasstoc.css?v=08871587" />
@@ -14,7 +14,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=d55fa986"></script>
+      <script src="_static/documentation_options.js?v=e2a723ec"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -267,10 +267,15 @@ the project.</p>
 </dd>
 <dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
+<li><p><strong>position</strong> (<em>3 tuple</em><em> of </em><em>floats</em>) – The XYZ position in world coordinates. The default is (0., 0., 0.)</p></li>
+<li><p><strong>yaw</strong> (<em>float</em>) – The (z-y’-x’ Tait–Bryan) yaw angle of the object in radians. The default is 0.0.</p></li>
+<li><p><strong>pitch</strong> (<em>float</em>) – The (z-y’-x’ Tait–Bryan) pitch angle of the object in radians. The default is 0.0.</p></li>
+<li><p><strong>roll</strong> (<em>float</em>) – The (z-y’-x’ Tait–Bryan) roll angle of the object in radians. The default is 0.0.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – The global scaling of the body. The default is 1.0.</p></li>
 <li><p><strong>fixed</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the body is fixed (has 0 DoF) or free
-(has 6 DoF).</p></li>
-<li><p><strong>self_collision</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the physics client will detect self
-collisions within the URDF.</p></li>
+(has 6 DoF). The default is False.</p></li>
+<li><p><strong>self_collision</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the physics client will detect self collisions
+within the Body. The default is False.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -553,10 +558,15 @@ the simulator.</p>
 </dd>
 <dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
+<li><p><strong>position</strong> (<em>3 tuple</em><em> of </em><em>floats</em>) – The XYZ position in world coordinates. The default is (0., 0., 0.)</p></li>
+<li><p><strong>yaw</strong> (<em>float</em>) – The (z-y’-x’ Tait–Bryan) yaw angle of the object in radians. The default is 0.0.</p></li>
+<li><p><strong>pitch</strong> (<em>float</em>) – The (z-y’-x’ Tait–Bryan) pitch angle of the object in radians. The default is 0.0.</p></li>
+<li><p><strong>roll</strong> (<em>float</em>) – The (z-y’-x’ Tait–Bryan) roll angle of the object in radians. The default is 0.0.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – The global scaling of the body. The default is 1.0.</p></li>
 <li><p><strong>fixed</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the body is fixed (has 0 DoF) or free
-(has 6 DoF).</p></li>
-<li><p><strong>self_collision</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the physics client will detect self
-collisions within the URDF.</p></li>
+(has 6 DoF). The default is False.</p></li>
+<li><p><strong>self_collision</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the physics client will detect self collisions
+within the Body. The default is False.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -916,10 +926,15 @@ of a set of links and joints.</p>
 </dd>
 <dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
+<li><p><strong>position</strong> (<em>3 tuple</em><em> of </em><em>floats</em>) – The XYZ position in world coordinates. The default is (0., 0., 0.)</p></li>
+<li><p><strong>yaw</strong> (<em>float</em>) – The (z-y’-x’ Tait–Bryan) yaw angle of the object in radians. The default is 0.0.</p></li>
+<li><p><strong>pitch</strong> (<em>float</em>) – The (z-y’-x’ Tait–Bryan) pitch angle of the object in radians. The default is 0.0.</p></li>
+<li><p><strong>roll</strong> (<em>float</em>) – The (z-y’-x’ Tait–Bryan) roll angle of the object in radians. The default is 0.0.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – The global scaling of the body. The default is 1.0.</p></li>
 <li><p><strong>fixed</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the body is fixed (has 0 DoF) or free
-(has 6 DoF).</p></li>
+(has 6 DoF). The default is False.</p></li>
 <li><p><strong>self_collision</strong> (<em>boolean</em><em>, </em><em>optional</em>) – A flag that indicates if the physics client will detect self collisions
-within the Body.</p></li>
+within the Body. The default is False.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1131,22 +1146,6 @@ that is used to size the torque arrow. The default is 1.0.</p></li>
 <dt class="sig sig-object py" id="condynsate.simulator.objects.Body.reset">
 <span class="sig-prename descclassname"><span class="pre">Body.</span></span><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Body.reset" title="Link to this definition"></a></dt>
 <dd><p>Resets body and each of its joints to their initial conditions.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="condynsate.simulator.objects.Body.clear_visual_buffer">
-<span class="sig-prename descclassname"><span class="pre">Body.</span></span><span class="sig-name descname"><span class="pre">clear_visual_buffer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Body.clear_visual_buffer" title="Link to this definition"></a></dt>
-<dd><p>Clears the body’s visual buffer. If visual_data is not collected each
-time step, then clear_visual_buffer must be called to prevent the
-visual_data buffer from growing indeterminately.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
@@ -1413,37 +1412,60 @@ matrix of the link relative to the world.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="condynsate.simulator.objects.Link.set_color">
-<span class="sig-prename descclassname"><span class="pre">Link.</span></span><span class="sig-name descname"><span class="pre">set_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Link.set_color" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Link.</span></span><span class="sig-name descname"><span class="pre">set_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Link.set_color" title="Link to this definition"></a></dt>
 <dd><p>Changes the color of the link.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>color</strong> (<em>3 tuple</em><em> of </em><em>floats</em>) – The color to set the link. In the form (R, G, B) where R is the
-red channel, G is the green channel, and B is the blue channel.
-Each channel has value between 0.0 and 1.0.</p>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>color</strong> (<em>3vec</em><em> of </em><em>floats</em>) – The color to apply to the link. In the form of
+(R, G, B) where all elements range from 0.0 to 1.0. If not set, maintains
+current value.</p></li>
+<li><p><strong>shininess</strong> (<em>float</em>) – The shininess to apply to the link. Ranges from 0.0 to 1.0
+If not set, maintains current value.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em>) – The opacity to set for the link. Ranges from 0.0 to 1.0.
+If not set, maintains current value.</p></li>
+<li><p><strong>emissive_color</strong> (<em>3vec</em><em> of </em><em>floats</em>) – The color of the light the link is emiting. In the form of
+(R, G, B) where all elements range from 0.0 to 1.0. A value of
+(0.0, 0.0, 0.0) results in no emmision. If not set, maintains current value.</p></li>
+</ul>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="condynsate.simulator.objects.Link.set_texture">
-<span class="sig-prename descclassname"><span class="pre">Link.</span></span><span class="sig-name descname"><span class="pre">set_texture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">texture</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Link.set_texture" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Link.</span></span><span class="sig-name descname"><span class="pre">set_texture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#condynsate.simulator.objects.Link.set_texture" title="Link to this definition"></a></dt>
 <dd><p>Sets the texture of a link. Only works if the link is described by
 an obj or dae file. Does not work for stl defined links.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>texture</strong> (<em>path to image file</em>) – The path to the texture image file.</p>
+<dd class="field-odd"><p><strong>**kwargs</strong></p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+<dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>tex_path</strong> (<em>string</em>) – The path pointing to a .png file that defines the texture of
+the link. Is only applied correctly if the link is
+of type .obj or .dae. .stl files do not support proper
+texturing and attempting to apply texture to .stl may result in
+unexpected viual results. If not set, keeps current value.</p></li>
+<li><p><strong>tex_wrap</strong> (<em>2 tuple</em><em> of </em><em>ints</em>) – The threejs repeat type for texture. If not set, keeps current value.</p></li>
+<li><p><strong>tex_repeat</strong> (<em>2 tuple</em><em> of </em><em>ints</em>) – Number of times to repeat texture in U, V directions. If not set, keeps current value.</p></li>
+</ul>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ret_code</strong> – 0 if successful, -1 if something went wrong.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1459,25 +1481,28 @@ the mass, contact friction, the bounciness, and the air resistance.</p>
 </dd>
 <dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>mass</strong> (<em>float</em><em>, </em><em>optional</em>) – The mass of the link. The default is defined by the .URDF file</p></li>
-<li><p><strong>lateral_contact_friction</strong> (<em>float</em><em>, </em><em>optional</em>) – The lateral (linear) contact friction of the link. 0.0 for
+<li><p><strong>mass</strong> (<em>float</em>) – The mass of the link. The default is defined by the .URDF file</p></li>
+<li><p><strong>inertia_diagonal</strong> (<em>tuple</em><em> of </em><em>3 floats</em>) – The local inertia diagonal. Note that links and base are centered
+around the center of mass and aligned with the principal
+axes of inertia.</p></li>
+<li><p><strong>lateral_contact_friction</strong> (<em>float</em>) – The lateral (linear) contact friction of the link. 0.0 for
 no friction, increasing friction with increasing value.
 The default is 100.0.</p></li>
-<li><p><strong>spinning_contact_friction</strong> (<em>float</em><em>, </em><em>optional</em>) – The torsional contact friction of the link about
+<li><p><strong>spinning_contact_friction</strong> (<em>float</em>) – The torsional contact friction of the link about
 contact normals. 0.0 for no friction, increasing friction
 with increasing value. The default is 0.0.</p></li>
-<li><p><strong>rolling_contact_friction</strong> (<em>float</em><em>, </em><em>optional</em>) – The torsional contact friction of the link orthogonal to
+<li><p><strong>rolling_contact_friction</strong> (<em>float</em>) – The torsional contact friction of the link orthogonal to
 contact normals. 0.0 for no friction, increasing friction
 with increasing value. Keep this value either 0.0 or very close
 to 0.0, otherwise the simulations can become unstable.
 The default is 0.0.</p></li>
-<li><p><strong>bounciness</strong> (<em>float</em><em>, </em><em>optional</em>) – How bouncy this link is. 0.0 for inelastic collisions, 0.95 for
+<li><p><strong>bounciness</strong> (<em>float</em>) – How bouncy this link is. 0.0 for inelastic collisions, 0.95 for
 mostly elastic collisions. Setting above 0.95 can result in
 unstable simulations. The default is 0.0.</p></li>
-<li><p><strong>linear_air_resistance</strong> (<em>float</em><em>, </em><em>optional</em>) – The air resistance opposing linear movement applied to the
+<li><p><strong>linear_air_resistance</strong> (<em>float</em>) – The air resistance opposing linear movement applied to the
 center of mass of the link. Usually set to either 0.0 or a
 low value less than 0.1. The default is 0.005.</p></li>
-<li><p><strong>angular_air_resistance</strong> (<em>float</em><em>, </em><em>optional</em>) – The air resistance opposing rotational movement applied about
+<li><p><strong>angular_air_resistance</strong> (<em>float</em>) – The air resistance opposing rotational movement applied about
 the center of rotation of the link. Usually set to either 0.0
 or a low value less than 0.1. The default is 0.005.</p></li>
 </ul>
@@ -1863,8 +1888,9 @@ geometry. The file may be of type .obj, .stl, or .dae.</p></li>
 the object being added. Is only applied correctly if object is
 of type .obj or .dae. .stl files do not support proper
 texturing and attempting to apply texture to .stl may result in
-unexpected viual results. If None, no texture is applied. The
-default is None</p></li>
+unexpected viual results.</p></li>
+<li><p><strong>tex_wrap</strong> (<em>2 tuple</em><em> of </em><em>ints</em>) – The threejs repeat type for texture. The default is [1000, 1000].</p></li>
+<li><p><strong>tex_repeat</strong> (<em>2 tuple</em><em> of </em><em>ints</em>) – Number of times to repeat texture in U, V directions.</p></li>
 <li><p><strong>color</strong> (<em>3vec</em><em> of </em><em>floats</em>) – The color to apply to the object being added. In the form of
 (R, G, B) where all elements range from 0.0 to 1.0. The default
 is (1.0, 1.0, 1.0).</p></li>
@@ -1917,18 +1943,17 @@ as its position in the scene heirarchy. For example,
 </dd>
 <dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>position</strong> (<em>3vec</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The extrinsic position to set.
-The default value is (0., 0., 0.)</p></li>
+<li><p><strong>position</strong> (<em>3vec</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The extrinsic position to set.</p></li>
 <li><p><strong>wxyz_quat</strong> (<em>4vec</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The extrinsic rotation to set as defined by a quaternion.
-The default value is (1., 0., 0., 0.)</p></li>
+When not set, maintains previous value.</p></li>
 <li><p><strong>yaw</strong> (<em>float</em><em>, </em><em>optional</em>) – The intrinsic yaw angle to set in radians. Defined about the
-object’s Z axis. The default value is 0.0.</p></li>
+object’s Z axis. When not set, maintains previous value.</p></li>
 <li><p><strong>pitch</strong> (<em>float</em><em>, </em><em>optional</em>) – The intrinsic pitch angle to set in radians. Defined about the
-object’s Y axis. The default value is 0.0.</p></li>
+object’s Y axis. When not set, maintains previous value.</p></li>
 <li><p><strong>roll</strong> (<em>float</em><em>, </em><em>optional</em>) – The intrinsic roll angle to set in radians. Defined about the
-object’s X axis. The default value is 0.0.</p></li>
-<li><p><strong>scale</strong> (<em>3vec</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The intrinsic scale of the object. When not set, defaults to
-(1., 1., 1.).</p></li>
+object’s X axis. When not set, maintains previous value.</p></li>
+<li><p><strong>scale</strong> (<em>3vec</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The intrinsic scale of the object. When not set, maintains previous
+value.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -1957,23 +1982,26 @@ as its position in the scene heirarchy. For example,
 </dd>
 <dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>tex_path</strong> (<em>string</em><em>, </em><em>optional</em>) – The path pointing to a .png file that defines the texture of
+<li><p><strong>tex_path</strong> (<em>string</em>) – The path pointing to a .png file that defines the texture of
 the object being added. Is only applied correctly if object is
 of type .obj or .dae. .stl files do not support proper
 texturing and attempting to apply texture to .stl may result in
-unexpected viual results. If None, no texture is applied. The
-default is None</p></li>
-<li><p><strong>color</strong> (<em>3vec</em><em> of </em><em>floats</em><em>, </em><em>optional</em>) – The color to apply to the object. In the form of
-(R, G, B) where all elements range from 0.0 to 1.0. The default
-is (1.0, 1.0, 1.0).</p></li>
-<li><p><strong>shininess</strong> (<em>float</em><em>, </em><em>optional</em>) – The shininess of the object. Ranges from 0.0 to 1.0.
-The default value is 0.01</p></li>
-<li><p><strong>opacity</strong> (<em>float</em><em>, </em><em>optional</em>) – The opacity of the object. Ranges from 0.0 to 1.0.
-The default value is 1.0.</p></li>
+unexpected viual results. When not set, no maintains previous state.</p></li>
+<li><p><strong>tex_wrap</strong> (<em>2 tuple</em><em> of </em><em>ints</em>) – The threejs repeat type for texture. [1001,1001] for flat,
+[1000,1000] for round. When not set, no maintains previous state.</p></li>
+<li><p><strong>tex_repeat</strong> (<em>2 tuple</em><em> of </em><em>ints</em>) – Number of times to repeat texture in U, V directions.
+When not set, no maintains previous state.</p></li>
+<li><p><strong>color</strong> (<em>3vec</em><em> of </em><em>floats</em>) – The color to apply to the object being added. In the form of
+(R, G, B) where all elements range from 0.0 to 1.0.
+When not set, no maintains previous state.</p></li>
+<li><p><strong>shininess</strong> (<em>float</em>) – The shininess of the object being added. Ranges from 0.0 to 1.0.
+When not set, no maintains previous state.</p></li>
+<li><p><strong>opacity</strong> (<em>float</em>) – The opacity of the object being added. Ranges from 0.0 to 1.0.
+When not set, no maintains previous state.</p></li>
 <li><p><strong>emissive_color</strong> (<em>3vec</em><em> of </em><em>floats</em>) – The color of the light the object is emiting. In the form of
 (R, G, B) where all elements range from 0.0 to 1.0. A value of
-(0.0, 0.0, 0.0) results in no emmision. The default value is
-(0.0, 0.0, 0.0).</p></li>
+(0.0, 0.0, 0.0) results in no emmision. When not set, no maintains
+previous state.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>

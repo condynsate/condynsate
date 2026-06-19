@@ -82,7 +82,7 @@
    "source": [
     "# Load a plane with a carpet texture for the ground\n",
     "ground = proj.load_urdf(assets['plane_medium.urdf'], fixed=True)\n",
-    "ground.links['plane'].set_texture(assets['tile_floor.png'])"
+    "ground.links['plane'].set_texture(tex_path=assets['tile_floor.png'])"
    ]
   },
   {
@@ -306,7 +306,7 @@
     "    b = min(max(1. - omega / max_omega, 0.), 1.)\n",
     "\n",
     "    # Set the color of the core link\n",
-    "    gryoscope.links['flywheel'].set_color((r, g, b)) # This returns 0 on success"
+    "    gryoscope.links['flywheel'].set_color(color=(r, g, b)) # This returns 0 on success"
    ]
   },
   {
@@ -417,6 +417,14 @@
    "source": [
     "proj.terminate() # This returns 0 on success"
    ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "b3ea3a12-ae1c-4450-bad3-3864a2a72a63",
+   "metadata": {},
+   "outputs": [],
+   "source": []
   }
  ],
  "metadata": {

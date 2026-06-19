@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project Example 2: The Gyroscope &mdash; condynsate 1.0.5 documentation</title>
+  <title>Project Example 2: The Gyroscope &mdash; condynsate 1.0.6 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/autoclasstoc.css?v=08871587" />
@@ -15,7 +15,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=d55fa986"></script>
+      <script src="../../_static/documentation_options.js?v=e2a723ec"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -130,15 +130,24 @@ http://127.0.0.1:7000/static/
 </pre></div></div>
 </div>
 <p>Load a medium plane into the simulator to represent the ground. Set <code class="docutils literal notranslate"><span class="pre">fixed</span> <span class="pre">=</span> <span class="pre">True</span></code> so it are fixed in space (0 degerees of freedom) and adjust give it a texture so it is pretty.</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load a plane with a carpet texture for the ground</span>
 <span class="n">ground</span> <span class="o">=</span> <span class="n">proj</span><span class="o">.</span><span class="n">load_urdf</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;plane_medium.urdf&#39;</span><span class="p">],</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">ground</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;plane&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_texture</span><span class="p">(</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;tile_floor.png&#39;</span><span class="p">])</span>
+<span class="n">ground</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;plane&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_texture</span><span class="p">(</span><span class="n">tex_path</span><span class="o">=</span><span class="n">assets</span><span class="p">[</span><span class="s1">&#39;tile_floor.png&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+0
+</pre></div></div>
 </div>
 <p>Load the gyro into the simulator. Set <code class="docutils literal notranslate"><span class="pre">fixed</span> <span class="pre">=</span> <span class="pre">True</span></code> so that the base link of the gyro has 0 degrees of freedom.</p>
 <div class="nbinput nblast docutils container">
@@ -320,7 +329,7 @@ http://127.0.0.1:7000/static/
     <span class="n">b</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">omega</span> <span class="o">/</span> <span class="n">max_omega</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="mf">1.</span><span class="p">)</span>
 
     <span class="c1"># Set the color of the core link</span>
-    <span class="n">gryoscope</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;flywheel&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span> <span class="c1"># This returns 0 on success</span>
+    <span class="n">gryoscope</span><span class="o">.</span><span class="n">links</span><span class="p">[</span><span class="s1">&#39;flywheel&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span> <span class="c1"># This returns 0 on success</span>
 </pre></div>
 </div>
 </div>
@@ -404,6 +413,14 @@ http://127.0.0.1:7000/static/
 <div class="highlight"><pre>
 0
 </pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
 </div>
 </section>
 </section>
