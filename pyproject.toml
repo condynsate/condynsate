@@ -74,7 +74,7 @@ dev = [
        "*.dae",
        "*.png",
        "*.jpg",
-       "condynsate/visualizer/meshcat/src/meshcat/viewer/dist/*"]
+       "condynsate/visualizer/meshcat-python/src/meshcat/*"]
 
 
 [tool.setuptools.dynamic]
