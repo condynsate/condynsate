@@ -68,10 +68,12 @@ dev = [
 
 
 [tool.setuptools.package-data]
-"*" = ["*.stl",
+"*" = ["*.urdf",
        "*.obj",
+       "*.stl",
+       "*.dae",
        "*.png",
-       "*.urdf",
+       "*.jpg",
        "condynsate/visualizer/meshcat/src/meshcat/viewer/dist/*"]
 
 
