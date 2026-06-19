@@ -68,13 +68,13 @@ dev = [
 
 
 [tool.setuptools.package-data]
-"*" = ["*.urdf",
-       "*.obj",
-       "*.stl",
-       "*.dae",
-       "*.png",
-       "*.jpg",
-       "condynsate/visualizer/meshcat-python/src/meshcat/*"]
+"condynsate" = ["*.urdf",
+                "*.obj",
+                "*.stl",
+                "*.dae",
+                "*.png",
+                "*.jpg",
+                "visualizer/meshcat-python/src/meshcat/**/*"]
 
 
 [tool.setuptools.dynamic]
